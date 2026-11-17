@@ -1,0 +1,85 @@
+/* Shared by practice, online rooms and replays. Keep intersection cells square. */
+.practice-flat-board.flat-xiangqi {
+  --frame: 9px;
+  max-width: 535px;
+  aspect-ratio: 9 / 10;
+  border-color: #493322;
+  background: #f4e3bd;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px #d3ae6b, 0 12px 30px #0005;
+}
+.practice-flat-board.flat-xiangqi .flat-piece {
+  width: 82%;
+  height: 82%;
+  font-family: 'SimSun', 'Noto Serif SC', 'Microsoft YaHei', serif;
+  font-size: clamp(23px, 3vw, 42px);
+  font-weight: 800;
+  border: 2px solid #931d29;
+  background: #fff5df;
+  color: #931d29;
+  text-shadow: none;
+  box-shadow: inset 0 0 0 2px #fff5df, inset 0 0 0 3px #b9464e, 0 2px 0 #603a27, 0 3px 4px #30241855;
+}
+.practice-flat-board.flat-xiangqi .piece-b {
+  color: #fff5df;
+  background: #172b34;
+  border-color: #101e25;
+  box-shadow: inset 0 0 0 2px #172b34, inset 0 0 0 3px #afc5ce, 0 2px 0 #101e25, 0 3px 4px #30241855;
+}
+.practice-flat-board.flat-xiangqi .flat-cell.last { background: #b96b002b; }
+.practice-flat-board.flat-xiangqi .flat-cell.last::after {
+  content: '';
+  position: absolute;
+  width: 87%;
+  height: 87%;
+  border: 2px solid #935000;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.practice-flat-board.flat-xiangqi .flat-cell.legal { background: #007c8a19; }
+.practice-flat-board.flat-xiangqi .flat-cell.legal:has(.flat-piece) { box-shadow: none; }
+.practice-flat-board.flat-xiangqi .flat-cell.legal:has(.flat-piece)::after {
+  content: '';
+  position: absolute;
+  width: 94%;
+  height: 94%;
+  border: 3px dashed #006778;
+  border-radius: 50%;
+  z-index: 2;
+  pointer-events: none;
+}
+.practice-flat-board.flat-xiangqi .legal-dot {
+  width: 24%;
+  height: 24%;
+  background: #006778;
+  border: 2px solid #fff5df;
+  box-shadow: 0 0 0 1px #006778;
+}
+.practice-flat-board.flat-xiangqi .flat-cell.chosen .flat-piece {
+  outline: 3px solid #006778;
+  outline-offset: 2px;
+}
+.practice-flat-board.flat-xiangqi .flat-cell.in-check .flat-piece {
+  outline: 3px solid #c32332;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff5df, 0 0 0 7px #c3233233;
+}
+.practice-flat-board.flat-xiangqi .flat-cell:focus-visible {
+  outline: 3px solid #006778;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+.practice-flat-board.flat-xiangqi .flat-cell:hover { filter: none; }
+.practice-flat-board.flat-xiangqi .flat-file, .practice-flat-board.flat-xiangqi .flat-rank {
+  color: #493322;
+  font-size: clamp(8px, .8vw, 10px);
+  font-weight: 800;
+  text-shadow: 0 0 2px #fff5df, 0 0 3px #fff5df;
+}
+@media (max-width: 650px) {
+  .practice-flat-board.flat-xiangqi { --frame: 6px; }
+  .practice-flat-board.flat-xiangqi .flat-piece { font-size: clamp(19px, 6vw, 32px); }
+  .practice-flat-board.flat-xiangqi .flat-cell.chosen .flat-piece,
+  .practice-flat-board.flat-xiangqi .flat-cell.in-check .flat-piece { outline-width: 2px; }
+  .practice-flat-board.flat-xiangqi .flat-cell.legal:has(.flat-piece)::after { border-width: 2px; }
+}

@@ -1,0 +1,138 @@
+{
+  "retrieved": "2026-11-17",
+  "notes": "Original assets; runtime normalizes scale, bakes static pose, tints by side and adds square bases/labels. Ship requires attribution.",
+  "assets": [
+    {
+      "unit": "T",
+      "file": "T.glb",
+      "url": "https://cdn.3dassets.dev/assets/23667/v1/model.glb",
+      "source": "https://3dassets.dev/assets/armoured-column-and-field-camp-main-battle-tank-c801caf7",
+      "title": "Main Battle Tank (Tanks, Military Vehicles and Field Camp)",
+      "author": "3DAssets.dev",
+      "license": "CC0-1.0",
+      "bytes": 103556,
+      "sha256": "277c759681367f5a79c1231dcb7415c23699d0d947b9f852ef01e7335c75468d",
+      "triangles": 2040
+    },
+    {
+      "unit": "E",
+      "file": "E.glb",
+      "url": "https://cdn.3dassets.dev/assets/23678/v1/model.glb",
+      "source": "https://3dassets.dev/assets/armoured-column-and-field-camp-recovery-vehicle-e6e1a9db",
+      "title": "Armoured Recovery Vehicle (Tanks, Military Vehicles and Field Camp)",
+      "author": "3DAssets.dev",
+      "license": "CC0-1.0",
+      "bytes": 115816,
+      "sha256": "fcbbe65f48a03f610e3877e249844808e23ec63c8bfb45638cf117cd43042da5",
+      "triangles": 2288
+    },
+    {
+      "unit": "P",
+      "file": "P.glb",
+      "url": "https://cdn.3dassets.dev/assets/23679/v1/model.glb",
+      "source": "https://3dassets.dev/assets/armoured-column-and-field-camp-field-howitzer-754a96b5",
+      "title": "Field Howitzer (Tanks, Military Vehicles and Field Camp)",
+      "author": "3DAssets.dev",
+      "license": "CC0-1.0",
+      "bytes": 27064,
+      "sha256": "0b3519c11b5e3f77b7d520a7a553f113ba5475351f394acecd743db06d06408b",
+      "triangles": 496
+    },
+    {
+      "unit": "A",
+      "file": "A.glb",
+      "url": "https://cdn.3dassets.dev/assets/23683/v1/model.glb",
+      "source": "https://3dassets.dev/assets/armoured-column-and-field-camp-anti-air-mount-9ca0f138",
+      "title": "Anti-Air Mount (Tanks, Military Vehicles and Field Camp)",
+      "author": "3DAssets.dev",
+      "license": "CC0-1.0",
+      "bytes": 21076,
+      "sha256": "f20ae81ad510043a55937893a1adf8d3c71249db98bc3bb6728b8c85c9f4b362",
+      "triangles": 376
+    },
+    {
+      "unit": "M",
+      "file": "M.glb",
+      "url": "https://cdn.3dassets.dev/assets/23671/v1/model.glb",
+      "source": "https://3dassets.dev/assets/armoured-column-and-field-camp-rocket-launcher-vehicle-106cd1d7",
+      "title": "Mobile Rocket Launcher (Tanks, Military Vehicles and Field Camp)",
+      "author": "3DAssets.dev",
+      "license": "CC0-1.0",
+      "bytes": 61344,
+      "sha256": "8c77f0545018b7491577e3448db5340a96409317b1ca17c183540443c51a31ea",
+      "triangles": 1176
+    },
+    {
+      "unit": "H",
+      "file": "H.glb",
+      "url": "https://cdn.3dassets.dev/assets/23689/v1/model.glb",
+      "source": "https://3dassets.dev/assets/armoured-column-and-field-camp-command-tent-5c85fae1",
+      "title": "Command Tent (Tanks, Military Vehicles and Field Camp)",
+      "author": "3DAssets.dev",
+      "license": "CC0-1.0",
+      "bytes": 25332,
+      "sha256": "4b3bfc0d96560541dfc5306642c06cd08788780a3e50c6c29384312f0ab0e3ae",
+      "triangles": 448
+    },
+    {
+      "unit": "F",
+      "file": "F.glb",
+      "url": "https://cdn.3dassets.dev/assets/32594/v1/model.glb",
+      "source": "https://3dassets.dev/assets/aircraft-fleet-and-airfield-jet-trainer-e5ce1a6e",
+      "title": "Tandem Seat Jet Trainer (Aircraft Fleet and Airfield)",
+      "author": "3DAssets.dev",
+      "license": "CC0-1.0",
+      "bytes": 906608,
+      "sha256": "b9508a1e52747ba76eb9dbf6831aa08502a7aac712b6595f46562635fe4fa787",
+      "triangles": 23214
+    },
+    {
+      "unit": "K",
+      "file": "K.glb",
+      "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/main/packs/mini-characters/character-male-e.glb",
+      "source": "https://kenney.nl/assets/mini-characters",
+      "title": "character-male-e",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "bytes": 249188,
+      "sha256": "74c7868e7387beea4c7bd0afdc6753751bc2da785928ae9cb6d69e863c6b4f76",
+      "triangles": 710
+    },
+    {
+      "unit": "I",
+      "file": "I.glb",
+      "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/main/packs/mini-characters/character-male-a.glb",
+      "source": "https://kenney.nl/assets/mini-characters",
+      "title": "character-male-a",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "bytes": 253400,
+      "sha256": "b9e4a5e2c7761f08c759ca9e013a2f57b986ac4e46961569f634d80084c3e5d7",
+      "triangles": 723
+    },
+    {
+      "unit": "D",
+      "file": "D.glb",
+      "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/main/packs/mini-characters/character-female-a.glb",
+      "source": "https://kenney.nl/assets/mini-characters",
+      "title": "character-female-a",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "bytes": 279936,
+      "sha256": "7a7f1015ebbb22d515babf6ce36fc41f5b0ce91c4886d5d963764585f709faa6",
+      "triangles": 876
+    },
+    {
+      "unit": "N",
+      "file": "N.glb",
+      "url": "https://static.poly.pizza/42011511-7595-4006-9523-68b12a1c2735.glb",
+      "source": "https://poly.pizza/m/aYAmfkUYZjg",
+      "title": "Simple Battleship",
+      "author": "Thomas de Rivaz",
+      "license": "CC-BY-3.0",
+      "bytes": 136380,
+      "sha256": "f33f4a400881f922b5b0730eb1dd4cfbc04514e7e615245775f154d8ddb48033",
+      "triangles": 2432
+    }
+  ]
+}

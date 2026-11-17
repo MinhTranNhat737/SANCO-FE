@@ -1,0 +1,1417 @@
+/* Short copy, visible actions, and details available on demand. */
+.compact-interface .quick-lobby {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    padding: 28px 0 32px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px
+}
+
+.compact-interface .quick-lobby h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(30px, 3vw, 45px);
+    font-weight: 500;
+    letter-spacing: -1px;
+    line-height: 1.3;
+    margin: 0 0 10px;
+    color: var(--text)
+}
+
+.compact-interface .quick-lobby h1 em {
+    color: #c9d5a5;
+    font-style: normal
+}
+
+.compact-interface .quick-lobby p {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--secondary);
+    margin: 0
+}
+
+.compact-interface .quick-lobby-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap
+}
+
+.compact-interface .quick-lobby-actions .button {
+    font-size: 12px;
+    min-height: 44px;
+    padding: 12px 16px;
+    white-space: nowrap
+}
+
+.compact-interface .quick-lobby-actions .text-button {
+    font-size: 12px;
+    min-height: 44px
+}
+
+.compact-interface .collection-section {
+    margin: 0 0 30px
+}
+
+.compact-interface .collection-section .section-heading {
+    margin-bottom: 18px;
+    gap: 15px
+}
+
+.compact-interface .collection-filters {
+    margin: 0;
+    gap: 6px
+}
+
+.compact-interface .collection-filters button {
+    font-size: 12px;
+    padding: 9px 15px;
+    min-height: 40px
+}
+
+.compact-interface .collection-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px
+}
+
+.compact-interface .catalog-art {
+    height: 128px;
+    margin: 4px 0 0
+}
+
+.compact-interface .catalog-mini-grid {
+    width: 110px;
+    height: 110px
+}
+
+.compact-interface .catalog-chess {
+    font-size: 126px
+}
+
+.compact-interface .catalog-xiangqi {
+    width: 92px;
+    height: 92px;
+    font-size: 56px
+}
+
+.compact-interface .art-connect4 .catalog-mini-grid {
+    width: 142px;
+    height: 88px
+}
+
+.compact-interface .collection-card-top {
+    padding: 15px 18px 0
+}
+
+.compact-interface .collection-card .available {
+    font-size: 10px
+}
+
+.compact-interface .collection-card-copy {
+    padding: 10px 19px 16px
+}
+
+.compact-interface .collection-card h3 {
+    font-size: 28px;
+    margin: 0 0 7px
+}
+
+.compact-interface .collection-card-copy p {
+    font-size: 12px;
+    min-height: 0;
+    line-height: 1.6;
+    margin: 0;
+    color: #c8d6be
+}
+
+.compact-interface .collection-card-bottom {
+    padding: 13px 18px;
+    justify-content: space-between;
+    font-size: 11px
+}
+
+.compact-interface .collection-card-bottom strong {
+    font-size: 12px;
+    width: auto;
+    margin: 0;
+    gap: 9px
+}
+
+.compact-interface .compact-recent {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    background: var(--surface)
+}
+
+.compact-interface .compact-recent .section-heading {
+    margin-bottom: 12px
+}
+
+.compact-interface .compact-recent .section-heading h2 {
+    font-size: 20px
+}
+
+.compact-interface .compact-empty {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+    color: var(--secondary);
+    font-size: 13px
+}
+
+.compact-interface .compact-empty .text-button {
+    margin-left: auto;
+    min-height: 40px;
+    font-size: 12px
+}
+
+.compact-interface .footer {
+    margin-top: 30px;
+    padding-top: 22px;
+    justify-content: space-between
+}
+
+.compact-interface .sidebar nav {
+    margin-top: 30px
+}
+
+.compact-interface .page-heading {
+    margin-bottom: 22px
+}
+
+.compact-interface .page-heading h1 {
+    font-size: 34px;
+    line-height: 1.3
+}
+
+.compact-interface .modal h2 {
+    font-size: 29px;
+    margin: 0 25px 22px 0;
+    line-height: 1.3
+}
+
+.compact-interface .modal label {
+    font-size: 12px;
+    margin-top: 16px
+}
+
+.compact-interface .modal .form-note {
+    font-size: 11px;
+    line-height: 1.7;
+    margin-top: 13px
+}
+
+.compact-interface .mode-choices {
+    margin: 4px 0 18px
+}
+
+.compact-interface .mode-choices strong {
+    font-size: 16px
+}
+
+.compact-interface .mode-choices small {
+    font-size: 12px
+}
+
+.compact-interface .mode-choices>button {
+    min-height: 94px
+}
+
+.compact-interface .game-options {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 16px
+}
+
+.compact-interface .game-options button {
+    min-height: 78px;
+    padding: 10px 3px;
+    gap: 6px
+}
+
+.compact-interface .game-options strong {
+    font-size: 10px
+}
+
+.compact-interface .game-options button>span {
+    font-size: 25px
+}
+
+.compact-interface .game-options small {
+    font-size: 10px
+}
+
+.compact-interface .room-side-options {
+    margin-bottom: 15px
+}
+
+.compact-interface .room-side-options button {
+    font-size: 12px;
+    padding: 11px 5px
+}
+
+.compact-interface .room-side-options small {
+    font-size: 10px
+}
+
+.compact-interface .modal .button.full {
+    min-height: 45px
+}
+
+.compact-interface .compact-details {
+    border: 1px solid #496146;
+    border-radius: 8px;
+    background: #1b3022;
+    margin: 15px 0;
+    padding: 0 14px;
+    color: #dbe7cc
+}
+
+.compact-interface .compact-details>summary {
+    cursor: pointer;
+    min-height: 44px;
+    padding: 12px 0;
+    font-size: 12px;
+    line-height: 1.7;
+    font-weight: 500
+}
+
+.compact-interface .compact-details>summary::marker {
+    color: #c5d3a3
+}
+
+.compact-interface .compact-details>summary span {
+    font-weight: 400;
+    color: #bbceb0;
+    margin-left: 12px;
+    overflow-wrap: anywhere
+}
+
+.compact-interface .compact-details p {
+    color: #c3d1b6;
+    font-size: 12px;
+    line-height: 1.95;
+    margin: 0 0 15px
+}
+
+.compact-interface .compact-details label {
+    margin: 0 0 15px
+}
+
+.compact-interface summary:focus-visible {
+    outline: 2px solid #d6dda4;
+    outline-offset: 4px;
+    border-radius: 3px
+}
+
+.compact-interface .modal select {
+    display: block;
+    width: 100%;
+    min-height: 45px;
+    margin-top: 9px;
+    padding: 11px 13px;
+    background: #14291d;
+    border: 1px solid #637b53;
+    border-radius: 8px;
+    color: #eaf0dc;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    color-scheme: dark
+}
+
+.compact-interface .modal select:focus-visible {
+    outline: 2px solid #d2dda4;
+    outline-offset: 2px
+}
+
+.compact-interface .practice-stage.stage-2d {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: auto;
+    display: block;
+    padding: 14px 12px 36px
+}
+
+.compact-interface .stage-2d .practice-flat-board,
+.compact-interface .stage-2d .party-board {
+    margin-inline: auto
+}
+
+.compact-interface [hidden] {
+    display: none !important
+}
+
+.compact-interface .practice-heading {
+    margin-bottom: 20px
+}
+
+.compact-interface .practice-heading h1 {
+    font-size: 31px;
+    margin: 0
+}
+
+.compact-interface .practice-breadcrumb {
+    margin-bottom: 18px
+}
+
+.compact-interface .practice-table-header {
+    margin-bottom: 17px
+}
+
+.compact-interface .practice-table-header h2 {
+    font-size: 29px
+}
+
+.compact-interface .practice-table-header p {
+    font-size: 12px
+}
+
+.compact-interface .practice-aside>.panel {
+    padding: 22px
+}
+
+.compact-interface .practice-aside h2 {
+    font-size: 26px;
+    margin-bottom: 18px
+}
+
+.compact-interface .setup-label {
+    font-size: 13px;
+    margin: 18px 0 10px
+}
+
+.compact-interface .difficulty-options button {
+    min-height: 67px;
+    font-size: 13px
+}
+
+.compact-interface .side-options strong {
+    font-size: 11px
+}
+
+.compact-interface .practice-start {
+    font-size: 14px;
+    min-height: 46px;
+    margin-top: 20px
+}
+
+.compact-interface .practice-session-facts {
+    margin: 0 0 20px;
+    padding: 8px 0
+}
+
+.compact-interface .practice-session-facts>span,
+.compact-interface .practice-session-facts strong {
+    font-size: 12px
+}
+
+.compact-interface .practice-player>span:nth-child(2)>span {
+    font-size: 11px
+}
+
+.compact-interface .practice-view-tools>span {
+    font-size: 11px
+}
+
+.compact-interface .practice-input-tools .switch-label {
+    font-size: 12px
+}
+
+.compact-interface .stage-caption {
+    font-size: 10px
+}
+
+.compact-interface .practice-rule-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 49px;
+    border: 1px solid #526c48;
+    border-radius: 9px;
+    background: #203725;
+    color: #dbe6cb;
+    padding: 12px 17px;
+    text-align: left;
+    font-size: 13px;
+    margin-bottom: 18px
+}
+
+.compact-interface .practice-rule-button>span {
+    flex: 1
+}
+
+.compact-interface .practice-rule-button:hover {
+    border-color: #c5d19e;
+    background: #2c442b
+}
+
+.compact-interface .compact-moves {
+    padding: 0 !important;
+    margin-bottom: 18px;
+    overflow: visible
+}
+
+.compact-interface .compact-moves>summary {
+    cursor: pointer;
+    min-height: 51px;
+    padding: 16px 19px;
+    font-size: 13px;
+    color: #e2ecd3;
+    font-weight: 500;
+    line-height: 1.5
+}
+
+.compact-interface .compact-moves>summary>span {
+    float: right;
+    color: #b4c79e;
+    font-size: 12px
+}
+
+.compact-interface .compact-moves .moves-list {
+    padding: 0 12px 12px;
+    max-height: 280px
+}
+
+.compact-interface .compact-moves .moves-empty {
+    padding: 18px 12px
+}
+
+.compact-interface .compact-moves .moves-empty>span {
+    display: none
+}
+
+.compact-interface .compact-moves .moves-empty p {
+    margin: 0;
+    font-size: 12px
+}
+
+.compact-interface .room-title {
+    margin: 15px 0 22px
+}
+
+.compact-interface .room-title h1 {
+    font-size: 35px;
+    margin: 6px 0
+}
+
+.compact-interface .room-title .eyebrow {
+    font-size: 11px;
+    letter-spacing: 1px
+}
+
+.compact-interface .room-turn-status {
+    font-size: 13px;
+    padding: 12px 15px
+}
+
+.compact-interface .online-workspace .live-panel .match-actions {
+    margin-top: 0
+}
+
+.compact-interface .online-workspace .live-panel .clock-note {
+    font-size: 11px;
+    margin: 17px 0 0
+}
+
+.compact-interface .lobby-panel .room-seat-list {
+    margin-top: 0
+}
+
+.compact-interface .lobby-panel .button {
+    font-size: 13px;
+    min-height: 44px
+}
+
+.compact-interface .room-helper {
+    font-size: 11px !important
+}
+
+.compact-interface .room-seat-list small {
+    font-size: 11px
+}
+
+.compact-interface .room-seat-list .ready-tag,
+.compact-interface .room-seat-list .waiting-tag {
+    font-size: 10px
+}
+
+.compact-interface .practice-secondary-actions .text-button {
+    min-height: 40px;
+    font-size: 12px
+}
+
+.compact-interface .compact-rules-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start
+}
+
+.compact-interface .compact-rule-item {
+    padding: 0;
+    border-radius: 10px
+}
+
+.compact-interface .compact-rule-item>summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    cursor: pointer;
+    list-style: none;
+    min-height: 90px
+}
+
+.compact-interface .compact-rule-item>summary::-webkit-details-marker {
+    display: none
+}
+
+.compact-interface .compact-rule-item>summary::after {
+    content: '+';
+    font-size: 22px;
+    color: #c6d4ad;
+    margin-left: auto
+}
+
+.compact-interface .compact-rule-item[open]>summary::after {
+    content: '−'
+}
+
+.compact-interface .compact-rule-item .rules-game-symbol {
+    width: 43px;
+    height: 47px;
+    font-size: 28px
+}
+
+.compact-interface .compact-rule-item strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 500;
+    color: #edf2df;
+    margin-bottom: 7px
+}
+
+.compact-interface .compact-rule-item small {
+    font-size: 11px;
+    color: #b9cbaa;
+    display: block;
+    line-height: 1.8
+}
+
+.compact-interface .compact-rule-item p {
+    font-size: 13px;
+    line-height: 2;
+    color: #c7d5b9;
+    margin: 0;
+    padding: 0 22px 22px
+}
+
+.compact-interface .rules-create-action {
+    margin-top: 24px
+}
+
+/* Full-Page Board Focus Mode: Maximize playing board across the entire viewport */
+.board-focus-shell .sidebar:not(.sidebar-open) {
+    transform: translateX(-100%)
+}
+
+.board-focus-shell .topbar {
+    display: none
+}
+
+.board-focus-shell .main-shell {
+    margin-left: 0 !important;
+    min-height: 100dvh;
+    background: #0c1913
+}
+
+.board-focus-shell .content {
+    max-width: 100% !important;
+    width: 100%;
+    min-height: 100dvh;
+    padding: 4px 6px !important;
+    margin: 0
+}
+
+.board-focus-shell .content:has(.board-unified-play.practice-commander) {
+    padding: 0 !important
+}
+
+.board-focus-shell .board-unified-play.practice-commander {
+    gap: 0
+}
+
+.board-focus-shell .board-unified-play.practice-commander .practice-breadcrumb {
+    padding: 2px 10px;
+    border-bottom: 1px solid #354b3244
+}
+
+.board-focus-shell .board-unified-play.practice-commander .practice-layout {
+    gap: 0;
+    min-height: calc(100dvh - 30px)
+}
+
+.board-focus-shell .board-unified-play.practice-commander .practice-table {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    min-height: calc(100dvh - 30px)
+}
+
+.board-focus-shell .board-unified-play.practice-commander :is(.practice-table-header, .practice-player, .practice-view-tools, .practice-input-tools) {
+    margin-inline: 8px
+}
+
+.board-focus-shell .board-unified-play.practice-commander .practice-table-header {
+    padding: 4px 2px 2px
+}
+
+.board-focus-shell .board-unified-play.practice-commander .practice-aside {
+    top: 0;
+    max-height: 100dvh;
+    padding: 8px 10px 12px;
+    border-left: 1px solid var(--board-border);
+    background: color-mix(in srgb, var(--board-panel) 92%, transparent)
+}
+
+.board-focus-shell .practice-workspace {
+    padding-bottom: 6px
+}
+
+.board-focus-shell .practice-heading,
+.board-focus-shell .practice-recent,
+.board-focus-shell .practice-table-header p,
+.board-focus-shell .room-title p,
+.board-focus-shell .room-title .eyebrow,
+.board-focus-shell .stage-caption,
+.board-focus-shell .clock-note,
+.board-focus-shell .room-helper,
+.board-focus-shell .party-summary,
+.board-focus-shell .room-table-bar>span,
+.board-focus-shell .practice-view-tools>span,
+.board-focus-shell .practice-player>span:nth-child(2)>span,
+.board-focus-shell .practice-session p,
+.board-focus-shell .practice-session-facts {
+    display: none !important
+}
+
+.board-focus-shell .practice-layout:not(.setup-layout) .practice-tabs {
+    display: none
+}
+
+.board-focus-shell .practice-breadcrumb {
+    margin-bottom: 6px;
+    padding: 0 4px
+}
+
+.board-focus-shell .room-title {
+    margin: 0 0 6px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+}
+
+.board-focus-shell .room-title h1 {
+    font-size: 18px;
+    margin: 0
+}
+
+.board-focus-shell .practice-table-header {
+    margin: 0 0 6px
+}
+
+.board-focus-shell .practice-table-header h2 {
+    font-size: 20px;
+    margin: 0
+}
+
+.board-focus-shell .room-table-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px
+}
+
+.board-focus-shell .practice-layout {
+    grid-template-columns: minmax(0, 1fr) 248px;
+    gap: 10px;
+    min-height: calc(100dvh - 36px);
+    align-items: stretch
+}
+
+.board-focus-shell .practice-table {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: calc(100dvh - 36px);
+    border-radius: 14px
+}
+
+.board-focus-shell .practice-player {
+    min-height: 40px;
+    padding: 5px 10px;
+    gap: 8px
+}
+
+.board-focus-shell .practice-avatar,
+.board-focus-shell .side-stone {
+    width: 26px;
+    height: 26px;
+    font-size: 16px
+}
+
+.board-focus-shell .practice-stage:not(.stage-2d) {
+    flex: 1;
+    height: calc(100dvh - 116px) !important;
+    min-height: 580px;
+    margin: 4px 0
+}
+
+.board-focus-shell .party-model {
+    height: calc(100dvh - 108px) !important;
+    min-height: 580px
+}
+
+.board-focus-shell .practice-stage.stage-2d {
+    flex: 1;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 4px !important;
+    min-height: calc(100dvh - 116px);
+    margin: 4px 0
+}
+
+.board-focus-shell .practice-flat-board,
+.board-focus-shell .party-stage-wrap>.party-board {
+    max-width: min(88dvh, 92vw) !important;
+    width: min(88dvh, 92vw) !important;
+    margin: 2px auto !important
+}
+
+.board-focus-shell .party-room-stage {
+    flex: 1;
+    min-height: calc(100dvh - 90px);
+    width: 100%
+}
+
+.board-focus-shell .party-roster {
+    margin: 8px 0 0;
+    gap: 8px
+}
+
+.board-focus-shell .party-roster>article {
+    padding: 8px 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px
+}
+
+.board-focus-shell .party-roster .party-clock {
+    margin-top: 0;
+    font-size: 16px
+}
+
+.board-focus-shell .practice-view-tools {
+    padding: 4px 0
+}
+
+.board-focus-shell .practice-aside>.panel {
+    padding: 16px;
+    margin-bottom: 10px
+}
+
+.board-focus-shell .practice-aside h2 {
+    font-size: 20px;
+    margin-bottom: 10px
+}
+
+/* Unified Play Mode: Compact, non-overlapping HUD across all 16 games */
+.board-focus-shell .board-unified-play {
+    display: flex;
+    flex-direction: column;
+    gap: 4px
+}
+
+.board-focus-shell .board-unified-play .practice-breadcrumb {
+    margin: 0;
+    padding: 2px 6px;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px
+}
+
+.board-focus-shell .board-unified-play .room-title {
+    margin: 0;
+    padding: 2px 6px;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+.board-focus-shell .board-unified-play .room-title h1 {
+    font-size: 15px;
+    margin: 0
+}
+
+.board-focus-shell .board-unified-play .practice-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 268px;
+    gap: 8px;
+    min-height: calc(100dvh - 38px);
+    align-items: start
+}
+
+.board-focus-shell .board-unified-play .practice-table {
+    width: 100%;
+    min-height: calc(100dvh - 38px);
+    padding: 6px 8px !important;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 3px
+}
+
+.board-focus-shell .board-unified-play.practice-ludo .practice-table-header,
+.board-focus-shell .board-unified-play.practice-monopoly .practice-table-header {
+    display: none !important
+}
+
+.board-focus-shell .board-unified-play .practice-table-header {
+    margin: 0;
+    padding: 0 2px 4px;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap
+}
+
+.board-focus-shell .board-unified-play .practice-table-header h2 {
+    font-size: 16px;
+    margin: 0
+}
+
+.board-focus-shell .board-unified-play .party-table-toolbar {
+    padding: 4px 10px;
+    min-height: 32px;
+    gap: 8px
+}
+
+.board-focus-shell .board-unified-play .party-table-toolbar button,
+.board-focus-shell .board-unified-play .board-appearance button,
+.board-focus-shell .board-unified-play .practice-display-switch button {
+    min-height: 26px;
+    padding: 3px 9px;
+    font-size: 11px
+}
+
+.board-focus-shell .board-unified-play .party-material-label {
+    display: none
+}
+
+.board-focus-shell .board-unified-play .practice-player {
+    min-height: 32px;
+    padding: 3px 9px;
+    gap: 8px;
+    border-radius: 8px
+}
+
+.board-focus-shell .board-unified-play .practice-player strong {
+    font-size: 12px
+}
+
+.board-focus-shell .board-unified-play .practice-avatar,
+.board-focus-shell .board-unified-play .side-stone {
+    width: 24px;
+    height: 24px;
+    font-size: 14px
+}
+
+.board-focus-shell .board-unified-play .room-clock {
+    font-size: 16px
+}
+
+.board-focus-shell .board-unified-play .practice-stage:not(.stage-2d) {
+    height: calc(100dvh - 134px) !important;
+    min-height: 520px;
+    margin: 2px 0 !important
+}
+
+.board-focus-shell .board-unified-play .party-model {
+    height: calc(100dvh - 110px) !important;
+    min-height: 520px
+}
+
+.board-focus-shell .board-unified-play .practice-stage.stage-2d {
+    min-height: calc(100dvh - 134px) !important;
+    padding: 2px !important;
+    margin: 2px 0 !important
+}
+
+.board-focus-shell .board-unified-play .practice-flat-board,
+.board-focus-shell .board-unified-play .party-stage-wrap>.party-board {
+    max-width: min(86dvh, 100%) !important;
+    width: min(86dvh, 100%) !important;
+    margin: 0 auto !important
+}
+
+.board-focus-shell .board-unified-play .practice-flat-board:is(.flat-xiangqi, .flat-commander) {
+    max-width: min(78dvh, 100%) !important;
+    width: min(78dvh, 100%) !important
+}
+
+.board-focus-shell .board-unified-play .flat-piece {
+    font-size: clamp(34px, 4.8vw, 68px)
+}
+
+.board-focus-shell .board-unified-play .flat-xiangqi .flat-piece {
+    width: 91%;
+    height: 91%;
+    font-size: clamp(22px, 3.1vw, 44px)
+}
+
+.board-focus-shell .board-unified-play .flat-caro .flat-piece {
+    font-size: clamp(18px, 2.6vw, 36px)
+}
+
+.board-focus-shell .board-unified-play .party-camera-bar {
+    padding: 4px 10px;
+    gap: 6px;
+    min-height: 30px
+}
+
+.board-focus-shell .board-unified-play .party-camera-bar button {
+    min-height: 26px;
+    padding: 3px 8px;
+    font-size: 11px
+}
+
+.board-focus-shell .board-unified-play .practice-view-tools {
+    padding: 2px 0;
+    min-height: 28px
+}
+
+.board-focus-shell .board-unified-play .practice-input-tools {
+    padding: 4px 0 0;
+    min-height: 32px
+}
+
+.board-focus-shell .board-unified-play .practice-aside {
+    position: sticky;
+    top: 8px;
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    padding-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+}
+
+.board-focus-shell .board-unified-play .practice-aside>* {
+    margin: 0 !important;
+    border-radius: 10px !important;
+    flex-shrink: 0;
+    overflow: visible !important
+}
+
+.board-focus-shell .board-unified-play .party-action-panel {
+    padding: 9px 10px !important
+}
+
+.board-focus-shell .board-unified-play .estate-wallet {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    margin-bottom: 2px
+}
+
+.board-focus-shell .board-unified-play .estate-wallet>span {
+    display: none
+}
+
+.board-focus-shell .board-unified-play .estate-wallet>strong {
+    font-size: 17px
+}
+
+.board-focus-shell .board-unified-play .estate-wallet>small {
+    font-size: 10.5px;
+    text-align: right
+}
+
+.board-focus-shell .board-unified-play .estate-dice {
+    display: none
+}
+
+.board-focus-shell .board-unified-play .estate-primary-actions {
+    gap: 5px;
+    margin-top: 5px
+}
+
+.board-focus-shell .board-unified-play .estate-primary-actions .button {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 11.5px
+}
+
+.board-focus-shell .board-unified-play .estate-panel {
+    margin-top: 6px;
+    padding-top: 6px
+}
+
+.board-focus-shell .board-unified-play .estate-panel>summary {
+    font-size: 11px;
+    min-height: 22px
+}
+
+.board-focus-shell .board-unified-play .practice-session,
+.board-focus-shell .board-unified-play .live-panel,
+.board-focus-shell .board-unified-play .result-panel {
+    padding: 9px 10px !important
+}
+
+.board-focus-shell .board-unified-play .practice-session h2 {
+    display: none
+}
+
+.board-focus-shell .board-unified-play .practice-session>.button,
+.board-focus-shell .board-unified-play .result-panel>.button {
+    min-height: 32px;
+    margin-bottom: 5px;
+    font-size: 11.5px
+}
+
+.board-focus-shell .board-unified-play .practice-secondary-actions {
+    margin: 2px 0 0
+}
+
+.board-focus-shell .board-unified-play .practice-secondary-actions .text-button {
+    min-height: 28px;
+    font-size: 11px
+}
+
+.board-focus-shell .board-unified-play .practice-rule-button {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 11.5px
+}
+
+.board-focus-shell .board-unified-play .compact-moves>summary {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 11.5px
+}
+
+@media(max-width:900px) {
+    .board-focus-shell .board-unified-play .practice-layout {
+        grid-template-columns: 1fr !important
+    }
+
+    .board-focus-shell .board-unified-play .practice-aside {
+        position: static;
+        max-height: none
+    }
+}
+
+@media(min-width:1600px) {
+    .compact-interface .collection-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr))
+    }
+}
+
+@media(max-width:1150px) {
+    .compact-interface .quick-lobby {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 20px
+    }
+
+    .compact-interface .quick-lobby-actions {
+        width: 100%
+    }
+
+    .compact-interface .game-options {
+        grid-template-columns: repeat(5, minmax(0, 1fr))
+    }
+}
+
+@media(max-width:1050px) {
+    .compact-interface .setup-layout>.practice-aside {
+        grid-row: 1
+    }
+
+    .compact-interface .setup-layout>.practice-aside .practice-setup {
+        grid-column: 1/-1
+    }
+
+    .compact-interface .setup-layout .practice-rule-button {
+        grid-column: 1/-1;
+        margin: 0
+    }
+
+    .compact-interface .practice-aside {
+        gap: 16px
+    }
+
+    .board-focus-shell .practice-layout {
+        grid-template-columns: 1fr
+    }
+
+    .board-focus-shell .practice-table {
+        min-height: calc(100dvh - 180px)
+    }
+
+    .board-focus-shell .practice-stage:not(.stage-2d),
+    .board-focus-shell .party-model {
+        height: calc(100dvh - 210px) !important;
+        min-height: 460px
+    }
+}
+
+@media(max-width:650px) {
+    .compact-interface .quick-lobby {
+        padding: 12px 0 24px;
+        margin-bottom: 24px;
+        gap: 18px
+    }
+
+    .compact-interface .quick-lobby h1 {
+        font-size: 32px
+    }
+
+    .compact-interface .quick-lobby p {
+        font-size: 12px
+    }
+
+    .compact-interface .quick-lobby-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px
+    }
+
+    .compact-interface .quick-lobby-actions .button {
+        font-size: 12px;
+        padding: 11px 9px;
+        justify-content: center
+    }
+
+    .compact-interface .quick-lobby-actions>.text-button {
+        grid-column: 1/-1;
+        justify-content: center;
+        min-height: 38px
+    }
+
+    .compact-interface .collection-section .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 13px
+    }
+
+    .compact-interface .collection-section .section-heading h2 {
+        font-size: 23px
+    }
+
+    .compact-interface .collection-filters {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr)
+    }
+
+    .compact-interface .collection-filters button {
+        font-size: 11px;
+        padding: 9px 8px;
+        min-height: 42px
+    }
+
+    .compact-interface .collection-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px
+    }
+
+    .compact-interface .collection-card-top {
+        padding: 12px 13px 0
+    }
+
+    .compact-interface .catalog-art {
+        height: 110px
+    }
+
+    .compact-interface .catalog-mini-grid {
+        width: 94px;
+        height: 94px
+    }
+
+    .compact-interface .catalog-chess {
+        font-size: 106px
+    }
+
+    .compact-interface .catalog-xiangqi {
+        width: 80px;
+        height: 80px;
+        font-size: 47px
+    }
+
+    .compact-interface .art-connect4 .catalog-mini-grid {
+        width: 113px;
+        height: 70px
+    }
+
+    .compact-interface .collection-card-copy {
+        padding: 8px 14px 14px
+    }
+
+    .compact-interface .collection-card h3 {
+        font-size: 24px
+    }
+
+    .compact-interface .collection-card-copy p {
+        font-size: 11px;
+        min-height: 0
+    }
+
+    .compact-interface .collection-card-bottom {
+        padding: 12px 13px;
+        font-size: 10px;
+        flex-wrap: nowrap
+    }
+
+    .compact-interface .collection-card-bottom strong {
+        font-size: 11px;
+        gap: 5px
+    }
+
+    .compact-interface .compact-recent {
+        padding: 17px
+    }
+
+    .compact-interface .compact-empty {
+        gap: 9px;
+        font-size: 12px
+    }
+
+    .compact-interface .compact-empty .text-button {
+        font-size: 11px
+    }
+
+    .compact-interface .modal h2 {
+        font-size: 26px
+    }
+
+    .compact-interface .game-options {
+        gap: 5px
+    }
+
+    .compact-interface .game-options button {
+        min-height: 76px
+    }
+
+    .compact-interface .game-options strong {
+        font-size: 9px
+    }
+
+    .compact-interface .game-options small {
+        font-size: 9px
+    }
+
+    .compact-interface .mode-choices>button {
+        padding: 16px 13px;
+        min-height: 85px
+    }
+
+    .compact-interface .mode-choices strong {
+        font-size: 15px
+    }
+
+    .compact-interface .mode-choices small {
+        font-size: 11px
+    }
+
+    .compact-interface .practice-heading h1 {
+        font-size: 27px
+    }
+
+    .compact-interface .practice-aside>.panel {
+        padding: 21px
+    }
+
+    .compact-interface .practice-breadcrumb>span {
+        font-size: 11px;
+        max-width: none
+    }
+
+    .compact-interface .practice-view-tools>span {
+        font-size: 10px
+    }
+
+    .compact-interface .stage-caption {
+        font-size: 9px
+    }
+
+    .compact-interface .room-title h1 {
+        font-size: 30px
+    }
+
+    .compact-interface .room-turn-status {
+        font-size: 12px
+    }
+
+    .compact-interface .practice-player>span:nth-child(2)>span {
+        font-size: 10px
+    }
+
+    .compact-interface .practice-input-tools .switch-label {
+        font-size: 11px
+    }
+
+    .compact-interface .practice-aside .practice-rule-button {
+        margin-bottom: 0
+    }
+
+    .compact-interface .footer {
+        margin-top: 24px
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .compact-interface details {
+        scroll-behavior: auto
+    }
+}
+
+@media(max-width:650px) {
+    .compact-interface .compact-rules-list {
+        grid-template-columns: 1fr
+    }
+
+    .compact-interface .compact-rule-item>summary {
+        padding: 15px 17px;
+        min-height: 82px
+    }
+
+    .compact-interface .compact-rule-item strong {
+        font-size: 15px
+    }
+
+    .compact-interface .compact-rule-item p {
+        padding: 0 18px 18px;
+        font-size: 12px
+    }
+}

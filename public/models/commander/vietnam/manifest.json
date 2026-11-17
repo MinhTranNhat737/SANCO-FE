@@ -1,0 +1,225 @@
+{
+  "profile": "vietnam-miniatures-v1",
+  "description": "Original stylized board-game miniatures, made using public visual references. Not engineering-scale replicas. Team colors are on bases, equipment retains natural military colors.",
+  "assets": [
+    {
+      "unit": "K",
+      "file": "K.glb",
+      "title": "Sĩ quan chỉ huy · quân phục ô liu, mũ kê pi",
+      "features": [
+        "olive-uniform",
+        "peaked-cap",
+        "red-collar",
+        "epaulettes"
+      ],
+      "references": [
+        "https://www.qdnd.vn/quoc-phong-an-ninh/tin-tuc/quy-dinh-moi-ve-trang-phuc-thuong-dung-cua-nam-nu-si-quan-quan-nhan-chuyen-nghiep-835019"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 85540,
+      "sha256": "aaa25624cf0439303ceafa60517d2bc2fbb9d16c54a50f74396ab013293ed6a0",
+      "triangles": 820
+    },
+    {
+      "unit": "I",
+      "file": "I.glb",
+      "title": "Bộ binh · mũ cối, quân phục xanh",
+      "features": [
+        "pith-helmet",
+        "olive-uniform",
+        "field-pack",
+        "rifle"
+      ],
+      "references": [
+        "https://www.qdnd.vn/quoc-phong-an-ninh/xay-dung-quan-doi/nhung-ngay-dau-trong-quan-ngu-654762"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 100572,
+      "sha256": "6cc5a82d6d6a523a327f04dc9da31f73099025a00ae9feb878a75465d6fcad2c",
+      "triangles": 968
+    },
+    {
+      "unit": "D",
+      "file": "D.glb",
+      "title": "Nữ dân quân · mũ mềm, tóc dài",
+      "features": [
+        "soft-field-cap",
+        "ponytail",
+        "olive-uniform",
+        "rifle"
+      ],
+      "references": [
+        "https://www.qdnd.vn/quoc-phong-an-ninh/xay-dung-quan-doi/nhung-bong-hoa-po-lang-tren-thao-truong-537440"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 110896,
+      "sha256": "cbebe11ed9a3653fd1299dc5b2e1341145039de726727ad2c47118c5295d9ffc",
+      "triangles": 1084
+    },
+    {
+      "unit": "T",
+      "file": "T.glb",
+      "title": "Xe tăng · tham chiếu T-54B",
+      "features": [
+        "rounded-cast-turret",
+        "five-road-wheels-per-side",
+        "long-gun",
+        "rear-fuel-drums"
+      ],
+      "references": [
+        "https://btlsqsvn.mod.gov.vn/tin-tuc/chi-tiet?post_id=d1ea0812-8bb3-4703-8a9b-240e31779ee9"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 177976,
+      "sha256": "e392275e15ee5fb9ea08059d0243fb3c9be46cf3f0adf226008e0c9b95216883",
+      "triangles": 1772
+    },
+    {
+      "unit": "E",
+      "file": "E.glb",
+      "title": "Công binh · xe cầu kiểu TMM",
+      "features": [
+        "three-axle-truck",
+        "folded-bridge",
+        "olive-paint"
+      ],
+      "references": [
+        "https://www.qdnd.vn/army-games-2021-viet-nam/dau-an/lam-chu-trang-bi-tinh-thong-ky-nang-665398"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 121096,
+      "sha256": "b51633504d35b13e8fa557b35371114fdba35e32cc0b5b3663255ae16e54272e",
+      "triangles": 1180
+    },
+    {
+      "unit": "P",
+      "file": "P.glb",
+      "title": "Pháo binh · pháo kéo ba càng",
+      "features": [
+        "three-trails",
+        "two-wheels",
+        "gun-shield",
+        "elevated-barrel"
+      ],
+      "references": [
+        "https://bvhttdl.gov.vn/Pages/chi-tiet.aspx?url=%2Fcan-canh-dan-thiet-bi-khi-tai-cua-quan-doi-nhan-dan-viet-nam-tai-le-dieu-binh-dieu-hanh-chao-mung-ky-niem-80-nam-quoc-khanh-20250902153636633.htm"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 43220,
+      "sha256": "0fa2d4e3d4a67069b141b75ce933c040d9b9c84a2b6846070bb474186bd7b84e",
+      "triangles": 396
+    },
+    {
+      "unit": "A",
+      "file": "A.glb",
+      "title": "Cao xạ · tham chiếu ZU-23-2",
+      "features": [
+        "twin-barrels",
+        "two-wheeled-mount",
+        "gunner-seats"
+      ],
+      "references": [
+        "https://www.qdnd.vn/quoc-phong-an-ninh/xay-dung-quan-doi/tang-cuong-kha-nang-phong-khong-co-dong-471957"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 43600,
+      "sha256": "e7960e10eb67a8d4e6683ef60ef2cac1cd74a29a3254e71340299eb9bf70e564",
+      "triangles": 412
+    },
+    {
+      "unit": "M",
+      "file": "M.glb",
+      "title": "Tên lửa phòng không · tham chiếu SAM-2",
+      "features": [
+        "single-long-missile",
+        "four-fins",
+        "inclined-launch-rail"
+      ],
+      "references": [
+        "https://sknc.qdnd.vn/con-nguoi-cuoc-song/ten-lua-sam-2-dau-an-viet-nam-500592"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 27860,
+      "sha256": "bf510f125d00f5d0c9d53fcbe3856dacae140a8149eec8b0d10b6fe9a0be2d79",
+      "triangles": 216
+    },
+    {
+      "unit": "F",
+      "file": "F.glb",
+      "title": "Không quân · tham chiếu Su-30MK2",
+      "features": [
+        "twin-engines",
+        "twin-vertical-tails",
+        "swept-wings",
+        "tandem-canopy",
+        "vietnam-roundels"
+      ],
+      "references": [
+        "https://www.qdnd.vn/trien-lam-quoc-phong-quoc-te-viet-nam-2024/trien-lam-quoc-phong-quoc-te-viet-nam-2024-bien-doi-ho-mang-chua-tai-trien-lam-806598"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 69092,
+      "sha256": "2925bcd074f2df5f5b2393dd6cb9570cd9c455e76b2118d02c3361842112f308",
+      "triangles": 656
+    },
+    {
+      "unit": "N",
+      "file": "N.glb",
+      "title": "Hải quân · tham chiếu Gepard 3.9",
+      "features": [
+        "modern-frigate-hull",
+        "forward-gun",
+        "bridge-mast",
+        "aft-flight-deck",
+        "vietnam-ensign"
+      ],
+      "references": [
+        "https://www.qdnd.vn/quoc-phong-an-ninh/tin-tuc/tau-hai-quan-viet-nam-lan-dau-tham-du-lima-502019"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 67244,
+      "sha256": "f360d86b6ee434bc430adcc855306281b87e4e6a06773a9d6fdcf087cbea3a89",
+      "triangles": 628
+    },
+    {
+      "unit": "H",
+      "file": "H.glb",
+      "title": "Sở chỉ huy dã chiến · hầm, ăng ten, quốc kỳ",
+      "features": [
+        "earth-covered-bunker",
+        "sandbags",
+        "radio-antenna",
+        "vietnam-flag"
+      ],
+      "references": [
+        "https://haiduongblog.wordpress.com/2017/07/22/3394/"
+      ],
+      "author": "Sân Cờ project",
+      "license": "Project-original",
+      "source": "fe/src/three/vietnam-models.ts",
+      "bytes": 327896,
+      "sha256": "a32c134b150ae24e5ec5ea496fe023ee3fc9c42fddb0f3ce34ff02696de9206e",
+      "triangles": 3344
+    }
+  ]
+}
