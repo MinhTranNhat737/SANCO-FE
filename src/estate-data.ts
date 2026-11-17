@@ -1,4 +1,4 @@
-import config from '../../shared/vietnam-estate.json' with {type:'json'};
+import config from './vietnam-estate.json' with {type:'json'};
 import type {PartyState} from './practice-types';
 export type EstateCell={index:number;name:string;type:string;price:number;group?:number;buildCost:number;rent:number[];amount?:number};
 const specials=config.specials as Record<string,{name:string;type:string;price?:number;amount?:number}>;
