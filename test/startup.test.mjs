@@ -26,10 +26,10 @@ beforeEach(async()=>{
   for(const key of['window','document','localStorage','history','HTMLElement','HTMLInputElement','Image','Event','MouseEvent'])globalThis[key]=dom.window[key];
   globalThis.IS_REACT_ACT_ENVIRONMENT=true;window.scrollTo=()=>{};globalThis.matchMedia=window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
   ({createRoot}=await import('react-dom/client'));root=createRoot(document.getElementById('root'));
-  user={id:'user-one',name:'Bạn cờ',account:false,email:null};
+  user={id:'user-one',name:'Bạn cờ',account:true,email:'test@sanco.games'};
   globalThis.fetch=async(url,options={})=>{
     const pathname=new URL(String(url),window.location.href).pathname,body=options.body?JSON.parse(options.body):null;
-    if(pathname==='/api/me')return json({user});
+    if(pathname==='/api/me')return json({user,providers:{google:true,facebook:true}});
     if(pathname==='/api/rooms'&&body)return json({room:roomFor(body.kind),token:'test-invitation'});
     if(pathname==='/api/rooms')return json({rooms:[]});if(pathname==='/api/history')return json({matches:[]});
     if(pathname==='/api/practice'&&body)return json({game:practiceView(createPractice(body.kind,boardSide(body.kind),'medium','00000000-0000-4000-8000-000000000001'))});
@@ -111,8 +111,14 @@ async function verifyBoardThemes(){
     assert.deepEqual(labels(),before,'Theme must preserve every piece and square');
   }
 }
-test('Guest can reach registration and login directly from the header',async()=>{
+test('Guest can reach registration and login (with Google/Facebook) and must sign in to create a room',async()=>{
+  user={id:'user-one',name:'Bạn cờ',account:false,email:null};
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click([...document.querySelectorAll('.quick-lobby-actions button')].find(b=>b.textContent.includes('Tạo phòng')));
+  assert.equal(document.querySelector('[role="dialog"] h2').textContent,'Đăng nhập');
+  assert.ok(document.querySelector('.social-google'),'Google (Gmail) login button must be rendered');
+  assert.ok(document.querySelector('.social-facebook'),'Facebook login button must be rendered');
+  await click(document.querySelector('[aria-label="Đóng"]'));
   const header=document.querySelector('.topbar-right');
   await click([...header.querySelectorAll('button')].find(button=>button.textContent==='Tạo tài khoản'));
   assert.equal(document.querySelector('[role="dialog"] h2').textContent,'Đăng ký');

@@ -1415,3 +1415,66 @@
         font-size: 12px
     }
 }
+
+.auth-social-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.social-button {
+    width: 100%;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-radius: 9px;
+    font: 600 13px/1.2 'Be Vietnam Pro', sans-serif;
+    cursor: pointer;
+    border: 1px solid #d7dcd3;
+    transition: transform .12s, filter .12s;
+}
+
+.social-button:hover:not(:disabled) {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+}
+
+.social-button:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+.social-google {
+    background: #ffffff;
+    color: #1f2937;
+    border-color: #d1d5db;
+}
+
+.social-facebook {
+    background: #1877f2;
+    color: #ffffff;
+    border-color: #1877f2;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0 12px;
+    font-size: 11px;
+    color: var(--secondary, #9ab09b);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line, #354b37);
+}

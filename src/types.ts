@@ -2,6 +2,7 @@ import type {GameKind,PracticePly,PracticeMove,PartyState} from './practice-type
 export type Mark = string;
 export type Move = { cell: number; mark: Mark; at: number };
 export type User = { id: string; name: string; account: boolean; email: string | null };
+export type AuthProviders = { google: boolean; facebook: boolean };
 export type Seat = { name: string; mark: Mark; ready: boolean; rematch: boolean; online: boolean };
 export type Room = {
   id: string; kind:GameKind; version: number; duration: number; createdAt: number; inviteExpiresAt: number; serverNow: number;
