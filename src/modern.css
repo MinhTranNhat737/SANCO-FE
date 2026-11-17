@@ -44,13 +44,15 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 /* ---------- Shell ---------- */
 .compact-interface .sidebar{width:240px;padding:24px 14px 18px;background:var(--bg-soft);border-right:1px solid var(--border)}
 .compact-interface .main-shell{margin-left:240px}
-.compact-interface .logo-button{margin-bottom:22px;padding:4px 10px}
-.compact-interface .brand{font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--text)}
-.compact-interface .brand-icon{width:26px;height:26px;gap:3px;transform:none}
-.compact-interface .brand-icon i{background:var(--accent);border-radius:3px}
-.compact-interface .brand-icon i:nth-child(2){background:var(--gold);border-radius:50%}
-.compact-interface .brand-icon i:nth-child(3){background:#2b4a3c}
-.compact-interface .brand-dot{color:var(--accent)}
+.compact-interface .logo-button{display:flex;justify-content:center;width:100%;margin-bottom:14px;padding:4px 0 8px}
+.compact-interface .brand{display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--text)}
+.compact-interface .brand-emblem{width:148px;height:148px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 10px 28px #0007,0 0 0 2px #9ff45e44;transition:transform .18s var(--ease)}
+.compact-interface .logo-button:hover .brand-emblem{transform:scale(1.03)}
+.compact-interface .brand-small .brand-emblem{width:52px;height:52px;box-shadow:0 4px 12px #0005,0 0 0 1.5px #9ff45e44}
+.compact-interface .topbar-brand-emblem{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid #9ff45e55}
+.compact-interface .quick-lobby-brand{display:flex;align-items:center;gap:18px}
+.compact-interface .quick-lobby-logo{width:96px;height:96px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 10px 26px #0006,0 0 0 2px #9ff45e55}
+@media(max-width:650px){.compact-interface .quick-lobby-brand{gap:12px}.compact-interface .quick-lobby-logo{width:68px;height:68px}}
 .compact-interface .sidebar nav{margin-top:8px;display:flex;flex-direction:column;gap:2px}
 .compact-interface .nav-item{min-height:42px;margin:0;padding:10px 12px;gap:12px;border:0;border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--secondary);transition:background .15s,color .15s}
 .compact-interface .nav-item svg{width:18px;height:18px;opacity:.85}
