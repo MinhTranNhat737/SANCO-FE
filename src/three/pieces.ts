@@ -44,21 +44,21 @@ export function chessPiece(code:string):T.Group {
       add(group,new T.BoxGeometry(.09,.38,.09),accent,0,1.66,0);add(group,new T.BoxGeometry(.32,.09,.09),accent,0,1.7,0);
     }
   }
-  group.scale.setScalar(1.14);
+  group.scale.setScalar(1.24);
   return group;
 }
 export function xiangqiPiece(code:string):T.Group {
   const group=new T.Group(),red=code[0]==='r';
-  const body=new T.MeshStandardMaterial({color:red?0xfff5df:0x172b34,roughness:.85,metalness:0});
-  const rim=new T.MeshStandardMaterial({color:red?0x931d29:0xafc5ce,roughness:.8,metalness:0});
-  add(group,new T.CylinderGeometry(.455,.46,.29,48),body,0,.145,0);band(group,.45,.25,rim,.018);band(group,.45,.045,rim,.014);
+  const body=new T.MeshStandardMaterial({color:red?0xfff7e4:0x142730,roughness:.85,metalness:0});
+  const rim=new T.MeshStandardMaterial({color:red?0x9e1726:0xc2d7df,roughness:.8,metalness:0});
+  add(group,new T.CylinderGeometry(.475,.48,.32,48),body,0,.16,0);band(group,.47,.275,rim,.02);band(group,.47,.048,rim,.015);
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
   const ctx=canvas.getContext('2d')!;
-  ctx.fillStyle=red?'#fff5df':'#172b34';ctx.fillRect(0,0,512,512);
-  ctx.strokeStyle=red?'#931d29':'#afc5ce';ctx.lineWidth=14;ctx.beginPath();ctx.arc(256,256,226,0,Math.PI*2);ctx.stroke();ctx.lineWidth=5;ctx.beginPath();ctx.arc(256,256,207,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle=red?'#931d29':'#fff5df';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 336px "SimSun", "Noto Serif SC", "Microsoft YaHei", serif';ctx.fillText(X_LABELS[code],256,269);
+  ctx.fillStyle=red?'#fff7e4':'#142730';ctx.fillRect(0,0,512,512);
+  ctx.strokeStyle=red?'#9e1726':'#c2d7df';ctx.lineWidth=16;ctx.beginPath();ctx.arc(256,256,228,0,Math.PI*2);ctx.stroke();ctx.lineWidth=6;ctx.beginPath();ctx.arc(256,256,207,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=red?'#9e1726':'#fff7e4';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 364px "SimSun", "Noto Serif SC", "Microsoft YaHei", serif';ctx.fillText(X_LABELS[code],256,268);
   const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;
-  const top=new T.MeshBasicMaterial({map:texture,toneMapped:false});const face=add(group,new T.CircleGeometry(.445,48),top,0,.295,0);face.rotation.x=-Math.PI/2;face.castShadow=false;face.receiveShadow=false;
+  const top=new T.MeshBasicMaterial({map:texture,toneMapped:false});const face=add(group,new T.CircleGeometry(.465,48),top,0,.325,0);face.rotation.x=-Math.PI/2;face.castShadow=false;face.receiveShadow=false;
   return group;
 }
 export function caroPiece(code:string,theme:BoardTheme='dark'):T.Group {

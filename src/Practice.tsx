@@ -25,13 +25,13 @@ export default function Practice({initialKind,user,socket,onBack}:{initialKind:G
   const [kind,setKind]=useState<GameKind>(initialKind),[difficulty,setDifficulty]=useState<Difficulty>('medium'),[side,setSide]=useState('first');
   const [game,setGame]=useState<PracticeGame|null>(null),[recent,setRecent]=useState<PracticeSummary[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [selected,setSelected]=useState<number|null>(null),[pending,setPending]=useState<PracticeMove|null>(null),[promotion,setPromotion]=useState<PracticeMove[]|null>(null);
-  const [view,setView]=useState<'3d'|'2d'>('2d'),[topView,setTopView]=useState(false),[resetViewKey,setResetViewKey]=useState(0),[flipped,setFlipped]=useState(false),[zoom,setZoom]=useState(()=>initialKind==='commander'?1.38:1.08);
+  const [view,setView]=useState<'3d'|'2d'>('2d'),[topView,setTopView]=useState(false),[resetViewKey,setResetViewKey]=useState(0),[flipped,setFlipped]=useState(false),[zoom,setZoom]=useState(()=>initialKind==='commander'?1.38:(initialKind==='chess'||initialKind==='xiangqi')?1.18:1.08);
   const [confirm,setConfirm]=useState(()=>matchMedia('(pointer: coarse)').matches),[step,setStep]=useState<number|null>(null),[dialog,setDialog]=useState<'rules'|'resign'|null>(null),[notice,setNotice]=useState('');
   const [visualBusy,setVisualBusy]=useState(false);
   const [webglFailed,setWebglFailed]=useState(false),[focus,setFocus]=useState(0),[loading,setLoading]=useState(true);
   const gameRef=useRef<PracticeGame|null>(null),boardRef=useRef<HTMLDivElement>(null),stageRef=useRef<HTMLDivElement>(null),seenUser=useRef<string|null>(null);
   const meta=META[kind],replay=step!==null;
-  const setActive=(next:PracticeGame)=>{gameRef.current=next;setGame(next);setKind(next.kind);setDifficulty(next.difficulty);setFlipped(next.kind!=='connect4'&&next.humanSide===META[next.kind].second);setZoom(next.kind==='commander'?1.38:1.08);setStep(null);setSelected(null);setPending(null);setError('');window.history.replaceState(null,'',`?practice=${next.id}`);};
+  const setActive=(next:PracticeGame)=>{gameRef.current=next;setGame(next);setKind(next.kind);setDifficulty(next.difficulty);setFlipped(next.kind!=='connect4'&&next.humanSide===META[next.kind].second);setZoom(next.kind==='commander'?1.38:(next.kind==='chess'||next.kind==='xiangqi')?1.18:1.08);setStep(null);setSelected(null);setPending(null);setError('');window.history.replaceState(null,'',`?practice=${next.id}`);};
   const receive=(packet:PracticeGame)=>{if(gameRef.current?.id!==packet.id)return;const next=mergeLive(gameRef.current,packet);if(next){gameRef.current=next;setGame(next);}else api(`/practice/${packet.id}`).then(d=>{gameRef.current=d.game;setGame(d.game);}).catch(()=>{});};
   const list=async()=>{try{const data=await api('/practice');setRecent(data.games);}catch(e){setError(e instanceof Error?e.message:'Không tải được ván luyện tập.');}};
   const open=async(id:string)=>{setBusy(true);setError('');try{const data=await api(`/practice/${id}`);setActive(data.game);}catch(e){setError(e instanceof Error?e.message:'Không mở được ván.');}finally{setBusy(false);}};

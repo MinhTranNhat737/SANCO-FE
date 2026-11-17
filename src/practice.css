@@ -93,14 +93,15 @@
 
 /* The flat view shares the same server position and is also the WebGL fallback. */
 .stage-2d{display:flex;align-items:center;justify-content:center;padding:47px 25px 42px;min-height:0;height:auto!important}
-.practice-flat-board{--frame:8px;position:relative;box-sizing:content-box;width:calc(100% - var(--frame)*2);max-width:535px;display:flex;flex-direction:column;aspect-ratio:1;flex-shrink:0;border:var(--frame) solid #62563b;border-radius:4px;box-shadow:0 13px 35px #0005;overflow:hidden;background:#426147}
+.practice-flat-board{--frame:8px;position:relative;box-sizing:content-box;width:calc(100% - var(--frame)*2);max-width:535px;container-type:inline-size;display:flex;flex-direction:column;aspect-ratio:1;flex-shrink:0;border:var(--frame) solid #62563b;border-radius:4px;box-shadow:0 13px 35px #0005;overflow:hidden;background:#426147}
 .flat-row{display:grid;grid-template-columns:repeat(var(--columns),minmax(0,1fr));position:relative;flex:1;min-height:0}
 .flat-cell{position:relative;aspect-ratio:1;display:flex;justify-content:center;align-items:center;min-width:0;min-height:0;max-width:100%;padding:0;overflow:hidden}
 .flat-chess .flat-cell{background:#c4b999;color:#1c3425}.flat-chess .dark-square{background:#47604c}
 .flat-chess .flat-cell.chosen{background:#b49c55}.flat-chess .flat-cell.last{box-shadow:inset 0 0 0 3px #bfa968}.flat-chess .flat-cell.in-check{background:#a6664e}
-.flat-piece{font-family:Georgia,'Times New Roman','SimSun',serif;font-size:clamp(30px,3.8vw,57px);line-height:1;position:relative;z-index:1;pointer-events:none}
-.flat-chess .piece-w{color:#fff7e3;text-shadow:0 2px 2px #233126;-webkit-text-stroke:1px #3c4e39}
-.flat-chess .piece-b{color:#182e22;text-shadow:0 1px 1px #e1d8b6;-webkit-text-stroke:.5px #bbccb0}
+.flat-piece{font-family:Georgia,'Times New Roman','SimSun',serif;font-size:clamp(38px,5.2vw,68px);line-height:1;position:relative;z-index:1;pointer-events:none}
+.flat-chess .flat-piece{font-size:clamp(42px,5.6vw,74px);font-size:10cqi;font-weight:700}
+.flat-chess .piece-w{color:#fff9ea;text-shadow:0 2px 3px #1c2b21;-webkit-text-stroke:1.2px #2f402e}
+.flat-chess .piece-b{color:#12251c;text-shadow:0 1px 2px #ece3c4;-webkit-text-stroke:.6px #d6e2c9}
 .flat-file,.flat-rank{position:absolute;font-size:9px;line-height:1;color:#283d2d;font-weight:700;z-index:2;pointer-events:none}.dark-square .flat-file,.dark-square .flat-rank{color:#dbdfbf}.flat-file{bottom:3px;right:4px}.flat-rank{top:4px;left:4px}
 .legal-dot{width:22%;height:22%;background:#244a2b99;border-radius:50%;position:absolute;z-index:2;box-shadow:0 0 0 2px #c3e5a766}.flat-cell.legal:has(.flat-piece){box-shadow:inset 0 0 0 3px #bb7f35}
 .flat-cell:focus-visible{z-index:3;outline:3px solid #d9db96;outline-offset:-3px}.flat-cell:hover{filter:brightness(1.1)}

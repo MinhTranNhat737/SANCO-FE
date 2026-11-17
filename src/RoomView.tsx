@@ -21,7 +21,7 @@ export default function RoomView({room,busy,connected,latency,archived,sound,onS
   const [boardTheme]=useBoardTheme();
   const {game:g}=room,kind=room.kind||'caro',meta=META[kind],history=useMemo(()=>normalizedHistory(room),[room.kind,g.moves]);
   const [now,setNow]=useState(Date.now()),offset=useRef(room.serverNow-Date.now());
-  const [view,setView]=useState<'3d'|'2d'>('2d'),[topView,setTopView]=useState(false),[resetViewKey,setResetViewKey]=useState(0),[zoom,setZoom]=useState(()=>kind==='commander'?1.38:1.08),[flipped,setFlipped]=useState(kind!=='connect4'&&room.me.mark===meta.second);
+  const [view,setView]=useState<'3d'|'2d'>('2d'),[topView,setTopView]=useState(false),[resetViewKey,setResetViewKey]=useState(0),[zoom,setZoom]=useState(()=>kind==='commander'?1.38:(kind==='chess'||kind==='xiangqi')?1.18:1.08),[flipped,setFlipped]=useState(kind!=='connect4'&&room.me.mark===meta.second);
   const [step,setStep]=useState<number|null>(archived?0:null),[selected,setSelected]=useState<number|null>(null),[pending,setPending]=useState<PracticeMove|null>(null),[promotion,setPromotion]=useState<PracticeMove[]|null>(null);
   const [confirm,setConfirm]=useState(()=>matchMedia('(pointer: coarse)').matches),[visualBusy,setVisualBusy]=useState(false),[rules,setRules]=useState(false),[webglFailed,setWebglFailed]=useState(false);
   useEffect(()=>{offset.current=room.serverNow-Date.now();setNow(Date.now());},[room.serverNow]);

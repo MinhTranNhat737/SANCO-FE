@@ -9,22 +9,23 @@
   box-shadow: 0 0 0 1px #d3ae6b, 0 12px 30px #0005;
 }
 .practice-flat-board.flat-xiangqi .flat-piece {
-  width: 82%;
-  height: 82%;
+  width: 92%;
+  height: 92%;
   font-family: 'SimSun', 'Noto Serif SC', 'Microsoft YaHei', serif;
-  font-size: clamp(23px, 3vw, 42px);
-  font-weight: 800;
-  border: 2px solid #931d29;
-  background: #fff5df;
-  color: #931d29;
+  font-size: clamp(28px, 3.8vw, 54px);
+  font-size: 6.4cqi;
+  font-weight: 900;
+  border: 2.5px solid #9e1726;
+  background: #fff7e4;
+  color: #9e1726;
   text-shadow: none;
-  box-shadow: inset 0 0 0 2px #fff5df, inset 0 0 0 3px #b9464e, 0 2px 0 #603a27, 0 3px 4px #30241855;
+  box-shadow: inset 0 0 0 2px #fff7e4, inset 0 0 0 3.5px #c54851, 0 2px 0 #603a27, 0 3px 5px #30241866;
 }
 .practice-flat-board.flat-xiangqi .piece-b {
-  color: #fff5df;
-  background: #172b34;
-  border-color: #101e25;
-  box-shadow: inset 0 0 0 2px #172b34, inset 0 0 0 3px #afc5ce, 0 2px 0 #101e25, 0 3px 4px #30241855;
+  color: #fff7e4;
+  background: #13262f;
+  border-color: #0b181f;
+  box-shadow: inset 0 0 0 2px #13262f, inset 0 0 0 3.5px #c5dae2, 0 2px 0 #0b181f, 0 3px 5px #30241866;
 }
 .practice-flat-board.flat-xiangqi .flat-cell.last { background: #b96b002b; }
 .practice-flat-board.flat-xiangqi .flat-cell.last::after {
@@ -78,7 +79,7 @@
 }
 @media (max-width: 650px) {
   .practice-flat-board.flat-xiangqi { --frame: 6px; }
-  .practice-flat-board.flat-xiangqi .flat-piece { font-size: clamp(19px, 6vw, 32px); }
+  .practice-flat-board.flat-xiangqi .flat-piece { font-size: clamp(22px, 6.8vw, 38px); font-size: 6.4cqi; }
   .practice-flat-board.flat-xiangqi .flat-cell.chosen .flat-piece,
   .practice-flat-board.flat-xiangqi .flat-cell.in-check .flat-piece { outline-width: 2px; }
   .practice-flat-board.flat-xiangqi .flat-cell.legal:has(.flat-piece)::after { border-width: 2px; }
