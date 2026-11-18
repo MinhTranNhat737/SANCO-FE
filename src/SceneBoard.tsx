@@ -278,7 +278,7 @@ export default function SceneBoard(props:Props){
       accepted=next;
       if(change.mode==='snap'){
         queue.length=0;active=null;snap(p.board);signal(false);
-        if(prev&&prev.key===next.key&&next.ply>prev.ply&&p.last){
+        if(prev&&prev.key===next.key&&next.count>prev.count&&p.last){
           const now=performance.now(),latest=p.history[p.history.length-1];
           playMoveSound(p.kind,{from:p.last.from??undefined,to:p.last.to,action:p.last.action,piece:latest?.piece,captures:latest?.captures,check:p.checkSquare!==null});
           if(p.kind==='commander'){
