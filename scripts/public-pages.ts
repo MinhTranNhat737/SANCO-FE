@@ -40,7 +40,18 @@ ${origin?`<link rel="canonical" href="${escape(origin+path)}">
 
 const gameLinks = (kinds:GameKind[]) => `<ul class="public-games">${kinds.map(kind=>`<li><a href="${gamePage(kind)}">${escapeHtml(META[kind].name)}</a></li>`).join('')}</ul>`;
 const appLink = (kind:GameKind, ranked=false) => `/?game=${kind}${ranked?'&amp;mode=ranked':''}`;
-const homeContent = `<main class="public-page">
+const homeContent = `<div class="sanco-boot-screen" role="status" aria-live="polite">
+  <div class="sanco-boot-card">
+    <div class="sanco-boot-emblem-wrap">
+      <span class="sanco-boot-ring"></span>
+      <img class="sanco-boot-emblem" src="/thumbs/sanco-brand.jpg" width="88" height="88" alt="Sân Cờ" fetchpriority="high">
+    </div>
+    <strong class="sanco-boot-title">SÂN CỜ</strong>
+    <p class="sanco-boot-sub">Đang tải bàn cờ &amp; kết nối máy chủ…</p>
+    <div class="sanco-boot-bar"><span></span></div>
+  </div>
+</div>
+<main class="public-page public-seo-fallback">
   <h1>Chơi cờ online trên Sân Cờ</h1>
   <p>${escapeHtml(home.description)}</p>
   <a class="public-cta" href="${appLink('chess')}">Chơi Cờ vua với máy</a>

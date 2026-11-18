@@ -240,3 +240,29 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
   .compact-interface .modal{padding:22px;border-radius:14px}
 }
 @media(prefers-reduced-motion:reduce){.compact-interface *{transition:none!important}}
+
+/* Sân Cờ Page & Session Loading Form */
+.sanco-loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  padding: 28px 16px;
+}
+.sanco-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  min-height: 100dvh;
+  background: rgba(11, 22, 18, 0.82);
+  backdrop-filter: blur(6px);
+}
+.sanco-loading-card {
+  width: min(100%, 340px);
+  padding: 28px 24px 24px;
+  border-radius: 14px;
+  text-align: center;
+  background: linear-gradient(160deg, rgba(22, 38, 30, 0.96), rgba(14, 25, 20, 0.98));
+  border: 1px solid rgba(197, 168, 104, 0.35);
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}

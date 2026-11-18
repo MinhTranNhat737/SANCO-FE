@@ -1,5 +1,51 @@
 html { background: #0d1814; color: #edf3df; font: 16px/1.65 system-ui, sans-serif; }
 body { margin: 0; }
+.public-seo-fallback { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.sanco-boot-screen {
+  min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: 24px; box-sizing: border-box;
+  background: radial-gradient(circle at 50% 38%, rgba(45, 90, 67, 0.28), rgba(11, 22, 18, 0.98) 70%), #0b1612;
+}
+.sanco-boot-card {
+  width: min(100%, 360px); padding: 32px 28px 28px;
+  border-radius: 16px; text-align: center;
+  background: linear-gradient(160deg, rgba(22, 38, 30, 0.96), rgba(14, 25, 20, 0.98));
+  border: 1px solid rgba(197, 168, 104, 0.32);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.sanco-boot-emblem-wrap {
+  position: relative; width: 96px; height: 96px; margin: 0 auto 18px;
+  display: grid; place-items: center;
+}
+.sanco-boot-ring {
+  position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid rgba(197, 168, 104, 0.18);
+  border-top-color: #d4b872; border-right-color: #6bc497;
+  animation: sancoBootSpin 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+.sanco-boot-emblem {
+  width: 84px; height: 84px; border-radius: 50%; object-fit: cover;
+  border: 2px solid rgba(212, 184, 114, 0.55);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+.sanco-boot-title {
+  display: block; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.16em;
+  color: #f3eedc; margin-bottom: 6px;
+}
+.sanco-boot-sub {
+  margin: 0 0 18px; font-size: 0.86rem; color: #9eb5a5;
+}
+.sanco-boot-bar {
+  position: relative; width: 100%; height: 4px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08); overflow: hidden;
+}
+.sanco-boot-bar > span {
+  position: absolute; top: 0; bottom: 0; width: 42%; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #d4b872, #6bc497, transparent);
+  animation: sancoBootSlide 1.35s ease-in-out infinite;
+}
+@keyframes sancoBootSpin { to { transform: rotate(360deg); } }
+@keyframes sancoBootSlide { 0% { left: -45%; } 100% { left: 105%; } }
 .public-page, .startup-message { max-width: 880px; margin: auto; padding: 32px 20px 56px; }
 .public-page h1, .startup-message h1 { font-size: clamp(1.8rem, 6vw, 3rem); line-height: 1.15; margin: 0 0 14px; }
 .public-page h2 { font-size: 1.35rem; margin: 28px 0 8px; }
