@@ -1,5 +1,5 @@
-import {useEffect,useRef,useState} from 'react';
-import {ArrowRight,Bot,LoaderCircle,RotateCcw,Search,Trophy} from 'lucide-react';
+import {useEffect,useId,useRef,useState} from 'react';
+import {ArrowRight,Bot,ChevronDown,LoaderCircle,RotateCcw,Search,Trophy} from 'lucide-react';
 import {api,ApiError} from './api';
 import {GAME_KINDS,META,type GameKind} from './practice-types';
 import {POOL_LABELS,type MatchPreset,type MatchTicket,type Rating} from './rating-types';
@@ -13,6 +13,7 @@ type Props={
 const IDLE:MatchTicket={status:'idle'};
 
 export default function Matchmaking({initialKind,initialPool,user,onMatch,onBot,onLogin,onRankings}:Props){
+  const gameSelectId=useId();
   const [kind,setKind]=useState(initialKind);
   const [presets,setPresets]=useState<Partial<Record<GameKind,MatchPreset[]>>>({});
   const [presetId,setPresetId]=useState(initialPool==='rapid'?'10-0':initialPool==='classical'?'30-0':'5-0');
@@ -101,7 +102,14 @@ export default function Matchmaking({initialKind,initialPool,user,onMatch,onBot,
     <div className="page-heading"><h1>Tìm trận</h1></div>
     <form className="panel match-form" aria-label="Tìm trận xếp hạng" onSubmit={e=>{e.preventDefault();if(user?.account&&selected&&ticket.status==='idle'&&!loading&&!busy&&!loadFailed)void send('search');}}>
       <div className="match-settings">
-        <label>Môn cờ<select disabled={busy||ticket.status!=='idle'} value={kind} onChange={e=>{setKind(e.target.value as GameKind);setPresetId('10-0');}}>{GAME_KINDS.map(k=><option key={k} value={k}>{META[k].name}</option>)}</select></label>
+        <label className="match-kind-label" htmlFor={gameSelectId}>Môn cờ</label>
+        <div className="match-kind-select">
+          <img src={`/thumbs/${kind}.jpg`} width="30" height="30" alt="" aria-hidden="true"/>
+          <select id={gameSelectId} disabled={busy||ticket.status!=='idle'} value={kind} onChange={e=>{setKind(e.target.value as GameKind);setPresetId('10-0');}}>
+            {GAME_KINDS.map(game=><option key={game} value={game}>{META[game].name}</option>)}
+          </select>
+          <ChevronDown className="match-kind-chevron" size={18} aria-hidden="true"/>
+        </div>
         {presets[kind]&&<fieldset><legend>Thời gian mỗi bên</legend>
           <div className="match-presets">{presets[kind]?.map(preset=><button type="button" key={preset.id} disabled={busy||ticket.status!=='idle'} aria-pressed={selected?.id===preset.id} onClick={()=>setPresetId(preset.id)}><strong>{preset.minutes}{preset.increment?` + ${preset.increment}`:' phút'}</strong><small>{POOL_LABELS[preset.pool]}</small></button>)}</div>
         </fieldset>}

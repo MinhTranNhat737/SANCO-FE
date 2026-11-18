@@ -61,6 +61,30 @@
 
 .match-page { max-width: 640px; }
 .compact-interface .match-form { display: grid; gap: 16px; padding: 22px; }
+.match-kind-label { margin-bottom: 8px; font-size: 13px; font-weight: 650; }
+.match-kind-select { position: relative; }
+.match-kind-select select {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  box-sizing: border-box;
+  appearance: none;
+  color-scheme: dark;
+  background: var(--bg-soft, #14211b);
+  color: var(--text, #eff5ee);
+  border: 1px solid var(--border-strong, #52675a);
+  border-radius: 9px;
+  padding: 9px 40px 9px 51px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.match-kind-select select:hover:not(:disabled) { border-color: var(--accent, #99c880); }
+.match-kind-select select:focus-visible { outline: 2px solid var(--accent, #99c880); outline-offset: 2px; }
+.match-kind-select select:disabled { opacity: .55; cursor: default; }
+.match-kind-select img, .match-kind-chevron { position: absolute; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.match-kind-select img { left: 12px; width: 30px; height: 30px; border-radius: 6px; object-fit: cover; }
+.match-kind-chevron { right: 13px; color: var(--muted, #b8c7bb); }
 .match-settings fieldset { min-width: 0; margin: 18px 0 0; padding: 0; border: 0; }
 .match-settings legend { margin-bottom: 8px; font-size: 13px; font-weight: 650; }
 .match-rating-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
