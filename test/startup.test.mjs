@@ -337,6 +337,23 @@ test('Matchmaking offers retry when the API is missing and restores the search f
   assert.equal(document.querySelector('.match-actions button[type="submit"]').disabled,false);
 });
 
+test('Lesson deep links let a visitor try a move, review the result, and switch games',async()=>{
+  const {default:Lessons}=await vite.ssrLoadModule('/src/Lessons.tsx');
+  window.history.replaceState(null,'','/bi-kip?mon=co-vua&chuong=chieu-het-hang-cuoi');
+  await act(async()=>root.render(createElement(Lessons)));await settle();
+  assert.equal(document.querySelectorAll('.lesson-chapters button').length,4);
+  assert.match(document.querySelector('#lesson-title').textContent,/Chiếu hết ở hàng cuối/);
+  await click(document.querySelector('[data-square="56"]'));
+  await click(document.querySelector('[data-square="0"]'));
+  assert.equal(document.querySelector('.lesson-explanation>strong').textContent,'Chiếu hết');
+  assert.ok(document.querySelector('.flat-cell.in-check[data-square="6"]'));
+  await click(document.querySelector('[aria-label="Về đầu ví dụ"]'));
+  assert.equal(document.querySelector('.lesson-explanation>strong').textContent,'Thử trên bàn cờ');
+  await click([...document.querySelectorAll('.lesson-games button')].find(button=>button.textContent==='Cờ tướng'));
+  assert.ok(document.querySelector('.flat-xiangqi'));
+  assert.equal(new URL(window.location.href).searchParams.get('mon'),'co-tuong');
+});
+
 test('Ranked bot setup submits its selected profile, identifies the bot and disables undo/new game',async()=>{
   const original=globalThis.fetch;let submitted;
   globalThis.fetch=async(url,options={})=>{

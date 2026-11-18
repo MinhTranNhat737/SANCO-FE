@@ -1,0 +1,58 @@
+.lessons-shell { min-height: 100vh; background: var(--bg); color: var(--text); }
+.lessons-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; padding: 12px max(20px,calc((100% - 1160px)/2)); border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+.lesson-brand, .lesson-back { display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
+.lesson-brand { font-weight: 750; }
+.lesson-brand img { border-radius: 50%; }
+.lesson-back { color: var(--secondary); font-size: 13px; min-height: 38px; }
+.lessons-content { width: min(1160px, calc(100% - 40px)); margin: auto; padding: 30px 0; }
+.lessons-heading { display: flex; align-items: center; gap: 12px; }
+.lessons-heading>svg { color: var(--accent); }
+.lessons-heading h1 { margin: 0; font-size: clamp(24px,4vw,36px); line-height: 1.2; }
+.lessons-subtitle { margin: 8px 0 20px; color: var(--secondary); font-size: 14px; }
+.lesson-games { display: flex; gap: 8px; margin-bottom: 16px; }
+.lesson-games button { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 6px 12px 6px 7px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+.lesson-games img { border-radius: 5px; }
+.lesson-games button[aria-pressed=true], .lesson-chapters button[aria-current=step] { border-color: var(--accent); background: var(--accent-soft); }
+.lesson-layout { display: grid; grid-template-columns: minmax(200px,235px) minmax(0,1fr); gap: 16px; align-items: start; }
+.lesson-chapters, .lesson-detail { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); padding: 16px; }
+.lesson-chapters h2 { margin-bottom: 12px; font-size: 17px; }
+.lesson-chapters button { display: grid; gap: 5px; width: 100%; margin-top: 7px; padding: 10px; border: 1px solid var(--border); border-radius: 7px; text-align: left; }
+.lesson-chapters button span, .lesson-intro>span { color: var(--accent); font-size: 11px; font-weight: 650; }
+.lesson-chapters strong { font-size: 13px; line-height: 1.45; }
+.lesson-intro h2 { margin: 4px 0 6px; font-size: clamp(20px,3vw,27px); }
+.lesson-intro p, .lesson-explanation p { margin: 0 0 12px; font-size: 13px; color: var(--secondary); line-height: 1.7; }
+.lesson-workspace { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(200px,1fr); gap: 18px; align-items: start; }
+.lesson-board { min-width: 0; }
+.lesson-board .practice-flat-board { width: 100%; max-width: 440px; margin: 5px auto 0; }
+.lesson-controls, .lesson-next { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.lesson-controls { justify-content: center; font-size: 12px; color: var(--secondary); }
+.lesson-controls .button { min-height: 40px; }
+.lesson-explanation { min-width: 0; overflow-wrap: anywhere; }
+.lesson-explanation>strong { display: block; margin-bottom: 5px; }
+.lesson-explanation .lesson-hint { margin-top: 8px; color: var(--accent); }
+.lesson-moves { list-style: none; margin: 12px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.lesson-moves button { min-height: 35px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; text-align: left; font-size: 12px; }
+.lesson-moves button.selected { border-color: var(--accent); background: var(--accent-soft); }
+.lesson-moves button span { color: var(--muted); }
+.lesson-tip { display: flex; gap: 8px; padding: 10px; border-radius: 7px; background: var(--bg-soft); }
+.lesson-tip svg { flex: 0 0 auto; color: var(--accent); }
+.lesson-tip strong { font-size: 12px; }
+.lesson-tip p { margin: 4px 0 0; }
+.lesson-next { justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.lesson-sources { margin-top: 20px; color: var(--secondary); font-size: 12px; }
+.lesson-sources a { text-decoration: underline; text-underline-offset: 2px; }
+.lessons-shell :is(a,button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 900px) {
+  .lesson-layout { grid-template-columns: 1fr; }
+  .lesson-chapters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+  .lesson-chapters h2 { grid-column: 1/-1; margin: 0; }
+  .lesson-chapters button { margin: 0; }
+}
+@media (max-width: 620px) {
+  .lessons-content { width: calc(100% - 24px); padding-top: 18px; }
+  .lessons-heading { gap: 7px; }
+  .lessons-heading svg { width: 20px; }
+  .lesson-detail, .lesson-chapters { padding: 11px; }
+  .lesson-workspace { grid-template-columns: 1fr; gap: 14px; }
+  .lesson-next .button { min-height: 44px; padding-inline: 11px; font-size: 12px; }
+}
