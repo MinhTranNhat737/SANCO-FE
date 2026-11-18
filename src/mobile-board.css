@@ -1,0 +1,50 @@
+.orientation-toolbar{display:none}.orientation-guard{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#0b1914;color:#eceddb;padding:24px;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));overflow:auto;outline:0}.orientation-card{width:min(100%,420px);text-align:center;margin:auto}.orientation-phone{transform:rotate(90deg);color:#dfc38a;margin-bottom:12px}.orientation-card h2{font-size:25px}.orientation-card p{font-size:14px;line-height:1.7;color:#becbbd}.orientation-card .button{min-height:48px;margin:10px 0}.orientation-card .text-button{margin:14px auto;min-height:44px}.orientation-card small{display:block;font-size:11px;line-height:1.6;color:#9aad9e}
+@media (pointer:coarse) and (max-width:1100px),(max-width:650px){
+ .orientation-toolbar{display:flex;justify-content:flex-end;min-height:36px;font-size:12px;align-items:center;gap:8px;margin:0 4px 4px}.orientation-toolbar label,.orientation-toolbar>span{display:flex;gap:8px;align-items:center;margin:0}.orientation-toolbar input{width:17px;height:17px;accent-color:#c4b17a}.rank-room-label{margin:3px 4px;font-size:11px}
+}
+/* Phone landscape: board on the left, scrollable actions on the right. */
+@media (orientation:landscape) and (max-height:600px) and (max-width:1100px){
+ .compact-interface.board-focus-shell .sidebar,.compact-interface.board-focus-shell .topbar{display:none!important}
+ .compact-interface.board-focus-shell .main-shell{margin-left:0!important}
+ .compact-interface.board-focus-shell .content{padding:4px max(8px,env(safe-area-inset-right)) 4px max(8px,env(safe-area-inset-left))!important;max-width:none}
+ .board-focus-shell .practice-workspace{padding-bottom:0;position:relative;--phone-board-height:calc(100dvh - 180px)}
+ .board-focus-shell .practice-workspace.practice-monopoly{--phone-board-height:calc(100dvh - 122px)}
+ .board-focus-shell .practice-workspace.practice-monopoly.party-room-workspace{--phone-board-height:calc(100dvh - 138px)}
+ .board-focus-shell .practice-breadcrumb{min-height:28px!important;margin:0!important;padding:0 4px!important;font-size:11px}
+ .board-focus-shell .orientation-toolbar{position:absolute;right:0;top:0;min-height:28px;margin:0;font-size:10px;background:var(--bg,#102019);z-index:2}
+ .board-focus-shell .practice-breadcrumb>span{margin-right:180px;font-size:10px}
+ .board-focus-shell .rank-room-label{margin:0 4px;line-height:18px}
+ .board-focus-shell .room-title{min-height:24px!important;margin:0!important;padding:0!important}
+ .board-focus-shell .room-title h1{font-size:14px!important}
+ .compact-interface.board-focus-shell .practice-workspace .practice-layout{display:grid!important;grid-template-columns:minmax(0,1fr) clamp(230px,33vw,330px)!important;gap:8px!important;min-height:0!important;align-items:start}
+ .compact-interface.board-focus-shell .practice-workspace .practice-table{min-height:0!important;padding:4px!important;gap:2px!important;justify-content:flex-start!important;overflow:hidden}
+ .compact-interface.board-focus-shell .practice-workspace .practice-aside{position:sticky!important;top:4px!important;max-height:calc(100dvh - 68px)!important;min-width:0;overflow-y:auto!important;overscroll-behavior:contain;padding:0 2px 12px!important}
+ .compact-interface.board-focus-shell .practice-aside>.panel{padding:10px!important;margin:0 0 6px!important}
+ .board-focus-shell .practice-workspace .practice-stage.stage-2d,.board-focus-shell .practice-workspace .party-room-stage{min-height:0!important;margin:0!important;padding:0!important;flex:0 0 auto!important;aspect-ratio:auto}
+ .board-focus-shell .practice-workspace .practice-stage:not(.stage-2d){height:var(--phone-board-height)!important;min-height:0!important}
+ .board-focus-shell .practice-workspace .party-model{height:var(--phone-board-height)!important;min-height:0!important}
+ .board-focus-shell .practice-workspace .practice-flat-board,.board-focus-shell .practice-workspace .practice-flat-board:is(.flat-xiangqi,.flat-commander),.board-focus-shell .practice-workspace .party-stage-wrap>.party-board{width:min(var(--phone-board-height),100%)!important;max-width:min(var(--phone-board-height),100%)!important;margin:0 auto!important;border-width:3px}
+ .board-focus-shell .practice-workspace .practice-player{min-height:26px!important;padding:2px 6px!important}
+ .board-focus-shell .practice-workspace .practice-table-header{min-height:26px!important;padding:0!important;margin:0!important}
+ .board-focus-shell .practice-workspace .practice-table-header h2{font-size:13px!important}
+ .board-focus-shell .practice-workspace .practice-tabs{max-height:40px;margin:0 0 4px;flex-wrap:nowrap;overflow-x:auto}
+ .board-focus-shell .practice-workspace .practice-tabs button{white-space:nowrap;padding:4px 8px;font-size:10px}
+ .board-focus-shell .practice-workspace .party-table-toolbar,.board-focus-shell .practice-workspace .party-camera-bar{min-height:26px!important;padding:2px 6px!important}
+ .board-focus-shell .practice-workspace .party-camera-bar>span{display:none}
+ .board-focus-shell .practice-workspace .party-roster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;margin:3px 0 0}
+ .board-focus-shell .practice-workspace .party-roster>article{padding:3px 5px;font-size:10px;gap:4px;flex-wrap:wrap}
+ .board-focus-shell .practice-workspace .party-roster strong{font-size:10px}
+ .board-focus-shell .practice-workspace .party-roster small{font-size:9px}
+ .board-focus-shell .practice-workspace .party-roster .party-clock{font-size:13px}
+ .board-focus-shell .practice-workspace .estate-primary-actions .button,.board-focus-shell .practice-workspace .estate-action-row .button{min-height:44px!important;font-size:12px!important}
+ .board-focus-shell .practice-workspace .estate-controls input,.board-focus-shell .practice-workspace .estate-controls select{min-height:40px;font-size:16px}
+ .board-focus-shell .practice-workspace .estate-panel>summary{min-height:40px!important}
+ .board-focus-shell .practice-workspace .party-cell-popup-wrap{top:4px;left:4px;width:min(310px,calc(100% - 8px));max-height:calc(100% - 8px);overflow-y:auto;overscroll-behavior:contain}
+ .board-focus-shell .practice-workspace .estate-card-close{min-width:40px;min-height:40px}
+ .board-focus-shell .practice-workspace.practice-monopoly .practice-player,.board-focus-shell .practice-workspace.practice-monopoly .practice-view-tools{display:none!important}
+ .board-focus-shell .practice-workspace.practice-monopoly .party-board-dice-hud{inset:auto 6px 6px}
+ .board-focus-shell .practice-workspace.practice-monopoly .party-dice-pickup,.board-focus-shell .practice-workspace.practice-monopoly .party-rolled-banner{padding:5px 8px}
+ .board-focus-shell .practice-workspace.practice-monopoly .pip-die{width:25px;height:25px;padding:3px}
+ .board-focus-shell .practice-workspace.practice-monopoly .pip-die>i{width:4px;height:4px}
+ .board-focus-shell .practice-workspace.practice-monopoly .practice-table-header{display:none!important}
+}

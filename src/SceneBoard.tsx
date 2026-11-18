@@ -1,4 +1,5 @@
 import {useBoardTheme} from './BoardAppearance';
+import {playMoveSound} from './sound-effects';
 import {BOARD_PALETTES,type BoardTheme} from './board-palette';
 import {useEffect,useRef,useState} from 'react';
 import * as T from 'three';
@@ -182,8 +183,62 @@ export default function SceneBoard(props:Props){
         if(document.activeElement===host)marker(focusedRef.current,0xc9baff,.49,.95);
       }
     }
+    type BattleParticle={mesh:T.Mesh;vx:number;vy:number;vz:number;born:number;life:number;s0:number;s1:number;op:number;ring?:boolean};
+    const battleFx=new T.Group();
+    const battleParticles:BattleParticle[]=[];
+    const ambientSmokes:T.Mesh[]=[];
+    let battleFxAttached=false,lastTrailAt=0;
+    const sphereGeo=new T.SphereGeometry(1,10,8),ringGeo=new T.RingGeometry(.45,1,20);ringGeo.rotateX(-Math.PI/2);
+    function ensureBattleFx(refObj?:T.Object3D){
+      if(battleFxAttached||props.kind!=='commander')return;
+      const root=refObj?.parent?.parent;if(!root)return;
+      root.add(battleFx);battleFxAttached=true;
+      for(let i=0;i<10;i++){
+        const mat=new T.MeshBasicMaterial({color:i%2?0x4b534a:0x6e6859,transparent:true,opacity:.14,depthWrite:false});
+        const puff=new T.Mesh(sphereGeo,mat);
+        puff.position.set((Math.random()-.5)*cols*.85,BOARD_SURFACE_Y+.22+Math.random()*.35,(Math.random()-.5)*rows*.85);
+        puff.scale.setScalar(.22+Math.random()*.25);
+        battleFx.add(puff);ambientSmokes.push(puff);
+      }
+    }
+    function spawnParticle(x:number,y:number,z:number,color:number,s0:number,s1:number,vx:number,vy:number,vz:number,born:number,life:number,op:number,ring=false){
+      const mat=new T.MeshBasicMaterial({color,transparent:true,opacity:op,depthWrite:false,side:ring?T.DoubleSide:T.FrontSide});
+      const mesh=new T.Mesh(ring?ringGeo:sphereGeo,mat);
+      mesh.position.set(x,y,z);mesh.scale.setScalar(s0);
+      battleFx.add(mesh);battleParticles.push({mesh,vx,vy,vz,born,life,s0,s1,op,ring});
+    }
+    function spawnMuzzle(sq:number,now:number){
+      const p=boardPoint(props.kind,sq);p.y+=.28;
+      spawnParticle(p.x,p.y,p.z,0xffd166,.12,.48,0,.15,0,now,190,.92);
+      spawnParticle(p.x,p.y,p.z,0xff6b2b,.08,.36,0,.1,0,now,220,.85);
+      for(let i=0;i<5;i++){
+        const a=Math.random()*Math.PI*2,sp=.25+Math.random()*.45;
+        spawnParticle(p.x,p.y,p.z,i%2?0x57534e:0x78716c,.09,.38,Math.cos(a)*sp,.45+Math.random()*.4,Math.sin(a)*sp,now,560+Math.random()*240,.52);
+      }
+    }
+    function spawnBlast(sq:number,now:number,delay=0,heavy=false){
+      const p=boardPoint(props.kind,sq),t0=now+delay,scale=heavy?1.35:1;p.y+=.16;
+      spawnParticle(p.x,p.y+.02,p.z,0xff9f1c,.15*scale,1.05*scale,0,0,0,t0,380,.88,true);
+      spawnParticle(p.x,p.y+.12,p.z,0xfff3b0,.14*scale,.62*scale,0,.35,0,t0,260,.95);
+      spawnParticle(p.x,p.y+.1,p.z,0xff5400,.18*scale,.78*scale,0,.28,0,t0,360,.88);
+      const count=heavy?12:8;
+      for(let i=0;i<count;i++){
+        const a=Math.PI*2*i/count+Math.random()*.4,sp=(.35+Math.random()*.75)*scale;
+        const dark=i%3===0?0x292524:i%3===1?0x57534e:0x8c7a6b;
+        spawnParticle(p.x+(Math.random()-.5)*.14,p.y+.08,p.z+(Math.random()-.5)*.14,dark,.12*scale,.52*scale,Math.cos(a)*sp,.65+Math.random()*.75,Math.sin(a)*sp,t0+20,680+Math.random()*360,.68);
+      }
+    }
     function beginNext(now:number){
       const plan=queue.shift();if(!plan){active=null;signal(false);drawHighlights();return;}
+      playMoveSound(props.kind,{
+        from:plan.actors[0]?.from??undefined,
+        to:plan.actors[0]?.to,
+        piece:plan.actors[0]?.piece,
+        action:plan.actors.some(a=>a.path==='bomb')?'bomb':plan.actors.some(a=>a.path==='fire')?'fire':'move',
+        captures:plan.captures,
+        effects:plan.actors.some(a=>a.path==='burn')?[{square:plan.actors[0]?.to??0,kind:'burnt'}]:undefined,
+        check:props.checkSquare!==null
+      });
       if(props.kind==='commander'&&plan.departure)snap(plan.departure);
       const victims=plan.captures.flatMap(index=>{const object=stationary.get(index);return object?[{object,origin:object.position.clone()}]:[];});
       const actors=plan.actors.map(actor=>{
@@ -191,6 +246,23 @@ export default function SceneBoard(props:Props){
         if(actor.from!==null&&props.kind!=='commander')stationary.delete(actor.from);
         return {object,actor,startY:object.position.y};
       });
+      if(props.kind==='commander'){
+        ensureBattleFx(actors[0]?.object|| stationary.values().next().value);
+        const blasted=new Set<number>();
+        for(const a of plan.actors){
+          if(a.from!==null&&(a.path==='fire'||a.path==='bomb'||plan.captures.length>0))spawnMuzzle(a.from,now);
+          if(a.path==='fire'||a.path==='bomb'||a.path==='burn'){
+            blasted.add(a.to);
+            spawnBlast(a.to,now,Math.round(a.duration*(a.path==='burn'?.62:.78)),a.path==='bomb');
+          }else if(a.from!==null&&plan.captures.length===0){
+            const p=boardPoint(props.kind,a.from);p.y+=.08;
+            spawnParticle(p.x,p.y,p.z,0x8c7a6b,.08,.28,(Math.random()-.5)*.2,.25,(Math.random()-.5)*.2,now,420,.38);
+          }
+        }
+        for(const cap of plan.captures){
+          if(!blasted.has(cap))spawnBlast(cap,now,Math.round(plan.duration*.58),false);
+        }
+      }
       active={plan,startedAt:now,actors,victims};signal(true);drawHighlights();
     }
     let viewportWidth=Math.max(1,host.clientWidth||600),viewportHeight=Math.max(1,host.clientHeight||540);
@@ -265,6 +337,8 @@ export default function SceneBoard(props:Props){
       }
       if(active){
         const elapsed=time-active.startedAt;
+        const emitTrail=props.kind==='commander'&&time-lastTrailAt>34;
+        if(emitTrail)lastTrailAt=time;
         for(const moving of active.actors){
           const value=sampleActor(moving.actor,cols,rows,elapsed,moving.startY);
           moving.object.position.set(value.x,value.y,value.z);
@@ -274,10 +348,35 @@ export default function SceneBoard(props:Props){
           }
           moving.object.scale.setScalar(1+Math.max(0,value.y-BOARD_SURFACE_Y)/moving.actor.height*.075);
           if(moving.actor.path==='burn')moving.object.scale.multiplyScalar(Math.max(.001,1-Math.max(0,(value.progress-.65)/.35)));
+          if(emitTrail&&(moving.actor.path==='fire'||moving.actor.path==='bomb'||moving.actor.path==='burn')&&value.progress>.04&&value.progress<.92){
+            spawnParticle(value.x,value.y,value.z,moving.actor.path==='fire'?0xff9f1c:0x57534e,.07,.28,(Math.random()-.5)*.08,.18,(Math.random()-.5)*.08,time,340,.58);
+          }
         }
         const removal=Math.max(0,Math.min(1,(elapsed/active.plan.duration-.59)/.26));
         for(const victim of active.victims){victim.object.position.copy(victim.origin);victim.object.position.y+=Math.sin(removal*Math.PI/2)*.4;victim.object.scale.setScalar(Math.max(.001,1-removal));}
         if(elapsed>=active.plan.duration){const finalBoard=active.plan.after;snap(finalBoard);active=null;beginNext(time);}
+      }
+      if(props.kind==='commander'){
+        if(!battleFxAttached&&stationary.size>0)ensureBattleFx(stationary.values().next().value);
+        for(let i=battleParticles.length-1;i>=0;i--){
+          const pt=battleParticles[i],age=time-pt.born;
+          if(age<0){pt.mesh.visible=false;continue;}
+          if(age>=pt.life){
+            battleFx.remove(pt.mesh);(pt.mesh.material as T.MeshBasicMaterial).dispose();battleParticles.splice(i,1);continue;
+          }
+          pt.mesh.visible=true;
+          const k=age/pt.life,dt=.016;
+          if(!pt.ring){pt.mesh.position.x+=pt.vx*dt;pt.mesh.position.y+=pt.vy*dt;pt.mesh.position.z+=pt.vz*dt;pt.vy*=.98;}
+          pt.mesh.scale.setScalar(pt.s0+(pt.s1-pt.s0)*(1-Math.pow(1-k,2)));
+          (pt.mesh.material as T.MeshBasicMaterial).opacity=pt.op*(1-k*k);
+        }
+        for(let i=0;i<ambientSmokes.length;i++){
+          const puff=ambientSmokes[i];
+          puff.position.x+=Math.sin(time*.00045+i)*0.0025;
+          puff.position.z+=Math.cos(time*.00038+i*1.7)*0.002;
+          const mat=puff.material as T.MeshBasicMaterial;
+          mat.opacity=.09+.06*Math.sin(time*.0012+i*1.3);
+        }
       }
       renderer.render(scene,camera);lastFrame=time;
     }

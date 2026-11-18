@@ -30,8 +30,29 @@ export default function CommanderBoard({board,legal,enabled,last,checkSquare,win
       setSelected(index===selected?null:index);setUnit(0);setOptions([]);setOrders([]);setCombined(false);
     }
   }
+  const cellPct=(sq:number)=>({x:((flipped?10-sq%11:sq%11)+.5)/11*100,y:((flipped?11-Math.floor(sq/11):Math.floor(sq/11))+.5)/12*100});
+  const latestPly=scene?.history?.[scene.history.length-1];
+  const fromPt=last&&last.from!==null?cellPct(last.from):null,toPt=last?cellPct(last.to):null;
+  const mover=last?commanderUnits(board[last.to]||(last.from!==null?board[last.from]:null)):[];
+  const isHeavy=Boolean(last&&(last.action==='fire'||last.action==='bomb'||latestPly?.captures?.length||mover.some(u=>['A','T','F','M','N'].includes(u[1]))));
+  const fxKey=last?`${last.from}-${last.to}-${last.action||'m'}-${scene?.plyCount||0}`:'none';
   return <div className="commander-surface">
     <div className={`ctl-board-wrap ${scene?'ctl-board-3d':''}`}>{scene?<Board3DBoundary onFallback={scene.onFallback}><Suspense fallback={<span className="ctl-model-loading" role="status">Đang bày bàn 3D…</span>}><SceneBoard {...scene} kind="commander" board={board} selected={selected} targets={candidates.map(m=>m.to)} last={last} checkSquare={checkSquare} winning={winning} flipped={flipped} enabled={enabled} onSquare={pick} airDefense={air} scenery={outdoors}/></Suspense></Board3DBoundary>:<FlatBoard kind="commander" board={board} selected={selected} targets={candidates.map(m=>m.to)} last={last} checkSquare={checkSquare} winning={winning} flipped={flipped} enabled={enabled} onSquare={pick}/>}
+      {!scene&&<div className="ctl-war-haze" aria-hidden="true">
+        <span className="ctl-smoke-drifter ctl-smoke-1"/><span className="ctl-smoke-drifter ctl-smoke-2"/><span className="ctl-smoke-drifter ctl-smoke-3"/>
+      </div>}
+      {!scene&&last&&fromPt&&toPt&&<div key={fxKey} className={`ctl-battle-fx ${isHeavy?'ctl-battle-heavy':'ctl-battle-skirmish'}`} aria-hidden="true">
+        <svg className="ctl-tracer-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line x1={fromPt.x} y1={fromPt.y} x2={toPt.x} y2={toPt.y} className="ctl-tracer-glow"/>
+          <line x1={fromPt.x} y1={fromPt.y} x2={toPt.x} y2={toPt.y} className="ctl-tracer-core"/>
+        </svg>
+        <div className="ctl-muzzle-fx" style={{left:`${fromPt.x}%`,top:`${fromPt.y}%`}}>
+          <span className="ctl-muzzle-flash"/><span className="ctl-gun-smoke"/>
+        </div>
+        <div className="ctl-impact-fx" style={{left:`${toPt.x}%`,top:`${toPt.y}%`}}>
+          <span className="ctl-shockwave"/><span className="ctl-fireball"/><span className="ctl-war-smoke ctl-ws-1"/><span className="ctl-war-smoke ctl-ws-2"/><span className="ctl-debris"/>
+        </div>
+      </div>}
       {air&&!scene&&<div className="ctl-air-overlay" aria-hidden="true">{board.flatMap((cell,index)=>commanderUnits(cell).filter(u=>['A','M','N'].includes(u[1])).map((u,slot)=>{const r=flipped?11-Math.floor(index/11):Math.floor(index/11),c=flipped?10-index%11:index%11,radius=(u[1]==='M'?2:1)+(u.endsWith('*')?1:0);return <i key={`${index}-${slot}`} className={`ctl-air ctl-air-${u[0]}`} style={{left:`${(c+.5)/11*100}%`,top:`${(r+.5)/12*100}%`,width:`${radius*2/11*100}%`,aspectRatio:'1'}}/>;}))}</div>}
     </div>
     {scene&&<p className="ctl-gesture-hint">Kéo để xoay · Cuộn/chụm để zoom · Chạm quân để ra lệnh</p>}

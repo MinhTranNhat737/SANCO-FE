@@ -52,6 +52,8 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .topbar-brand-emblem{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid #9ff45e55}
 .compact-interface .quick-lobby-brand{display:flex;align-items:center;gap:18px}
 .compact-interface .quick-lobby-logo{width:96px;height:96px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 10px 26px #0006,0 0 0 2px #9ff45e55}
+.compact-interface .public-footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;font-size:13px}
+.compact-interface .public-footer-links a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:650px){.compact-interface .quick-lobby-brand{gap:12px}.compact-interface .quick-lobby-logo{width:68px;height:68px}}
 .compact-interface .sidebar nav{margin-top:8px;display:flex;flex-direction:column;gap:2px}
 .compact-interface .nav-item{min-height:42px;margin:0;padding:10px 12px;gap:12px;border:0;border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--secondary);transition:background .15s,color .15s}

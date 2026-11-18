@@ -1,6 +1,7 @@
 import {useBoardTheme} from './BoardAppearance';
-import {useRef,useState,type CSSProperties} from 'react';
+import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {META,CHESS_LABELS,X_LABELS,squareName,pieceName,type GameKind,type PracticeMove} from './practice-types';
+import {playMoveSound} from './sound-effects';
 import './xiangqi.css';
 import './abstract.css';
 import CommanderPiece from './CommanderPiece';
@@ -8,6 +9,27 @@ import CommanderPiece from './CommanderPiece';
 export default function FlatBoard({kind,board,selected,targets,last,checkSquare,winning=[],flipped,enabled,onSquare}:{kind:GameKind;board:(string|null)[];selected:number|null;targets:number[];last:PracticeMove|null;checkSquare:number|null;winning?:number[];flipped:boolean;enabled:boolean;onSquare:(index:number)=>void}){
   const [boardTheme]=useBoardTheme();
   const meta=META[kind],ref=useRef<HTMLDivElement>(null),[focus,setFocus]=useState(0);
+  const lastKey=last?`${kind}:${last.from}:${last.to}:${last.action||''}`:'';
+  const prevKeyRef=useRef(lastKey);
+  const prevBoardRef=useRef<(string|null)[]>(board);
+  useEffect(()=>{
+    const prevBoard=prevBoardRef.current;
+    prevBoardRef.current=board;
+    if(!lastKey||lastKey===prevKeyRef.current){prevKeyRef.current=lastKey;return;}
+    prevKeyRef.current=lastKey;
+    if(!last)return;
+    const prevCount=prevBoard.filter(Boolean).length,nextCount=board.filter(Boolean).length;
+    const hadTargetPiece=Boolean(prevBoard[last.to]&&prevBoard[last.to]!=='#');
+    const captured=hadTargetPiece||nextCount<prevCount;
+    playMoveSound(kind,{
+      from:last.from??undefined,
+      to:last.to,
+      action:last.action,
+      piece:(board[last.to]??(last.from!==null?prevBoard[last.from]:null))||undefined,
+      captures:captured?[last.to]:[],
+      check:checkSquare!==null
+    });
+  },[lastKey,kind,board,last,checkSquare]);
   return <div data-board-theme={boardTheme} className={`practice-flat-board flat-${kind}`} ref={ref} role="grid" aria-label={`Bàn ${meta.name} ${meta.cols} cột ${meta.rows} hàng`} style={{'--columns':meta.cols} as CSSProperties}>
     {kind==='commander'&&<svg className="flat-go-lines ctl-terrain" viewBox="0 0 11 12" aria-hidden="true"><g transform={flipped?'rotate(180 5.5 6)':undefined}>
       <rect width="2.5" height="12" fill="var(--ctl-sea)"/><rect x="2.5" y="5.5" width="8.5" height="1" fill="var(--ctl-river)"/>

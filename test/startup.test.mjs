@@ -9,9 +9,10 @@ import react from '@vitejs/plugin-react';
 import {act,createElement} from 'react';
 import {KINDS,createPractice,practiceView,boardSide,legalMoves,makePracticeMove} from '../../be/src/practice-engine.js';
 import {newGame,publicRoom} from '../../be/src/room-game.js';
+import {botRoster,RANKS,ratingView} from '../../be/src/ratings.js';
 
 let vite,cache,dom,root,App,Boundary,createRoot,previewBoard,user;
-let CommanderBoard;
+let CommanderBoard,MobileOrientation;
 const socketModule=`export function io(){return {connected:false,on(){return this},off(){return this},emit(){return this},timeout(){return this},emitWithAck(){return Promise.resolve({})},disconnect(){}}}`;
 const json=data=>new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
 const roomFor=kind=>{const owner={id:user.id,name:user.name,mark:boardSide(kind),ready:false,rematch:false},party=['ludo','monopoly'].includes(kind);return publicRoom({id:'ABCD1234',kind,version:0,duration:300000,createdAt:Date.now(),owner,guest:null,...(party?{players:[owner],capacity:4}:{}),game:newGame(300000,'round-one',kind,party?4:2)},user.id,Date.now());};
@@ -20,6 +21,7 @@ before(async()=>{
   vite=await createServer({configFile:false,root:process.cwd(),cacheDir:cache,plugins:[react(),{name:'test-socket',enforce:'pre',resolveId(id){if(id==='socket.io-client')return '\0sanco-test-socket';},load(id){if(id==='\0sanco-test-socket')return socketModule;}}],server:{middlewareMode:true},appType:'custom'});
   ({default:App}=await vite.ssrLoadModule('/src/App.tsx'));({default:Boundary}=await vite.ssrLoadModule('/src/AppErrorBoundary.tsx'));({previewBoard}=await vite.ssrLoadModule('/src/practice-types.ts'));
   ({default:CommanderBoard}=await vite.ssrLoadModule('/src/CommanderBoard.tsx'));
+  ({default:MobileOrientation}=await vite.ssrLoadModule('/src/MobileOrientation.tsx'));
 });
 beforeEach(async()=>{
   dom=new JSDOM('<div id="root"></div>',{url:'http://127.0.0.1:5173/'});
@@ -34,6 +36,9 @@ beforeEach(async()=>{
     if(pathname==='/api/rooms')return json({rooms:[]});if(pathname==='/api/history')return json({matches:[]});
     if(pathname==='/api/practice'&&body)return json({game:practiceView(createPractice(body.kind,boardSide(body.kind),'medium','00000000-0000-4000-8000-000000000001'))});
     if(pathname==='/api/practice')return json({games:[]});
+    if(pathname==='/api/ratings')return json({ratings:Object.fromEntries(KINDS.map(kind=>[kind,ratingView()])),ranks:RANKS});
+    if(pathname.startsWith('/api/bots/'))return json({bots:botRoster(pathname.split('/').at(-1))});
+    if(pathname.startsWith('/api/leaderboard/'))return json({players:[]});
     if(pathname==='/__dev/client-errors')return json({ok:true});throw Error('Unexpected request: '+pathname);
   };
 });
@@ -88,7 +93,7 @@ test('Commander online screen sends move as the room action and preserves the bo
   assert.ok(sent,'App must send the selected command');assert.equal(state.board[ctlAt(6,4)],null);assert.equal(state.board[ctlAt(3,4)],'rF');assert.equal(document.querySelector('.error-box'),null);
 });
 test('Commander 3D can be selected and safely falls back to the same playable board without WebGL',async()=>{
-  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();await click(document.querySelector('.collection-commander'));await click(document.querySelectorAll('.mode-choices button')[1]);await click(document.querySelector('.practice-start'));
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();await click(document.querySelector('.collection-commander'));await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Chơi với máy')));await click(document.querySelector('.practice-start'));
   const before=[...document.querySelectorAll('.flat-commander [data-square]')].map(c=>c.getAttribute('aria-label'));
   const button=[...document.querySelectorAll('.practice-display-switch button')].find(b=>b.textContent==='3D');assert.equal(button.disabled,false);
   const original=window.HTMLCanvasElement.prototype.getContext;window.HTMLCanvasElement.prototype.getContext=()=>null;
@@ -175,7 +180,7 @@ for(const kind of KINDS){
   test(`${kind}: bot setup and start render actual game rules and controls`,async()=>{
     await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
     await click(document.querySelector(`.collection-${kind}`));
-    await click(document.querySelectorAll('.mode-choices button')[1]);
+    await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Chơi với máy')));
     await click(document.querySelector('.practice-start'));
     assert.ok(document.querySelector('.practice-session'));assert.ok(document.querySelector('[role="grid"],.party-board'));
     await verifyBoardThemes();
@@ -195,4 +200,64 @@ test('Saved board theme is restored after remounting the app',async()=>{
   await click(document.querySelector('.quick-lobby-actions .button-secondary'));
   assert.equal(document.querySelector('.practice-workspace').dataset.boardTheme,'light');
   assert.equal(document.querySelector('.board-appearance button').getAttribute('aria-pressed'),'true');
+});
+
+test('Rankings displays separate game ratings, real leaderboard empty state and all 12 bot profiles',async()=>{
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click([...document.querySelectorAll('.nav-item')].find(b=>b.textContent==='Xếp hạng'));
+  assert.equal(document.querySelectorAll('.rank-bots article').length,12);
+  assert.match(document.querySelector('.rank-profile').textContent,/1000/);
+  assert.match(document.querySelector('.rankings-page').textContent,/Chưa có người chơi hoàn tất 10 ván/);
+  const selector=document.querySelector('.rankings-page select');
+  await act(async()=>{selector.value='xiangqi';selector.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
+  assert.match(document.querySelector('.rank-profile').textContent,/Cờ tướng/);
+  await click(document.querySelector('.rank-profile .button'));
+  assert.equal(document.querySelector('.practice-workspace').classList.contains('practice-xiangqi'),true);
+  assert.equal(document.querySelector('.rank-mode-options button[aria-pressed="true"]').textContent,'Đấu rank');
+  assert.equal(document.querySelector('.side-options'),null);
+});
+
+test('Ranked bot setup submits its selected profile, identifies the bot and disables undo/new game',async()=>{
+  const original=globalThis.fetch;let submitted;
+  globalThis.fetch=async(url,options={})=>{
+    if(String(url).endsWith('/api/practice')&&options.body){
+      submitted=JSON.parse(options.body);const g=createPractice(submitted.kind,boardSide(submitted.kind),'medium','00000000-0000-4000-8000-000000000001');
+      g.ranked=true;g.bot=botRoster(g.kind)[4];g.playerElo=1000;
+      return json({game:practiceView(g)});
+    }
+    return original(url,options);
+  };
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click(document.querySelector('.collection-chess'));
+  await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Đấu xếp hạng')));
+  const selector=document.querySelector('.practice-setup select');
+  await act(async()=>{selector.value='chess-bot-1000';selector.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
+  await click(document.querySelector('.practice-start'));
+  assert.equal(submitted.ranked,true);assert.equal(submitted.botId,'chess-bot-1000');
+  assert.match(document.querySelector('.opponent-player').textContent,/Bách Diệp.*BOT.*1000 Elo/);
+  const actions=[...document.querySelectorAll('.practice-session button')];
+  assert.equal(actions.find(b=>b.textContent==='Đi lại').disabled,true);
+  assert.equal(actions.find(b=>b.textContent==='Ván mới').disabled,true);
+});
+
+test('Phone portrait blocks Monopoly, rotation unlocks it, and optional orientation persists separately per game',async()=>{
+  let portrait=true,back=false;const listeners=new Set();
+  globalThis.matchMedia=window.matchMedia=query=>({get matches(){return query==='(orientation: portrait)'?portrait:true;},addEventListener(event,fn){listeners.add(fn);},removeEventListener(event,fn){listeners.delete(fn);}});
+  const render=kind=>act(async()=>root.render(createElement(MobileOrientation,{kind,onBack:()=>{back=true;}})));
+  await render('monopoly');await settle();
+  assert.ok(document.querySelector('.orientation-guard'));assert.equal(document.getElementById('root').inert,true);
+  assert.equal(document.querySelector('.orientation-toolbar input'),null);
+  assert.equal([...document.querySelectorAll('.orientation-guard button')].some(b=>b.textContent==='Tiếp tục chơi dọc'),false);
+  await act(async()=>{portrait=false;for(const fn of listeners)fn();});
+  assert.equal(document.querySelector('.orientation-guard'),null);assert.equal(document.getElementById('root').inert,false);
+  await act(async()=>{portrait=true;for(const fn of listeners)fn();});
+  await click([...document.querySelectorAll('.orientation-guard button')].find(b=>b.textContent==='Về chọn cờ'));assert.equal(back,true);
+  await render('chess');await settle();assert.equal(document.querySelector('.orientation-guard'),null);
+  await click(document.querySelector('.orientation-toolbar input'));
+  assert.equal(localStorage.getItem('sc-landscape-chess'),'on');assert.ok(document.querySelector('.orientation-guard'));
+  await click([...document.querySelectorAll('.orientation-guard button')].find(b=>b.textContent==='Tiếp tục chơi dọc'));
+  assert.equal(document.querySelector('.orientation-guard'),null);assert.equal(localStorage.getItem('sc-landscape-chess'),'off');
+  localStorage.setItem('sc-landscape-chess','on');await render('caro');await settle();assert.equal(document.querySelector('.orientation-guard'),null);
+  await render('chess');await settle();assert.ok(document.querySelector('.orientation-guard'));
+  await render('caro');await settle();assert.equal(document.getElementById('root').inert,false);
 });

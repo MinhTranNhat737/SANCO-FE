@@ -5,4 +5,6 @@ import AppErrorBoundary from './AppErrorBoundary';
 import './theme.css';
 import './compact.css';
 import './modern.css';
+import './rankings.css';
+import './mobile-board.css';
 createRoot(document.getElementById('root')!).render(<AppErrorBoundary><App /></AppErrorBoundary>);

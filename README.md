@@ -67,3 +67,9 @@ Scene giới hạn mật độ điểm ảnh và tốc độ khung hình, dừng
 `npm test` kiểm tra tỉ lệ chiếu, chọn ô sau resize/zoom/đổi bên, các pha chuyển động, Mã, nhập thành, bắt tốt qua đường, phong cấp và đồng bộ liên tiếp từ bot.
 
 Kiểm tra `startup.test.mjs` mount React trong DOM giả lập, tải phiên khách, mở form tạo phòng và xác nhận bàn Cờ vua/luyện tập có 64 ô. Test dùng cache Vite riêng trong thư mục tạm, không đụng cache của dev server. Nếu cần chạy lại server khác để thử, luôn tách cache; dev server chính dùng `node_modules/.vite-sanco`.
+
+## Rank và điện thoại
+
+Mục **Xếp hạng** hiển thị Elo, phân hạng, thống kê, các bậc, bảng người chơi và 12 bot riêng từng môn. Chọn **Đấu xếp hạng** từ danh mục hoặc chọn **Đấu rank** trong thiết lập chơi với máy. Luyện tập không tính điểm; tạo phòng riêng có tùy chọn tính Elo. Kết quả hiển thị thay đổi Elo do máy chủ tính.
+
+`MobileOrientation.tsx` dùng media query và sự kiện đổi hướng. Tỷ phú chặn bàn trên điện thoại dọc, tự mở khi ngang; mọi môn khác có tùy chọn lưu riêng trong `localStorage` theo môn. Nút toàn màn hình thử Orientation API khi trình duyệt hỗ trợ; nếu không, người chơi xoay máy thủ công. Không dùng CSS xoay giả bàn cờ. Lớp yêu cầu xoay dùng portal, khóa tương tác bàn và giữ focus; đồng hồ vẫn chạy. CSS điện thoại ngang đưa bàn bên trái, thao tác cuộn riêng bên phải, tôn trọng safe area.

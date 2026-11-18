@@ -1,4 +1,5 @@
 import BoardAppearance,{useBoardTheme} from './BoardAppearance';
+import {playDiceSound,playMoveSound} from './sound-effects';
 import EstateControls from './EstateControls';
 import VietnamEstateBoard,{EstateInspector} from './VietnamEstateBoard';
 import {isVietnam} from './estate-data';
@@ -55,6 +56,16 @@ export function PartyBoard({kind,state,mySide,legal=[],enabled=false,onMove,game
   const grabRef=useRef<((e:PointerEvent)=>void)|null>(null);
   const pointerHandledRef=useRef(false);
   const seenRollRef=useRef(rollKey);
+  const partySig=`${kind}:${state.players.map(p=>`${p.position}:${p.tokens.join(',')}`).join('|')}:${state.property.join(',')}:${state.houses.join(',')}`;
+  const seenPartyRef=useRef(partySig);
+
+  useEffect(()=>{
+    if(!animate){seenPartyRef.current=partySig;return;}
+    if(partySig!==seenPartyRef.current){
+      seenPartyRef.current=partySig;
+      playMoveSound(kind);
+    }
+  },[partySig,animate,kind]);
 
   const vietnam=kind==='monopoly'&&isVietnam(state),inspect=selectedCell??state.players.find(v=>v.side===mySide)?.position??0;
   const rollMove=legal.find(m=>(m.action||m.command)==='roll');
@@ -70,6 +81,7 @@ export function PartyBoard({kind,state,mySide,legal=[],enabled=false,onMove,game
     if(!animate){seenRollRef.current=rollKey;return;}
     if(rollKey&&rollKey!==seenRollRef.current){
       seenRollRef.current=rollKey;
+      playDiceSound(kind);
       if(view==='2d'){
         setFlatRoll(prev=>prev||{fromX:68,fromY:76,tick:1});
         onAnimatingChange?.(true);

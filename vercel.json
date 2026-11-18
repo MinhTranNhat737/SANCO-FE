@@ -1,4 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    { "source": "/", "has": [{ "type": "query", "key": "room" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
+    { "source": "/", "has": [{ "type": "query", "key": "replay" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
+    { "source": "/", "has": [{ "type": "query", "key": "practice" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
+    { "source": "/", "has": [{ "type": "query", "key": "game" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
+    { "source": "/", "has": [{ "type": "query", "key": "auth" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
+    { "source": "/", "has": [{ "type": "query", "key": "auth_error" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }
+  ]
 }

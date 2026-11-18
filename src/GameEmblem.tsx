@@ -44,7 +44,7 @@ export default function GameEmblem({kind,className=''}:{kind:GameKind;className?
     <path className="emblem-halo" d="M80 7 143 43v74l-63 36-63-36V43Z" fill="#10271f" stroke="#73916c" strokeOpacity=".45"/>
     <g clipPath={clip}>
       <rect x="16" y="10" width="128" height="140" fill="#0d231b"/>
-      <image className="emblem-ai-art" href={`/logos/${kind}.jpg`} x={x} y={y} width={s} height={s} preserveAspectRatio="xMidYMid slice"/>
+      <image className="emblem-ai-art" href={`/thumbs/${kind}.jpg`} x={x} y={y} width={s} height={s} preserveAspectRatio="xMidYMid slice"/>
       <path d="M80 13 138 46.5v67L80 147 22 113.5v-67Z" fill={vignette}/>
     </g>
     <path d="M80 13 138 46.5v67L80 147 22 113.5v-67Z" stroke={gold} strokeWidth="2.2"/>

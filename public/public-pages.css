@@ -1,0 +1,23 @@
+html { background: #0d1814; color: #edf3df; font: 16px/1.65 system-ui, sans-serif; }
+body { margin: 0; }
+.public-page, .startup-message { max-width: 880px; margin: auto; padding: 32px 20px 56px; }
+.public-page h1, .startup-message h1 { font-size: clamp(1.8rem, 6vw, 3rem); line-height: 1.15; margin: 0 0 14px; }
+.public-page h2 { font-size: 1.35rem; margin: 28px 0 8px; }
+.public-page p, .startup-message p { margin: 0 0 16px; color: #c8d7c3; }
+.public-page a { color: #d9e9b3; text-underline-offset: .2em; }
+.public-page a:focus-visible, .startup-message button:focus-visible { outline: 2px solid #efcd8d; outline-offset: 4px; }
+.public-page nav { margin-bottom: 20px; }
+.public-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(115px, 215px); gap: 20px; align-items: center; padding: 22px; border: 1px solid #4b614f; border-radius: 14px; background: #182a22; }
+.public-hero img { width: 100%; height: auto; border-radius: 9px; }
+.public-actions, .public-games { display: flex; flex-wrap: wrap; gap: 8px; }
+.public-games { list-style: none; padding: 0; margin: 0; }
+.public-games a, .public-page .public-cta, .startup-message button { display: inline-flex; align-items: center; min-height: 44px; box-sizing: border-box; padding: 7px 13px; border: 1px solid #607654; border-radius: 7px; font: inherit; }
+.public-page .public-cta, .startup-message button { background: #dae9b7; color: #1c2b20; text-decoration: none; font-weight: 650; }
+.public-page .public-cta.secondary { background: transparent; color: #edf3df; }
+.public-modes li { margin-bottom: 8px; }
+.startup-message pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 540px) {
+  .public-page { padding-top: 20px; }
+  .public-hero { grid-template-columns: 1fr; padding: 17px; }
+  .public-hero img { width: min(100%, 170px); }
+}

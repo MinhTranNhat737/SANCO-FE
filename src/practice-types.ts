@@ -13,6 +13,7 @@ export type PracticeMove = { from: number | null; to: number; promotion?: string
 export function moveRequest(move:PracticeMove){const {action,...rest}=move;return {...rest,...(action?{command:action}:{})};}
 export type PracticePly = PracticeMove & { side: string; piece: string; captured: string | null; label: string; at: number; board: (string | null)[]; check: boolean; checkSquare: number | null; flips?:number[]; passed?:string|null;party?:PartyState;captures?:number[];effects?:{from:number;to:number;unit:string;mode:string;burnt:boolean}[];die?:number;dice?:number[] };
 export type PracticeGame = {
+  ranked?:boolean;bot?:import('./rating-types').BotProfile;playerElo?:number;ratingChange?:import('./rating-types').RatingChange;
   id: string; kind: GameKind; difficulty: Difficulty; humanSide: string; version: number; rules: string; phase: 'playing' | 'finished';
   turn: string; board: (string | null)[]; initialBoard: (string | null)[]; moves: PracticePly[]; thinking: boolean; legal: PracticeMove[];
   check: boolean; checkSquare: number | null; createdAt: number;
@@ -20,7 +21,7 @@ export type PracticeGame = {
   party?:PartyState;initialParty?:PartyState;passes?:number;prisoners?:Record<string,number>;score?:Record<string,number>;
   result: { winner: string | null; reason: string; at: number; line: number[] } | null;
 };
-export type PracticeSummary = Pick<PracticeGame, 'id' | 'kind' | 'difficulty' | 'humanSide' | 'phase' | 'createdAt' | 'result'> & { moves: number };
+export type PracticeSummary = Pick<PracticeGame, 'id' | 'kind' | 'difficulty' | 'humanSide' | 'phase' | 'createdAt' | 'result' | 'ranked' | 'bot' | 'ratingChange'> & { moves: number };
 export const META = {
   commander:{name:'Cờ tư lệnh',subtitle:'Hiệp đồng quân, làm chủ chiến trường.',rows:12,cols:11,first:'r',second:'b',firstName:'Quân Đỏ',secondName:'Quân Xanh',tagline:'',short:'11 × 12 · Tổng lực · 38 quân'},
   caro: { name: 'Caro', subtitle: 'Năm quân liền, một nước hay.', rows: 15, cols: 15, first: 'X', second: 'O', firstName: 'Quân X', secondName: 'Quân O', tagline: 'THÂN QUEN TỪ NHỮNG TRANG VỞ', short: '15 × 15 · Từ 5 quân trở lên' },
