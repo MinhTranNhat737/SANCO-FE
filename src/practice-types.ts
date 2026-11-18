@@ -1,7 +1,7 @@
 import {commanderName,commanderPreview} from './commander-ui.ts';
 export type GameKind = 'caro' | 'chess' | 'xiangqi' | 'reversi' | 'connect4' | 'go' | 'ludo' | 'monopoly' | 'checkers' | 'tictactoe' | 'coganh' | 'ataxx' | 'breakthrough' | 'loa' | 'isolation' | 'commander';
 export const ABSTRACT_KINDS:GameKind[]=['coganh','ataxx','breakthrough','loa','isolation'];
-export const GAME_KINDS:GameKind[]=['caro','chess','xiangqi','reversi','connect4','go','ludo','monopoly','checkers','tictactoe',...ABSTRACT_KINDS,'commander'];
+export const GAME_KINDS:GameKind[]=['monopoly','ludo','commander','caro','chess','xiangqi','reversi','connect4','go','checkers','tictactoe',...ABSTRACT_KINDS];
 export const isParty=(kind:GameKind)=>kind==='ludo'||kind==='monopoly';
 export const isPlacement=(kind:GameKind)=>['caro','reversi','connect4','go','tictactoe'].includes(kind);
 export type PartyPlayer={side:string;active:boolean;tokens:number[];position:number;cash:number;jail:number;laps?:number;jailCards?:number};
