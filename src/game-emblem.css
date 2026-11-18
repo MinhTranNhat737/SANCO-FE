@@ -1,10 +1,10 @@
 .game-emblem{display:block;width:46px;height:46px;flex-shrink:0;filter:drop-shadow(0 6px 8px #050f0a70)}
-.game-emblem .emblem-ai-art{transition:transform .32s cubic-bezier(.22,1,.36,1),filter .32s ease;transform-origin:80px 80px;filter: saturate(1.06) contrast(1.04)}
+.game-emblem .emblem-ai-art{transition:transform .32s cubic-bezier(.22,1,.36,1),filter .32s ease;transform-origin:80px 80px;filter:var(--art-toning)}
 .compact-interface .catalog-art:has(>.game-emblem){height:152px;min-height:152px}
 .compact-interface .catalog-art>.game-emblem{width:146px;height:146px}
 .catalog-art>.game-emblem{width:168px;height:168px;transition:transform .28s cubic-bezier(.22,1,.36,1),filter .28s ease}
 .collection-card:hover .game-emblem{transform:translateY(-4px) scale(1.03);filter:drop-shadow(0 12px 16px #06130c99)}
-.collection-card:hover .game-emblem .emblem-ai-art{transform:scale(1.05);filter:saturate(1.14) contrast(1.06) brightness(1.05)}
+.collection-card:hover .game-emblem .emblem-ai-art{transform:scale(1.05);filter:var(--art-toning) brightness(1.08)}
 .game-options .game-emblem{width:45px;height:45px}.practice-tabs .game-emblem{width:31px;height:31px;filter:none}.practice-tabs button{align-items:center}.recent-game-symbol .game-emblem{width:48px;height:48px}.rules-game-symbol .game-emblem{width:46px;height:46px}.game-emblem .emblem-halo{fill:#142e24}
 @media(max-width:650px){.compact-interface .catalog-art:has(>.game-emblem){height:122px;min-height:122px}.compact-interface .catalog-art>.game-emblem{width:116px;height:116px}.practice-tabs .game-emblem{width:27px;height:27px}}
 @media(prefers-reduced-motion:reduce){.catalog-art>.game-emblem,.game-emblem .emblem-ai-art{transition:none}}

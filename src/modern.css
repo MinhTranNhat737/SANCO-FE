@@ -4,22 +4,6 @@
    Principles: one font, one accent, consistent radius, clear hierarchy.
    ========================================================================== */
 :root{
-  --bg:#0b1310;
-  --bg-soft:#0f1a16;
-  --panel:#131f1a;
-  --panel-2:#182621;
-  --panel-hover:#1d2e27;
-  --border:#22332b;
-  --border-strong:#2f463b;
-  --text:#eef3f0;
-  --secondary:#a9bbb1;
-  --muted:#7f948a;
-  --accent:#3ecf8e;
-  --accent-hover:#5bdca1;
-  --accent-ink:#06150e;
-  --accent-soft:#3ecf8e1f;
-  --gold:#e3c27d;
-  --danger:#ef6b5b;
   --radius:12px;
   --radius-sm:8px;
   --shadow:0 1px 2px #0006,0 8px 24px #0004;
@@ -28,9 +12,9 @@
   --surface:var(--panel);
 }
 html,body{background:var(--bg)}
-body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 60%),var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{background:radial-gradient(1200px 600px at 85% -10%,var(--plum-soft),transparent 60%),var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .compact-interface,.compact-interface button,.compact-interface input,.compact-interface select,.compact-interface textarea{font-family:'Be Vietnam Pro',system-ui,sans-serif}
-::selection{background:#3ecf8e55;color:#fff}
+::selection{background:color-mix(in srgb, var(--accent) 33%, transparent);color:#fff}
 
 /* Headings: clean sans, tight tracking. Serif kept only for the brand mark. */
 .compact-interface h1,.compact-interface h2,.compact-interface h3,
@@ -46,9 +30,9 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .main-shell{margin-left:240px}
 .compact-interface .logo-button{display:flex;justify-content:center;width:100%;margin-bottom:14px;padding:4px 0 8px}
 .compact-interface .brand{display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--text)}
-.compact-interface .brand-emblem{width:148px;height:148px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 10px 28px #0007,0 0 0 2px #9ff45e44;transition:transform .18s var(--ease)}
+.compact-interface .brand-emblem{width:148px;height:148px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 10px 28px #0007,0 0 0 2px color-mix(in srgb, var(--accent) 27%, transparent);transition:transform .18s var(--ease)}
 .compact-interface .logo-button:hover .brand-emblem{transform:scale(1.03)}
-.compact-interface .brand-small .brand-emblem{width:52px;height:52px;box-shadow:0 4px 12px #0005,0 0 0 1.5px #9ff45e44}
+.compact-interface .brand-small .brand-emblem{width:52px;height:52px;box-shadow:0 4px 12px #0005,0 0 0 1.5px color-mix(in srgb, var(--accent) 27%, transparent)}
 .compact-interface .public-footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;font-size:13px}
 .compact-interface .public-footer-links a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:3px}
 .compact-interface .sidebar nav{margin-top:8px;display:flex;flex-direction:column;gap:2px}
@@ -61,7 +45,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .help-button{border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--muted)}
 .compact-interface .help-button:hover{background:var(--panel-hover);color:var(--text)}
 
-.compact-interface .topbar{height:64px;padding:0 32px;background:#0b1310cc;backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
+.compact-interface .topbar{height:64px;padding:0 32px;background:color-mix(in srgb, var(--bg) 80%, transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
 .compact-interface .topbar-title{font-size:15px;font-weight:600;color:var(--text)}
 .compact-interface .account-button{border-left:0;padding:6px 10px 6px 6px;border-radius:999px;background:var(--panel);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);transition:border-color .15s,background .15s}
 .compact-interface .account-button:hover{border-color:var(--border-strong);background:var(--panel-2)}
@@ -70,11 +54,11 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .content{max-width:1320px;padding:32px 32px 0}
 
 /* ---------- Buttons ---------- */
-.compact-interface .button{min-height:42px;padding:10px 18px;gap:8px;border-radius:10px;border:1px solid transparent;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:600;box-shadow:0 1px 0 #ffffff26 inset,0 4px 14px #3ecf8e26;transition:background .15s,transform .15s var(--ease),box-shadow .15s}
-.compact-interface .button:hover:not(:disabled){background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 1px 0 #ffffff26 inset,0 8px 22px #3ecf8e38}
+.compact-interface .button{min-height:42px;padding:10px 18px;gap:8px;border-radius:10px;border:1px solid transparent;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:600;box-shadow:0 1px 0 #ffffff26 inset,0 4px 14px color-mix(in srgb, var(--accent) 15%, transparent);transition:background .15s,transform .15s var(--ease),box-shadow .15s}
+.compact-interface .button:hover:not(:disabled){background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 1px 0 #ffffff26 inset,0 8px 22px color-mix(in srgb, var(--accent) 22%, transparent)}
 .compact-interface .button:active:not(:disabled){transform:translateY(0)}
 .compact-interface .button-secondary,.compact-interface .button-ghost{background:var(--panel-2);border-color:var(--border-strong);color:var(--text);box-shadow:none}
-.compact-interface .button-secondary:hover:not(:disabled),.compact-interface .button-ghost:hover:not(:disabled){background:var(--panel-hover);border-color:#3e5a4c;box-shadow:none}
+.compact-interface .button-secondary:hover:not(:disabled),.compact-interface .button-ghost:hover:not(:disabled){background:var(--panel-hover);border-color:var(--plum);box-shadow:none}
 .compact-interface .button-danger{background:var(--danger);color:#fff;box-shadow:none}
 .compact-interface .button-danger:hover:not(:disabled){background:#f2826f}
 .compact-interface .button-small{min-height:34px;padding:7px 12px;font-size:13px;border-radius:8px}
@@ -91,7 +75,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .practice-aside h2{font-size:18px;margin-bottom:14px}
 .compact-interface .practice-aside p{font-size:13px;color:var(--secondary)}
 .compact-interface .error-box{background:#ef6b5b14;border:1px solid #ef6b5b55;color:#ffb3a8;border-radius:10px;font-size:13px}
-.compact-interface .info-box{background:var(--accent-soft);border:1px solid #3ecf8e44;color:var(--text);border-radius:10px;font-size:13px}
+.compact-interface .info-box{background:var(--accent-soft);border:1px solid color-mix(in srgb, var(--accent) 27%, transparent);color:var(--text);border-radius:10px;font-size:13px}
 .compact-interface .empty-state{background:transparent;border:1px dashed var(--border-strong);border-radius:var(--radius);color:var(--secondary)}
 .compact-interface .empty-state p,.compact-interface .empty-state h3{color:var(--secondary)}
 .compact-interface .toast{background:var(--panel-2);border:1px solid var(--border-strong);color:var(--text);border-radius:12px;box-shadow:var(--shadow);font-size:13px}
@@ -113,11 +97,11 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 
 .compact-interface .collection-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .compact-interface .collection-card{background:var(--panel)!important;border:1px solid var(--border);border-radius:14px;box-shadow:none;transition:transform .2s var(--ease),border-color .2s,background .2s}
-.compact-interface .collection-card:hover:not(:disabled){transform:translateY(-3px);border-color:#3ecf8e66;background:var(--panel-2)!important;box-shadow:0 12px 30px #0005}
+.compact-interface .collection-card:hover:not(:disabled){transform:translateY(-3px);border-color:color-mix(in srgb, var(--accent) 40%, transparent);background:var(--panel-2)!important;box-shadow:0 12px 30px #0005}
 .compact-interface .collection-card-top{padding:14px 16px 0;color:var(--muted)}
 .compact-interface .collection-card .available{font-size:11px;font-weight:500;color:var(--muted);gap:6px}
 .compact-interface .collection-card .available>span{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.compact-interface .catalog-art{height:136px;margin:2px 0 0;background:radial-gradient(closest-side,#3ecf8e14,transparent)}
+.compact-interface .catalog-art{height:136px;margin:2px 0 0;background:radial-gradient(closest-side,var(--plum-soft),transparent)}
 .compact-interface .catalog-art>.game-emblem{width:128px;height:128px}
 .compact-interface .collection-card-copy{padding:6px 16px 14px}
 .compact-interface .collection-card h3{font-size:20px;margin:0 0 4px}
@@ -146,7 +130,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .compact-rule-item[open]{border-color:var(--border-strong)}
 
 /* ---------- Modal ---------- */
-.compact-interface .modal-backdrop{background:#030806b3;backdrop-filter:blur(6px)}
+.compact-interface .modal-backdrop{background:#120c14b3;backdrop-filter:blur(6px)}
 .compact-interface .modal{background:var(--panel);border:1px solid var(--border-strong);border-radius:16px;padding:28px;box-shadow:0 24px 80px #000a;color:var(--text)}
 .compact-interface .modal h2{font-size:22px;margin:0 32px 16px 0}
 .compact-interface .modal-description{font-size:14px;color:var(--secondary)}
@@ -154,7 +138,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .modal input,.compact-interface .modal textarea,.compact-interface .modal select{background:var(--bg-soft);border:1px solid var(--border-strong);border-radius:10px;color:var(--text);font-size:14px;padding:11px 13px}
 .compact-interface .modal input:focus,.compact-interface .modal textarea:focus,.compact-interface .modal select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
 .compact-interface .mode-choices>button{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;transition:border-color .15s,background .15s}
-.compact-interface .mode-choices>button:hover:not(:disabled){border-color:#3ecf8e66;background:var(--panel-hover)}
+.compact-interface .mode-choices>button:hover:not(:disabled){border-color:color-mix(in srgb, var(--accent) 40%, transparent);background:var(--panel-hover)}
 .compact-interface .mode-icon{background:var(--accent-soft)!important;color:var(--accent)!important;border:0!important;border-radius:10px!important}
 .compact-interface .time-options button,.compact-interface .room-side-options button{background:var(--bg-soft);border:1px solid var(--border-strong);border-radius:9px;color:var(--secondary)}
 .compact-interface .time-options .selected,.compact-interface .room-side-options button.selected{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
@@ -177,9 +161,9 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .practice-player strong{font-size:14px;color:var(--text)}
 .compact-interface .practice-player.your-turn,.compact-interface .human-player.your-turn{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:var(--panel-2)}
 .compact-interface .practice-avatar{background:var(--accent-soft);border:0;color:var(--accent)}
-.compact-interface .bot-avatar{background:#e3c27d1f;color:var(--gold)}
+.compact-interface .bot-avatar{background:var(--accent-soft);color:var(--gold)}
 .compact-interface .room-clock{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}
-.compact-interface .practice-stage{background:radial-gradient(ellipse at 50% 45%,#3ecf8e0f,transparent 65%),var(--bg-soft);border:1px solid var(--border);border-radius:12px}
+.compact-interface .practice-stage{background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb, var(--plum) 8%, transparent),transparent 65%),var(--bg-soft);border:1px solid var(--border);border-radius:12px}
 .compact-interface .practice-view-tools>span{color:var(--secondary)}
 .compact-interface .room-turn-status{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-weight:600}
 .compact-interface .practice-notice{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;color:var(--secondary)}
@@ -203,7 +187,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .match-actions button:hover:not(:disabled){background:var(--panel-hover)}
 .compact-interface .match-actions .resign-button{color:#f19b8d}
 .compact-interface .live-panel{background:var(--panel)}
-.compact-interface .draw-offer{background:var(--accent-soft);border:1px solid #3ecf8e55;border-radius:10px}
+.compact-interface .draw-offer{background:var(--accent-soft);border:1px solid color-mix(in srgb, var(--accent) 33%, transparent);border-radius:10px}
 
 /* Party (Ludo / Monopoly) chrome */
 .compact-interface .party-board.party-table{background:var(--bg-soft);border:1px solid var(--border);border-radius:12px}
@@ -216,7 +200,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
 .compact-interface .party-roster>article.active-turn{border-color:var(--accent);background:var(--panel-2);box-shadow:0 0 0 3px var(--accent-soft)}
 .compact-interface .party-dice-pickup{background:var(--panel-2);border:1px solid var(--accent);color:var(--text);box-shadow:0 8px 24px #0006,0 0 0 4px var(--accent-soft)}
 .compact-interface .party-dice-pickup:hover{background:var(--panel-hover)}
-.compact-interface .party-rolled-banner{background:#0f1a16ee;border:1px solid var(--border-strong)}
+.compact-interface .party-rolled-banner{background:color-mix(in srgb, var(--bg-soft) 93%, transparent);border:1px solid var(--border-strong)}
 .compact-interface .estate-wallet>strong{color:var(--gold)}
 
 /* Board focus mode keeps the same palette */
@@ -254,7 +238,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
   inset: 0;
   z-index: 95;
   min-height: 100dvh;
-  background: rgba(11, 22, 18, 0.82);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: blur(6px);
 }
 .sanco-loading-card {
@@ -262,7 +246,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,#3ecf8e0d,transparent 6
   padding: 28px 24px 24px;
   border-radius: 14px;
   text-align: center;
-  background: linear-gradient(160deg, rgba(22, 38, 30, 0.96), rgba(14, 25, 20, 0.98));
-  border: 1px solid rgba(197, 168, 104, 0.35);
+  background: linear-gradient(160deg,var(--panel-2),var(--bg-soft));
+  border: 1px solid var(--border-strong);
   box-shadow: 0 20px 52px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }

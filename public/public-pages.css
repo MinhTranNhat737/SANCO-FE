@@ -1,16 +1,38 @@
-html { background: #0d1814; color: #edf3df; font: 16px/1.65 system-ui, sans-serif; }
+:root {
+  color-scheme: dark;
+  --bg: #19141a;
+  --bg-soft: #211923;
+  --panel: #261d28;
+  --panel-2: #302330;
+  --panel-hover: #3a2b3b;
+  --border: #453546;
+  --border-strong: #80647c;
+  --text: #f7eef3;
+  --secondary: #d5c1ce;
+  --muted: #b29aaa;
+  --accent: #e4b481;
+  --accent-hover: #f3c695;
+  --accent-ink: #261622;
+  --accent-soft: #e4b48122;
+  --plum: #d4a2d6;
+  --plum-soft: #b778b62a;
+  --gold: #f0c98f;
+  --danger: #ef6b5b;
+  --art-toning: sepia(1) saturate(1.08);
+}
+html { background: var(--bg); color: var(--text); font: 16px/1.65 system-ui, sans-serif; }
 body { margin: 0; }
 .public-seo-fallback { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .sanco-boot-screen {
   min-height: 100dvh; display: flex; align-items: center; justify-content: center;
   padding: 24px; box-sizing: border-box;
-  background: radial-gradient(circle at 50% 38%, rgba(45, 90, 67, 0.28), rgba(11, 22, 18, 0.98) 70%), #0b1612;
+  background: radial-gradient(circle at 50% 38%, var(--plum-soft), transparent 70%), var(--bg);
 }
 .sanco-boot-card {
   width: min(100%, 360px); padding: 32px 28px 28px;
   border-radius: 16px; text-align: center;
-  background: linear-gradient(160deg, rgba(22, 38, 30, 0.96), rgba(14, 25, 20, 0.98));
-  border: 1px solid rgba(197, 168, 104, 0.32);
+  background: linear-gradient(160deg, var(--panel-2), var(--bg-soft));
+  border: 1px solid var(--border-strong);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .sanco-boot-emblem-wrap {
@@ -19,21 +41,23 @@ body { margin: 0; }
 }
 .sanco-boot-ring {
   position: absolute; inset: -6px; border-radius: 50%;
-  border: 2px solid rgba(197, 168, 104, 0.18);
-  border-top-color: #d4b872; border-right-color: #6bc497;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold); border-right-color: var(--plum);
   animation: sancoBootSpin 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 .sanco-boot-emblem {
   width: 84px; height: 84px; border-radius: 50%; object-fit: cover;
-  border: 2px solid rgba(212, 184, 114, 0.55);
+  border: 2px solid var(--border-strong);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
+.sanco-boot-emblem, .brand-emblem, .lesson-brand img, .lesson-games img,
+.public-hero img, .catalog-picture>img, .match-kind-select img { filter: var(--art-toning); }
 .sanco-boot-title {
   display: block; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.16em;
-  color: #f3eedc; margin-bottom: 6px;
+  color: var(--text); margin-bottom: 6px;
 }
 .sanco-boot-sub {
-  margin: 0 0 18px; font-size: 0.86rem; color: #9eb5a5;
+  margin: 0 0 18px; font-size: 0.86rem; color: var(--muted);
 }
 .sanco-boot-bar {
   position: relative; width: 100%; height: 4px; border-radius: 999px;
@@ -41,7 +65,7 @@ body { margin: 0; }
 }
 .sanco-boot-bar > span {
   position: absolute; top: 0; bottom: 0; width: 42%; border-radius: 999px;
-  background: linear-gradient(90deg, transparent, #d4b872, #6bc497, transparent);
+  background: linear-gradient(90deg, transparent, var(--gold), var(--plum), transparent);
   animation: sancoBootSlide 1.35s ease-in-out infinite;
 }
 @keyframes sancoBootSpin { to { transform: rotate(360deg); } }
@@ -49,17 +73,17 @@ body { margin: 0; }
 .public-page, .startup-message { max-width: 880px; margin: auto; padding: 32px 20px 56px; }
 .public-page h1, .startup-message h1 { font-size: clamp(1.8rem, 6vw, 3rem); line-height: 1.15; margin: 0 0 14px; }
 .public-page h2 { font-size: 1.35rem; margin: 28px 0 8px; }
-.public-page p, .startup-message p { margin: 0 0 16px; color: #c8d7c3; }
-.public-page a { color: #d9e9b3; text-underline-offset: .2em; }
-.public-page a:focus-visible, .startup-message button:focus-visible { outline: 2px solid #efcd8d; outline-offset: 4px; }
+.public-page p, .startup-message p { margin: 0 0 16px; color: var(--secondary); }
+.public-page a { color: var(--accent); text-underline-offset: .2em; }
+.public-page a:focus-visible, .startup-message button:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
 .public-page nav { margin-bottom: 20px; }
-.public-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(115px, 215px); gap: 20px; align-items: center; padding: 22px; border: 1px solid #4b614f; border-radius: 14px; background: #182a22; }
+.public-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(115px, 215px); gap: 20px; align-items: center; padding: 22px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); }
 .public-hero img { width: 100%; height: auto; border-radius: 9px; }
 .public-actions, .public-games { display: flex; flex-wrap: wrap; gap: 8px; }
 .public-games { list-style: none; padding: 0; margin: 0; }
-.public-games a, .public-page .public-cta, .startup-message button { display: inline-flex; align-items: center; min-height: 44px; box-sizing: border-box; padding: 7px 13px; border: 1px solid #607654; border-radius: 7px; font: inherit; }
-.public-page .public-cta, .startup-message button { background: #dae9b7; color: #1c2b20; text-decoration: none; font-weight: 650; }
-.public-page .public-cta.secondary { background: transparent; color: #edf3df; }
+.public-games a, .public-page .public-cta, .startup-message button { display: inline-flex; align-items: center; min-height: 44px; box-sizing: border-box; padding: 7px 13px; border: 1px solid var(--border-strong); border-radius: 7px; font: inherit; }
+.public-page .public-cta, .startup-message button { background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 650; }
+.public-page .public-cta.secondary { background: transparent; color: var(--text); }
 .public-modes li { margin-bottom: 8px; }
 .startup-message pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 540px) {

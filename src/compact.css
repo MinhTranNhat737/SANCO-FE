@@ -262,12 +262,12 @@
 }
 
 .compact-interface .compact-details {
-    border: 1px solid #496146;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #1b3022;
+    background: var(--panel-2);
     margin: 15px 0;
     padding: 0 14px;
-    color: #dbe7cc
+    color: var(--text)
 }
 
 .compact-interface .compact-details>summary {
@@ -280,18 +280,18 @@
 }
 
 .compact-interface .compact-details>summary::marker {
-    color: #c5d3a3
+    color: var(--accent)
 }
 
 .compact-interface .compact-details>summary span {
     font-weight: 400;
-    color: #bbceb0;
+    color: var(--muted);
     margin-left: 12px;
     overflow-wrap: anywhere
 }
 
 .compact-interface .compact-details p {
-    color: #c3d1b6;
+    color: var(--secondary);
     font-size: 12px;
     line-height: 1.95;
     margin: 0 0 15px
@@ -302,7 +302,7 @@
 }
 
 .compact-interface summary:focus-visible {
-    outline: 2px solid #d6dda4;
+    outline: 2px solid var(--accent);
     outline-offset: 4px;
     border-radius: 3px
 }
@@ -313,10 +313,10 @@
     min-height: 45px;
     margin-top: 9px;
     padding: 11px 13px;
-    background: #14291d;
-    border: 1px solid #637b53;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-strong);
     border-radius: 8px;
-    color: #eaf0dc;
+    color: var(--text);
     font: inherit;
     font-size: 14px;
     cursor: pointer;
@@ -324,7 +324,7 @@
 }
 
 .compact-interface .modal select:focus-visible {
-    outline: 2px solid #d2dda4;
+    outline: 2px solid var(--accent);
     outline-offset: 2px
 }
 
@@ -431,10 +431,10 @@
     align-items: center;
     gap: 11px;
     min-height: 49px;
-    border: 1px solid #526c48;
+    border: 1px solid var(--border-strong);
     border-radius: 9px;
-    background: #203725;
-    color: #dbe6cb;
+    background: var(--panel-2);
+    color: var(--text);
     padding: 12px 17px;
     text-align: left;
     font-size: 13px;
@@ -446,8 +446,8 @@
 }
 
 .compact-interface .practice-rule-button:hover {
-    border-color: #c5d19e;
-    background: #2c442b
+    border-color: var(--accent);
+    background: var(--panel-hover)
 }
 
 .compact-interface .compact-moves {
@@ -627,7 +627,7 @@
 .board-focus-shell .main-shell {
     margin-left: 0 !important;
     min-height: 100dvh;
-    background: #0c1913
+    background: var(--bg)
 }
 
 .board-focus-shell .content {

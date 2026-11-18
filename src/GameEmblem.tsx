@@ -34,16 +34,16 @@ export default function GameEmblem({kind,className=''}:{kind:GameKind;className?
         <stop offset="1" stopColor="#8d632e"/>
       </linearGradient>
       <radialGradient id={`${id}-vig`} cx="80" cy="80" r="68" gradientUnits="userSpaceOnUse">
-        <stop offset=".72" stopColor="#0d231b" stopOpacity="0"/>
-        <stop offset="1" stopColor="#081711" stopOpacity=".58"/>
+        <stop offset=".72" stopColor="#2b1b29" stopOpacity="0"/>
+        <stop offset="1" stopColor="#19141a" stopOpacity=".58"/>
       </radialGradient>
       <clipPath id={`${id}-clip`}>
         <path d="M80 13 138 46.5v67L80 147 22 113.5v-67Z"/>
       </clipPath>
     </defs>
-    <path className="emblem-halo" d="M80 7 143 43v74l-63 36-63-36V43Z" fill="#10271f" stroke="#73916c" strokeOpacity=".45"/>
+    <path className="emblem-halo" d="M80 7 143 43v74l-63 36-63-36V43Z" fill="#362437" stroke="#a5819d" strokeOpacity=".45"/>
     <g clipPath={clip}>
-      <rect x="16" y="10" width="128" height="140" fill="#0d231b"/>
+      <rect x="16" y="10" width="128" height="140" fill="#2b1b29"/>
       <image className="emblem-ai-art" href={`/thumbs/${kind}.jpg`} x={x} y={y} width={s} height={s} preserveAspectRatio="xMidYMid slice"/>
       <path d="M80 13 138 46.5v67L80 147 22 113.5v-67Z" fill={vignette}/>
     </g>
