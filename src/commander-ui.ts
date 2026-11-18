@@ -12,6 +12,10 @@ export const COMMANDER_UNITS:Record<string,{name:string;label:string;rule:string
   D:{name:'Dân quân tóc dài',label:'DQ',rule:'Đi và ăn 1 bước theo 8 hướng.'}
 };
 export const commanderUnits=(cell:string|null)=>cell?cell.split('+'):[];
+export function commanderTransferPassenger(units:readonly string[],slot:number){
+  if(units[0]?.[1]!=='N'||units[slot]?.[1]!=='F')return -1;
+  return units.findIndex((unit,index)=>index>0&&index!==slot&&['K','I','D','T'].includes(unit[1]));
+}
 export function commanderName(cell:string|null){return commanderUnits(cell).map(unit=>`${COMMANDER_UNITS[unit[1]]?.name||unit}${unit.endsWith('*')?' anh hùng':''}`).join(' + ');}
 export function commanderPreview(){
   const board:(string|null)[]=Array(132).fill(null);

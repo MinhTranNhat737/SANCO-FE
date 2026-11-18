@@ -2,34 +2,47 @@ import {lazy,Suspense,useEffect,useRef,useState} from 'react';
 import FlatBoard from './FlatBoard';
 import Board3DBoundary from './Board3DBoundary';
 import type {SceneBoardProps} from './SceneBoard';
-import {COMMANDER_SYMBOLS,COMMANDER_UNITS,commanderName,commanderUnits} from './commander-ui';
+import {COMMANDER_SYMBOLS,COMMANDER_UNITS,commanderName,commanderTransferPassenger,commanderUnits} from './commander-ui';
 import {squareName,type PracticeMove} from './practice-types';
 import {VIETNAM_UNITS} from './vietnam-profile';
 import './commander.css';
 const SceneBoard=lazy(()=>import('./SceneBoard'));
 type CommanderScene=Pick<SceneBoardProps,'gameKey'|'history'|'plyCount'|'onAnimatingChange'|'onZoomChange'|'pendingSquare'|'topView'|'resetViewKey'|'zoom'|'onFallback'>;
-const modes:Record<string,string>={move:'Đi / thế chỗ',bomb:'Ném bom · trở về',fire:'Bắn · đứng tại chỗ',board:'Lên / đón quân'};
+const modes:Record<string,string>={move:'Đi / thế chỗ',bomb:'Ném bom · trở về',fire:'Bắn · đứng tại chỗ',board:'Lên quân chở',transfer:'Chuyển tàu cùng quân đang chở',pickup:'Đến đón quân'};
 function parts(move:PracticeMove){const [,unit,mode]=(move.action||'').split('-');return {unit:+unit,mode,to:move.to};}
 function direction(from:number,to:number){return `${Math.sign(Math.floor(to/11)-Math.floor(from/11))},${Math.sign(to%11-from%11)}`;}
+function orderedSlots(move:PracticeMove,stack:string[]){
+  const {unit,mode}=parts(move);
+  if(mode!=='transfer')return [unit];
+  return [unit,commanderTransferPassenger(stack,unit)];
+}
+const movesBase=({unit,mode}:ReturnType<typeof parts>)=>unit===0&&['move','board','pickup'].includes(mode);
+const shootsFromOrigin=({unit,mode}:ReturnType<typeof parts>)=>unit!==0&&['bomb','fire'].includes(mode);
 export default function CommanderBoard({board,legal,enabled,last,checkSquare,winning,flipped,onMove,scene,originalRules=false}:{board:(string|null)[];legal:PracticeMove[];enabled:boolean;last:PracticeMove|null;checkSquare:number|null;winning:number[];flipped:boolean;onMove:(move:PracticeMove)=>void;scene?:CommanderScene;originalRules?:boolean}){
   const [selected,setSelected]=useState<number|null>(null),[unit,setUnit]=useState(0),[options,setOptions]=useState<PracticeMove[]>([]),[combined,setCombined]=useState(false),[orders,setOrders]=useState<PracticeMove[]>([]),[air,setAir]=useState(false);
   const [outdoors,setOutdoors]=useState(true);
   useEffect(()=>{setSelected(null);setOptions([]);setOrders([]);setCombined(false);setUnit(0);},[board,enabled]);
   const stack=selected===null?[]:commanderUnits(board[selected]);
-  const available=selected===null?[]:legal.filter(move=>move.from===selected&&!orders.some(order=>order.to===move.to||originalRules&&direction(selected,order.to)===direction(selected,move.to)));
+  const usedSlots=new Set(orders.flatMap(order=>orderedSlots(order,stack)));
+  const available=selected===null?[]:legal.filter(move=>{
+    if(move.from!==selected||orderedSlots(move,stack).some(slot=>usedSlots.has(slot)))return false;
+    const incoming=parts(move);
+    return !orders.some(order=>{
+      const prior=parts(order);
+      return prior.to===incoming.to||originalRules&&direction(selected,prior.to)===direction(selected,incoming.to)||movesBase(prior)&&shootsFromOrigin(incoming)||movesBase(incoming)&&shootsFromOrigin(prior);
+    });
+  });
   const candidates=available.filter(move=>parts(move).unit===unit);
   function choose(move:PracticeMove){
     setOptions([]);
     if(!combined){onMove(move);return;}
     const next=[...orders.filter(o=>parts(o).unit!==parts(move).unit),move];setOrders(next);
-    const unused=stack.findIndex((_,i)=>!next.some(o=>parts(o).unit===i));if(unused>=0)setUnit(unused);
+    const used=new Set(next.flatMap(order=>orderedSlots(order,stack)));
+    const unused=stack.findIndex((_,i)=>!used.has(i));if(unused>=0)setUnit(unused);
   }
   function pick(index:number){
     if(!enabled)return;
-    if(options.length>0&&options[0]?.to===index){
-      choose(options.find(m=>parts(m).mode==='bomb')||options[0]);
-      return;
-    }
+    if(options[0]?.to===index)return;
     const found=candidates.filter(m=>m.to===index);
     if(found.length===1){choose(found[0]);return;}if(found.length>1){setOptions(found);return;}
     if(legal.some(m=>m.from===index)){
@@ -75,7 +88,7 @@ export default function CommanderBoard({board,legal,enabled,last,checkSquare,win
           <strong>{commanderName(board[selected])}</strong>
           {stack.length>1&&<button type="button" className="text-button ctl-combine-switch" aria-pressed={combined} onClick={()=>{setCombined(!combined);setOrders([]);setOptions([]);}}>Phối hợp {combined?'✓':''}</button>}
         </div>
-        {stack.length>1&&<div className="ctl-unit-picker" role="group" aria-label="Chọn quân trong tổ hợp">{stack.map((u,i)=><button key={i} type="button" aria-pressed={unit===i} disabled={orders.some(o=>parts(o).unit===i)||!available.some(m=>parts(m).unit===i)} onClick={()=>{setUnit(i);setOptions([]);}}>{COMMANDER_UNITS[u[1]].name}{u.endsWith('*')?' ★':''}{i===0&&stack.length>1?' · chở quân':''}</button>)}</div>}
+        {stack.length>1&&<div className="ctl-unit-picker" role="group" aria-label="Chọn quân trong tổ hợp">{stack.map((u,i)=><button key={i} type="button" aria-pressed={unit===i} disabled={!available.some(m=>parts(m).unit===i)} onClick={()=>{setUnit(i);setOptions([]);}}>{COMMANDER_UNITS[u[1]].name}{u.endsWith('*')?' ★':''}{i===0&&stack.length>1?' · chở quân':''}</button>)}</div>}
         <p className="ctl-hint">{options.length>0?'CHỌN PHƯƠNG THỨC TÁC CHIẾN:':combined?'Chọn từng đơn vị và tọa độ đích, sau đó phát lệnh.':'Chọn tọa độ di chuyển hoặc mục tiêu tác chiến trên bản đồ.'}</p>
         {options.length>0&&<div className="ctl-action-options" role="group" aria-label="Chọn cách đánh">{options.map(m=><button type="button" key={m.action} className={parts(m).mode==='bomb'?'ctl-btn-bomb':'ctl-btn-land'} onClick={()=>choose(m)}>{modes[parts(m).mode]} → {squareName('commander',m.to)}</button>)}</div>}
         {orders.length>0&&<><ol className="ctl-planned">{orders.map((m,i)=><li key={i}>{COMMANDER_UNITS[stack[parts(m).unit][1]].name}: {modes[parts(m).mode]} → {squareName('commander',m.to)}<button type="button" className="text-button" onClick={()=>setOrders(orders.filter((_,j)=>j!==i))}>Bỏ</button></li>)}</ol><button type="button" className="button button-small ctl-exec-btn" onClick={()=>onMove(orders.length===1?orders[0]:{from:selected,to:orders[0].to,action:'ctl-combined',details:{orders:orders.map(parts)}})}>Thực hiện {orders.length} lệnh</button></>}

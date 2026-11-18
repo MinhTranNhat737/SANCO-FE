@@ -26,6 +26,18 @@ test('Commander 3D handles boarding, disembarking and burning with a carried com
 test('Commander consecutive live moves queue once and replay starts synchronize without fabricated animation',()=>{
   const g=game([[3,4,'rF'],[6,4,'bI'],[1,3,'rI'],[9,3,'bT']]),initial=snapshot(g.id,g.board,0,[]);makePracticeMove(g,{from:at(3,4),to:at(6,4),action:'ctl-0-bomb'});const next=snapshot(g.id,g.board,1,g.moves as PracticePly[]);assert.equal(incomingBoard('commander',initial,next,g.moves as PracticePly[]).mode,'animate');assert.equal(incomingBoard('commander',next,next,g.moves as PracticePly[]).mode,'unchanged');assert.equal(incomingBoard('commander',next,initial,g.moves as PracticePly[]).mode,'snap');
 });
+test('Commander 3D animates a carrier transfer with its passenger and a ground pickup',()=>{
+  const moves=[
+    {g:game([[8,1,'rN+rF+rI'],[9,0,'rN'],[10,5,'bT']]),from:at(8,1),to:at(9,0),action:'ctl-1-transfer',actor:'rF+rI',origin:'rN'},
+    {g:game([[3,4,'rT'],[3,6,'rI'],[10,5,'bT']]),from:at(3,4),to:at(3,6),action:'ctl-0-pickup',actor:'rT',origin:null},
+  ];
+  for(const {g,from,to,action,actor,origin} of moves){
+    const before=[...g.board];makePracticeMove(g,{from,to,action});
+    const transition=transitionFor('commander',before,g.board,g.moves[0] as PracticePly);
+    assert.ok(transition,action);assert.equal(transition.actors[0].piece,actor);
+    assert.equal(transition.departure![from],origin);assert.deepEqual(transition.after,g.board);
+  }
+});
 test('A plane intercepted before its target animates to the AA contact point and leaves the target intact',()=>{
   const g=game([[2,4,'rF'],[3,4,'bA'],[6,4,'bI'],[1,3,'rI']]),before=[...g.board];makePracticeMove(g,{from:at(2,4),to:at(6,4),action:'ctl-0-bomb'});const plan=transitionFor('commander',before,g.board,g.moves[0] as PracticePly);assert.ok(plan);assert.equal(plan.actors[0].path,'burn');assert.equal(plan.actors[0].to,at(3,4));assert.equal(g.board[at(6,4)],'bI');assert.deepEqual(plan.captures,[]);
 });
