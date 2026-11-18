@@ -297,6 +297,46 @@ test('My rank shows position beyond the top 50 in the selected pool',async()=>{
   assert.match(document.querySelector('.my-rank').textContent,/#52 trên 126 người chơi/);
 });
 
+test('Lobby skips the banner and the collapsible sidebar presents the top three and my rank',async()=>{
+  const fallback=globalThis.fetch;
+  const profile={...ratingView({elo:1200,games:10}),position:52,rankedPlayers:126};
+  globalThis.fetch=async(url,options={})=>{
+    if(new URL(String(url),window.location.href).pathname==='/api/leaderboard/chess')return json({
+      me:profile,players:[1,2,3,4].map(position=>({...profile,position,name:`Người chơi ${position}`}))
+    });
+    return fallback(url,options);
+  };
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  assert.equal(document.querySelector('.quick-lobby-logo,.topbar-brand-emblem'),null);
+  assert.equal(document.querySelectorAll('.sidebar-ranks-list li').length,3);
+  assert.match(document.querySelector('.sidebar-ranks-me').textContent,/#52/);
+  await click(document.querySelector('[aria-label="Thu gọn thanh bên"]'));
+  assert.equal(localStorage.getItem('sc-sidebar-collapsed'),'true');assert.equal(document.querySelector('.sidebar-ranks'),null);
+  await click(document.querySelector('[aria-label="Mở rộng thanh bên"]'));
+  await click(document.querySelector('.sidebar-ranks-me'));
+  for(let i=0;i<30&&!document.querySelector('.rank-tiers');i++)await settle();
+  const badges=[...document.querySelectorAll('.rank-tiers .rank-badge')];
+  assert.equal(badges.length,7);assert.equal(new Set(badges.map(badge=>badge.className)).size,7);
+});
+
+test('Matchmaking offers retry when the API is missing and restores the search form when it comes back',async()=>{
+  const fallback=globalThis.fetch;
+  let attempts=0;
+  globalThis.fetch=async(url,options={})=>{
+    if(new URL(String(url),window.location.href).pathname==='/api/matchmaking'&&++attempts===1){
+      return new Response(JSON.stringify({error:'Không tìm thấy API.'}),{status:404});
+    }
+    return fallback(url,options);
+  };
+  window.history.replaceState(null,'','/?game=xiangqi&mode=ranked');
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  for(let i=0;i<30&&!document.querySelector('.match-status [role="alert"]');i++)await settle();
+  assert.match(document.querySelector('.match-status [role="alert"]').textContent,/Máy chủ tìm trận chưa sẵn sàng/);
+  await click([...document.querySelectorAll('.match-actions button')].find(b=>b.textContent==='Tải lại'));
+  assert.equal(document.querySelector('.match-settings select').value,'xiangqi');
+  assert.equal(document.querySelector('.match-actions button[type="submit"]').disabled,false);
+});
+
 test('Ranked bot setup submits its selected profile, identifies the bot and disables undo/new game',async()=>{
   const original=globalThis.fetch;let submitted;
   globalThis.fetch=async(url,options={})=>{

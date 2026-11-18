@@ -7,4 +7,5 @@ import './compact.css';
 import './modern.css';
 import './rankings.css';
 import './mobile-board.css';
+import './lobby.css';
 createRoot(document.getElementById('root')!).render(<AppErrorBoundary><App /></AppErrorBoundary>);
