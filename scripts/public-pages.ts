@@ -71,7 +71,7 @@ function pageShell(head:string, content:string){
   return `<!doctype html>
 <html lang="vi"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<meta name="theme-color" content="#19141a">
+<meta name="theme-color" content="#21180f">
 <link rel="icon" href="/thumbs/sanco-brand.jpg" type="image/jpeg">
 <link rel="stylesheet" href="/public-pages.css">
 ${head}</head><body>${content}</body></html>`;

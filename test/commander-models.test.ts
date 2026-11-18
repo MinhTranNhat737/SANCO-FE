@@ -9,7 +9,7 @@ import {VIETNAM_UNITS} from '../src/vietnam-profile.ts';
 const models=new Map<string,T.Group>();
 before(async()=>{
   // GLTFLoader's bitmap interface only; mesh, skin pose and material parsing run unchanged.
-  Object.assign(globalThis,{self:globalThis,createImageBitmap:async()=>({width:1024,height:1024,close(){}}),document:{createElement:()=>({width:0,height:0,getContext:()=>({fillRect(){},fillText(){}})})}});
+  Object.assign(globalThis,{self:globalThis,Path2D:class {},createImageBitmap:async()=>({width:1024,height:1024,close(){}}),document:{createElement:()=>({width:0,height:0,getContext:()=>({fillRect(){},fillText(){},save(){},restore(){},translate(){},scale(){},stroke(){}})})}});
   for(const type of COMMANDER_MODEL_TYPES){const bytes=await readFile(new URL(`../public${COMMANDER_MODEL_PATH}/${type}.glb`,import.meta.url));models.set(type,await parseCommanderModel(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)));}
 });
 after(()=>{for(const model of models.values())model.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();(o.material as T.Material).dispose();}});});
@@ -25,6 +25,8 @@ test('Vietnamese profile meshes fit one square in either player color without a 
 });
 test('A carrier displays all three imported miniatures, and heroes retain their type and badge',()=>{
   const stack=commanderPiece('rN+rF*+rK',models);assert.deepEqual(stack.userData.commanderUnits,['rN','rF*','rK']);const size=new T.Box3().setFromObject(stack).getSize(new T.Vector3());assert.ok(size.x<=.9&&size.z<=.9&&size.y<1.1);assert.equal(stack.children.length,6);
+  const badge=stack.children.find(child=>child.userData.commanderLabel) as T.Mesh<T.PlaneGeometry>;
+  assert.ok(badge.geometry.parameters.height>.32);
 });
 test('Vietnamese equipment retains its natural colors while square bases distinguish teams',()=>{
   const colors=(g:T.Object3D)=>{const values:number[]=[];g.traverse(o=>{if(o instanceof T.Mesh)values.push((o.material as T.MeshStandardMaterial).color.getHex());});return values;};

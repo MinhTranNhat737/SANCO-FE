@@ -1,22 +1,22 @@
 :root {
   color-scheme: dark;
-  --bg: #19141a;
-  --bg-soft: #211923;
-  --panel: #261d28;
-  --panel-2: #302330;
-  --panel-hover: #3a2b3b;
-  --border: #453546;
-  --border-strong: #80647c;
-  --text: #f7eef3;
-  --secondary: #d5c1ce;
-  --muted: #b29aaa;
-  --accent: #e4b481;
-  --accent-hover: #f3c695;
-  --accent-ink: #261622;
-  --accent-soft: #e4b48122;
-  --plum: #d4a2d6;
-  --plum-soft: #b778b62a;
-  --gold: #f0c98f;
+  --bg: #21180f;
+  --bg-soft: #2b2014;
+  --panel: #322518;
+  --panel-2: #3c2c1c;
+  --panel-hover: #4a3522;
+  --border: #5c422a;
+  --border-strong: #9c7852;
+  --text: #fff3de;
+  --secondary: #ead2ac;
+  --muted: #c5aa83;
+  --accent: #efbc62;
+  --accent-hover: #ffd385;
+  --accent-ink: #2b1909;
+  --accent-soft: #efbc6222;
+  --amber: #e6b87a;
+  --amber-soft: #bf863c27;
+  --gold: #f7cd81;
   --danger: #ef6b5b;
 }
 html { background: var(--bg); color: var(--text); font: 16px/1.65 system-ui, sans-serif; }
@@ -25,7 +25,7 @@ body { margin: 0; }
 .sanco-boot-screen {
   min-height: 100dvh; display: flex; align-items: center; justify-content: center;
   padding: 24px; box-sizing: border-box;
-  background: radial-gradient(circle at 50% 38%, var(--plum-soft), transparent 70%), var(--bg);
+  background: radial-gradient(circle at 50% 38%, var(--amber-soft), transparent 70%), var(--bg);
 }
 .sanco-boot-card {
   width: min(100%, 360px); padding: 32px 28px 28px;
@@ -41,7 +41,7 @@ body { margin: 0; }
 .sanco-boot-ring {
   position: absolute; inset: -6px; border-radius: 50%;
   border: 2px solid var(--border);
-  border-top-color: var(--gold); border-right-color: var(--plum);
+  border-top-color: var(--gold); border-right-color: var(--amber);
   animation: sancoBootSpin 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 .sanco-boot-emblem {
@@ -63,7 +63,7 @@ body { margin: 0; }
 }
 .sanco-boot-bar > span {
   position: absolute; top: 0; bottom: 0; width: 42%; border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--gold), var(--plum), transparent);
+  background: linear-gradient(90deg, transparent, var(--gold), var(--amber), transparent);
   animation: sancoBootSlide 1.35s ease-in-out infinite;
 }
 @keyframes sancoBootSpin { to { transform: rotate(360deg); } }

@@ -110,8 +110,8 @@ export default function Matchmaking({initialKind,initialPool,user,onMatch,onBot,
           </select>
           <ChevronDown className="match-kind-chevron" size={18} aria-hidden="true"/>
         </div>
-        {presets[kind]&&<fieldset><legend>Thời gian mỗi bên</legend>
-          <div className="match-presets">{presets[kind]?.map(preset=><button type="button" key={preset.id} disabled={busy||ticket.status!=='idle'} aria-pressed={selected?.id===preset.id} onClick={()=>setPresetId(preset.id)}><strong>{preset.minutes}{preset.increment?` + ${preset.increment}`:' phút'}</strong><small>{POOL_LABELS[preset.pool]}</small></button>)}</div>
+        {presets[kind]&&<fieldset><legend>{kind==='commander'?'Thời gian cả ván':'Thời gian mỗi bên'}</legend>
+          <div className="match-presets">{presets[kind]?.map(preset=><button type="button" key={preset.id} disabled={busy||ticket.status!=='idle'} aria-pressed={selected?.id===preset.id} onClick={()=>setPresetId(preset.id)}><strong>{preset.minutes}{preset.increment?` + ${preset.increment}`:' phút'}</strong><small>{kind==='commander'?'Tổng lực':POOL_LABELS[preset.pool]}</small></button>)}</div>
         </fieldset>}
         {selected&&<div className="match-rating-strip">
           {rating&&<div className="match-personal"><RankBadge rank={rating.rank} small/><span><strong>{rating.elo} Elo</strong><small>{rating.provisional?`${rating.games}/10 ván phân hạng`:rating.rank}</small></span></div>}

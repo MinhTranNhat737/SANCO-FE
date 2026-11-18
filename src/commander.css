@@ -20,10 +20,11 @@
 .flat-commander .flat-cell.in-check{background:#e9444566;box-shadow:inset 0 0 0 3px #d33545}
 .flat-commander .flat-cell.winning-cell{background:#e7be5466}
 .flat-commander .flat-file,.flat-commander .flat-rank{font-size:8px;color:var(--ctl-ink);z-index:5}
-.ctl-piece{position:relative;width:88%;height:88%;background:#fff5df;color:#a1152e;border:2.5px solid currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 3px #152d2a66;border-radius:0;line-height:1;pointer-events:none}
-.ctl-piece.ctl-b{background:#e0f0ff;color:#064e8c}
+.ctl-piece{position:relative;width:88%;height:88%;background:#981e32;color:#fff5df;border:2px solid #eec88e;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 3px #25180d77;border-radius:50%;line-height:1;pointer-events:none}
+.ctl-piece.ctl-b{background:#11578c}
 .ctl-piece svg{width:64%;height:64%;flex-shrink:0}
 .ctl-piece>b{font-size:clamp(8px,1.25vw,12px);font-weight:700;line-height:1.1}
+.ctl-match-clock strong{font-variant-numeric:tabular-nums;color:var(--gold)}
 .ctl-stack{position:absolute;right:-4px;bottom:-3px;display:flex;gap:1px;z-index:3}
 .ctl-stack small{background:#e4b753;color:#172d26;border:1px solid #6d582e;font-size:8px;font-weight:700;padding:2px 3px}
 .ctl-hero{font-style:normal;font-size:13px;position:absolute;right:-4px;top:-7px;color:#e4a71e;text-shadow:0 1px #432808}
@@ -37,14 +38,14 @@
 /* Military Vehicle Control Console HUD */
 .ctl-orders{
   padding:10px 14px;
-  background:rgba(16,23,20,.96);
+  background:rgba(43,32,20,.96);
   backdrop-filter:blur(6px);
-  border:1px solid #35473d;
-  border-top:2px solid #5c7063;
+  border:1px solid #5c422a;
+  border-top:2px solid #92704a;
   border-radius:3px;
   margin:4px 0 10px;
   font-size:12px;
-  color:#dce3dd;
+  color:#ead2ac;
   box-shadow:0 8px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04);
 }
 .ctl-orders-hud{
@@ -52,19 +53,19 @@
   max-width:460px;margin:0 auto;pointer-events:auto;
 }
 .ctl-orders-prompt{
-  border-color:#4d6356;
+  border-color:#725233;
   border-top-color:#b89f65;
 }
 .ctl-order-heading{
   padding-bottom:7px;
-  border-bottom:1px solid rgba(92,112,99,.28);
+  border-bottom:1px solid rgba(156,120,82,.28);
   justify-content:flex-start;
 }
 .ctl-console-id{
   display:inline-flex;align-items:center;gap:6px;
   font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
   font-size:11px;font-weight:600;letter-spacing:.6px;
-  color:#9eb0a5;background:#16201c;border:1px solid #2e3e35;
+  color:#c5aa83;background:#2b2014;border:1px solid #5c422a;
   padding:2px 7px;border-radius:2px;
 }
 .ctl-console-led{
@@ -74,15 +75,15 @@
 .ctl-orders-prompt .ctl-console-led{background:#c5a868}
 .ctl-order-heading strong{
   font-weight:600;font-size:12.5px;letter-spacing:.4px;
-  text-transform:uppercase;color:#e8ede9;
+  text-transform:uppercase;color:#fff3de;
 }
 .ctl-combine-switch{
   margin-left:auto;font-size:11px;letter-spacing:.3px;
-  color:#a8b8ae;padding:2px 8px;border:1px solid #35473d;
-  background:#16201c;border-radius:2px;
+  color:#ead2ac;padding:2px 8px;border:1px solid #5c422a;
+  background:#2b2014;border-radius:2px;
 }
 .ctl-combine-switch[aria-pressed=true]{
-  color:#e8ede9;border-color:#b89f65;background:#212e28;
+  color:#fff3de;border-color:#b89f65;background:#4a3522;
 }
 .ctl-unit-picker,.ctl-action-options{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
@@ -90,39 +91,39 @@
 }
 .ctl-unit-picker button,.ctl-action-options button{
   display:flex;align-items:center;justify-content:space-between;
-  background:#17211d;color:#dce3dd;
-  border:1px solid #35473d;border-left:2px solid #5c7063;
+  background:#2b2014;color:#ead2ac;
+  border:1px solid #5c422a;border-left:2px solid #92704a;
   border-radius:2px;padding:8px 11px;
   cursor:pointer;font:inherit;font-size:11.5px;font-weight:500;
   letter-spacing:.2px;text-align:left;
   transition:background .12s,border-color .12s;
 }
 .ctl-unit-picker button:hover:not(:disabled),.ctl-action-options button:hover:not(:disabled){
-  background:#202e28;border-color:#52695c;border-left-color:#b89f65;
+  background:#3c2c1c;border-color:#795a39;border-left-color:#b89f65;
 }
 .ctl-action-options button.ctl-btn-bomb{
-  border-left-color:#b89f65;color:#eef2ee;
+  border-left-color:#b89f65;color:#fff3de;
 }
 .ctl-action-options button.ctl-btn-land{
-  border-left-color:#6d8c7a;color:#dce3dd;
+  border-left-color:#6d8c7a;color:#ead2ac;
 }
 .ctl-unit-picker button[aria-pressed=true]{
-  background:#202e28;color:#eef2ee;border-color:#52695c;border-left:2px solid #b89f65;
+  background:#3c2c1c;color:#fff3de;border-color:#795a39;border-left:2px solid #b89f65;
 }
 .ctl-unit-picker button:disabled{opacity:.4;cursor:default}
 .ctl-hint{
-  font-size:10.5px;letter-spacing:.4px;color:#8fa196;
+  font-size:10.5px;letter-spacing:.4px;color:#c5aa83;
   margin:7px 0 0;
 }
 .ctl-planned{
-  padding-left:18px;margin:7px 0;font-size:11px;color:#c2cec7;
+  padding-left:18px;margin:7px 0;font-size:11px;color:#ead2ac;
 }
 .ctl-planned li{padding:3px 0;line-height:1.4}
-.ctl-planned button{margin-left:8px;font-size:10.5px;color:#9eb0a5}
+.ctl-planned button{margin-left:8px;font-size:10.5px;color:#c5aa83}
 .ctl-exec-btn{
   width:100%;margin-top:4px;min-height:32px;
-  background:#202e28;border:1px solid #52695c;border-left:2px solid #b89f65;
-  color:#eef2ee;border-radius:2px;font-size:11.5px;letter-spacing:.3px;
+  background:#3c2c1c;border:1px solid #795a39;border-left:2px solid #b89f65;
+  color:#fff3de;border-radius:2px;font-size:11.5px;letter-spacing:.3px;
 }
 .ctl-field-guide{font-size:12px;border-top:1px solid #6b897966;padding:8px 10px;line-height:1.65}
 .ctl-model-credits{font-size:10px;line-height:1.7;color:var(--board-muted,#a9bdac);padding:6px 10px}

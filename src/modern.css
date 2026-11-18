@@ -12,7 +12,7 @@
   --surface:var(--panel);
 }
 html,body{background:var(--bg)}
-body{background:radial-gradient(1200px 600px at 85% -10%,var(--plum-soft),transparent 60%),var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{background:radial-gradient(1200px 600px at 85% -10%,var(--amber-soft),transparent 60%),var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .compact-interface,.compact-interface button,.compact-interface input,.compact-interface select,.compact-interface textarea{font-family:'Be Vietnam Pro',system-ui,sans-serif}
 ::selection{background:color-mix(in srgb, var(--accent) 33%, transparent);color:#fff}
 
@@ -58,7 +58,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,var(--plum-soft),transp
 .compact-interface .button:hover:not(:disabled){background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 1px 0 #ffffff26 inset,0 8px 22px color-mix(in srgb, var(--accent) 22%, transparent)}
 .compact-interface .button:active:not(:disabled){transform:translateY(0)}
 .compact-interface .button-secondary,.compact-interface .button-ghost{background:var(--panel-2);border-color:var(--border-strong);color:var(--text);box-shadow:none}
-.compact-interface .button-secondary:hover:not(:disabled),.compact-interface .button-ghost:hover:not(:disabled){background:var(--panel-hover);border-color:var(--plum);box-shadow:none}
+.compact-interface .button-secondary:hover:not(:disabled),.compact-interface .button-ghost:hover:not(:disabled){background:var(--panel-hover);border-color:var(--amber);box-shadow:none}
 .compact-interface .button-danger{background:var(--danger);color:#fff;box-shadow:none}
 .compact-interface .button-danger:hover:not(:disabled){background:#f2826f}
 .compact-interface .button-small{min-height:34px;padding:7px 12px;font-size:13px;border-radius:8px}
@@ -101,7 +101,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,var(--plum-soft),transp
 .compact-interface .collection-card-top{padding:14px 16px 0;color:var(--muted)}
 .compact-interface .collection-card .available{font-size:11px;font-weight:500;color:var(--muted);gap:6px}
 .compact-interface .collection-card .available>span{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.compact-interface .catalog-art{height:136px;margin:2px 0 0;background:radial-gradient(closest-side,var(--plum-soft),transparent)}
+.compact-interface .catalog-art{height:136px;margin:2px 0 0;background:radial-gradient(closest-side,var(--amber-soft),transparent)}
 .compact-interface .catalog-art>.game-emblem{width:128px;height:128px}
 .compact-interface .collection-card-copy{padding:6px 16px 14px}
 .compact-interface .collection-card h3{font-size:20px;margin:0 0 4px}
@@ -130,7 +130,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,var(--plum-soft),transp
 .compact-interface .compact-rule-item[open]{border-color:var(--border-strong)}
 
 /* ---------- Modal ---------- */
-.compact-interface .modal-backdrop{background:#120c14b3;backdrop-filter:blur(6px)}
+.compact-interface .modal-backdrop{background:#160f08b3;backdrop-filter:blur(6px)}
 .compact-interface .modal{background:var(--panel);border:1px solid var(--border-strong);border-radius:16px;padding:28px;box-shadow:0 24px 80px #000a;color:var(--text)}
 .compact-interface .modal h2{font-size:22px;margin:0 32px 16px 0}
 .compact-interface .modal-description{font-size:14px;color:var(--secondary)}
@@ -163,7 +163,7 @@ body{background:radial-gradient(1200px 600px at 85% -10%,var(--plum-soft),transp
 .compact-interface .practice-avatar{background:var(--accent-soft);border:0;color:var(--accent)}
 .compact-interface .bot-avatar{background:var(--accent-soft);color:var(--gold)}
 .compact-interface .room-clock{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}
-.compact-interface .practice-stage{background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb, var(--plum) 8%, transparent),transparent 65%),var(--bg-soft);border:1px solid var(--border);border-radius:12px}
+.compact-interface .practice-stage{background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb, var(--amber) 8%, transparent),transparent 65%),var(--bg-soft);border:1px solid var(--border);border-radius:12px}
 .compact-interface .practice-view-tools>span{color:var(--secondary)}
 .compact-interface .room-turn-status{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-weight:600}
 .compact-interface .practice-notice{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;color:var(--secondary)}

@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { COMMANDER_UNITS, commanderUnits } from '../commander-ui.ts';
+import { COMMANDER_SYMBOLS, commanderUnits } from '../commander-ui.ts';
 import { disposeObject } from './pieces.ts';
 
 export const COMMANDER_MODEL_TYPES = ['K', 'I', 'D', 'E', 'T', 'P', 'A', 'M', 'F', 'N', 'H'] as const;
@@ -55,11 +55,31 @@ export async function parseCommanderModel(buffer: ArrayBuffer): Promise<T.Group>
   return result;
 }
 
-function labelTexture(text: string, side: string) {
-  const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
-  const ctx = canvas.getContext('2d')!; ctx.fillStyle = side === 'r' ? '#8f162e' : '#084e8d'; ctx.fillRect(0, 0, 512, 128);
-  ctx.fillStyle = '#f3cb73'; ctx.fillRect(0, 0, 512, 8);
-  ctx.fillStyle = '#ffffff'; ctx.font = '800 88px "Be Vietnam Pro",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 256, 70, 486);
+function labelTexture(units: string[], side: string) {
+  const canvas = document.createElement('canvas'); canvas.width = 576; canvas.height = 224;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = side === 'r' ? '#811428' : '#10477d';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#f7cd81'; ctx.fillRect(0, 0, canvas.width, 8);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const single = units.length === 1, column = canvas.width / units.length;
+  units.forEach((unit, index) => {
+    const icon = COMMANDER_SYMBOLS[unit[1]];
+    const center = (index + .5) * column;
+    ctx.save();
+    ctx.translate(single ? 85 : center - 55, single ? 19 : 10);
+    ctx.scale(single ? 7.2 : 4.6, single ? 7.2 : 4.6);
+    ctx.strokeStyle = '#fff7e4'; ctx.lineWidth = 2.1; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke(new Path2D(icon.path));
+    ctx.restore();
+    ctx.fillStyle = '#fff7e4';
+    ctx.font = `800 ${single ? 116 : 62}px "Be Vietnam Pro",sans-serif`;
+    ctx.fillText(icon.notation === '★' ? 'TL' : icon.notation, single ? 395 : center, single ? 120 : 171, single ? 180 : column - 18);
+    if (unit.endsWith('*')) {
+      ctx.fillStyle = '#ffd677'; ctx.font = '700 39px sans-serif';
+      ctx.fillText('★', (index + 1) * column - 27, 32);
+    }
+  });
   const texture = new T.CanvasTexture(canvas); texture.colorSpace = T.SRGBColorSpace; return texture;
 }
 
@@ -81,19 +101,18 @@ export function commanderPiece(code: string, models: Map<string, T.Group>): T.Gr
     const holder = new T.Group(); holder.add(model);
     let box = new T.Box3().setFromObject(model), size = box.getSize(new T.Vector3());
     if (!['K', 'I', 'D'].includes(type) && size.x > size.z * 1.25) { model.rotation.y = Math.PI / 2; model.updateMatrixWorld(true); box = new T.Box3().setFromObject(model); size = box.getSize(new T.Vector3()); }
-    const human = ['K', 'I', 'D'].includes(type), maxX = slot ? .42 : human ? .68 : .84, maxZ = slot ? .42 : .54, maxHeight = slot ? .48 : human ? .96 : type === 'F' ? .46 : .76;
+    const human = ['K', 'I', 'D'].includes(type), maxX = slot ? .42 : human ? .68 : .86, maxZ = slot ? .42 : .51, maxHeight = slot ? .48 : human ? .96 : type === 'F' ? .52 : .82;
     const scale = Math.min(maxX / Math.max(size.x, .001), maxZ / Math.max(size.z, .001), maxHeight / Math.max(size.y, .001));
     model.scale.setScalar(scale); const center = box.getCenter(new T.Vector3()); model.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
     holder.rotation.y = side === 'r' ? Math.PI : 0;
-    const baseZ = slot ? -.14 : -.17;
+    const baseZ = slot ? -.16 : -.18;
     holder.position.set(slot ? (slot === 1 ? -.19 : .19) : 0, slot ? .55 : .085 + (type === 'F' ? .12 : 0), baseZ);
     holder.userData.commanderUnit = true; holder.userData.baseZ = baseZ;
     group.add(holder);
   });
-  const text = units.map(u => (COMMANDER_UNITS[u[1]]?.label || u[1]) + (u.endsWith('*') ? '★' : '')).join('+');
-  const label = new T.Mesh(new T.PlaneGeometry(.87, .24), new T.MeshBasicMaterial({ map: labelTexture(text, side), toneMapped: false }));
-  label.rotation.x = -Math.PI / 2; label.position.set(0, .095, .32); group.add(label);
-  label.userData.commanderLabel = true; label.userData.baseZ = .32;
+  const label = new T.Mesh(new T.PlaneGeometry(.89, .345), new T.MeshBasicMaterial({ map: labelTexture(units, side), toneMapped: false }));
+  label.rotation.x = -Math.PI / 2; label.position.set(0, .098, .272); group.add(label);
+  label.userData.commanderLabel = true; label.userData.baseZ = label.position.z;
   if (units.some(u => u.endsWith('*'))) {
     const star = new T.Mesh(new T.OctahedronGeometry(.085), new T.MeshStandardMaterial({ color: 0xffd471, metalness: .6, roughness: .25 })); star.position.set(.35, .18, -.35); group.add(star);
   }
