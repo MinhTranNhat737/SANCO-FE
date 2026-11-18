@@ -5,7 +5,8 @@ import {publicPages, siteOrigin} from './scripts/public-pages';
 
 export default defineConfig(({command, mode}) => {
   const env=loadEnv(mode,process.cwd(),'');
-  const origin=siteOrigin(env.SITE_URL || 'https://sanco.games');
+  const productionHost=env.VERCEL_ENV==='production' && env.VERCEL_PROJECT_PRODUCTION_URL;
+  const origin=siteOrigin(env.SITE_URL || (productionHost ? `https://${productionHost}` : 'https://www.sanco.games'));
 
   return {
   cacheDir:'node_modules/.vite-sanco',
