@@ -88,6 +88,7 @@ test('Commander online screen sends move as the room action and preserves the bo
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
   await click(document.querySelector('.collection-commander'));await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Chơi với bạn')));
   await act(async()=>document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
+  for(let i=0;i<30&&!document.querySelector('.online-workspace');i++)await settle();
   const close=document.querySelector('[aria-label="Đóng"]');if(close)await click(close);
   await click(document.querySelector(`[data-square="${ctlAt(3,4)}"]`));await click(document.querySelector(`[data-square="${ctlAt(6,4)}"]`));await click([...document.querySelectorAll('.ctl-action-options button')].find(b=>b.textContent.includes('Ném bom')));
   assert.ok(sent,'App must send the selected command');assert.equal(state.board[ctlAt(6,4)],null);assert.equal(state.board[ctlAt(3,4)],'rF');assert.equal(document.querySelector('.error-box'),null);
@@ -215,6 +216,20 @@ test('Rankings displays separate game ratings, real leaderboard empty state and 
   assert.equal(document.querySelector('.practice-workspace').classList.contains('practice-xiangqi'),true);
   assert.equal(document.querySelector('.rank-mode-options button[aria-pressed="true"]').textContent,'Đấu rank');
   assert.equal(document.querySelector('.side-options'),null);
+});
+
+test('Public game links open the requested game and mode directly',async()=>{
+  window.history.replaceState(null,'','/?game=xiangqi&mode=ranked&utm_source=community');
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  assert.ok(document.querySelector('.practice-xiangqi .practice-setup'));
+  assert.equal(document.querySelector('.rank-mode-options button[aria-pressed="true"]').textContent,'Đấu rank');
+
+  await act(async()=>root.unmount());
+  root=createRoot(document.getElementById('root'));
+  window.history.replaceState(null,'','/?game=monopoly&mode=friends');
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  assert.equal(document.querySelector('.modal h2').textContent,'Tạo phòng');
+  assert.equal(document.querySelector('.modal select').value,'monopoly');
 });
 
 test('Ranked bot setup submits its selected profile, identifies the bot and disables undo/new game',async()=>{

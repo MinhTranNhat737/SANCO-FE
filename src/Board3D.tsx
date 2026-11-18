@@ -57,7 +57,7 @@ export default function Board3D() {
       ground.rotation.x = -Math.PI / 2; ground.position.y = -0.6; ground.receiveShadow = true; scene.add(ground);
       group.rotation.y = -0.12;
       let frame = 0, active = true, drag = false, previousX = 0, lastRender = 0;
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reduceMotion = false;
       const resize = () => {
         const { width, height } = host.getBoundingClientRect();
         renderer.setSize(width, height);

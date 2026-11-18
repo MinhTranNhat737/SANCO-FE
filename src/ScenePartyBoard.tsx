@@ -27,7 +27,7 @@ export default function ScenePartyBoard(props:Props){
   useEffect(()=>{
     if(!host.current)return;const mount=host.current;
     let renderer:T.WebGLRenderer;
-    try{renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}catch{live.current.onFallback();return;}
+    try{renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}catch{try{renderer=new T.WebGLRenderer({antialias:true,alpha:true});}catch{live.current.onFallback();return;}}
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.setClearColor(0,0);mount.appendChild(renderer.domElement);
     renderer.domElement.setAttribute('aria-hidden','true');renderer.domElement.style.touchAction='none';
@@ -74,7 +74,7 @@ export default function ScenePartyBoard(props:Props){
       live.current.onAnimatingChange?.(true);
     }
     let assetRoot=new T.Group();scene.add(assetRoot);let assetKey='';
-    const pieces=new Map<string,Piece>(),reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pieces=new Map<string,Piece>(),reduced=false;
     const endpoint=(side:string,token:number,pos:number)=>props.kind==='ludo'?worldPoint(ludoCell(side,token,pos)):estatePoint(pos,PARTY_SIDES.indexOf(side),estateSize);
     function sync(){
       const p=live.current,keep=new Set<string>(),now=performance.now();

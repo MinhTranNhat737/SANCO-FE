@@ -94,7 +94,7 @@ export default function SceneBoard(props:Props){
     const host=mount.current,{cols,rows,width,depth}=boardMetrics(props.kind),point=(index:number)=>boardPoint(props.kind,index);
     let renderer:T.WebGLRenderer;
     try{renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}
-    catch{setFailed(true);live.current.onFallback();return;}
+    catch{try{renderer=new T.WebGLRenderer({antialias:true,alpha:true});}catch{setFailed(true);live.current.onFallback();return;}}
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.outputColorSpace=T.SRGBColorSpace;
     renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.setClearColor(0,0);
@@ -136,16 +136,20 @@ export default function SceneBoard(props:Props){
     ctx.fillStyle='#dac093';ctx.font='500 42px Georgia,serif';ctx.textAlign='center';ctx.fillText('S Â N   C Ờ',256,54);
     const plateTexture=new T.CanvasTexture(plateCanvas);plateTexture.colorSpace=T.SRGBColorSpace;
     const plate=add(new T.PlaneGeometry(2,.26),new T.MeshBasicMaterial({map:plateTexture,transparent:true,depthWrite:false}),-.025);plate.position.z=(depth+.66)/2;plate.castShadow=false;
-    const pieces=new T.Group(),highlights=new T.Group();scene.add(pieces,highlights);
+    const pieces=new T.Group(),highlights=new T.Group(),battleFx=new T.Group();scene.add(pieces,highlights,battleFx);
     const templates=new Map<string,T.Group>(),stationary=new Map<number,T.Object3D>();
     let commanderModels:Map<string,T.Group>|null=null;
     const queue:Transition[]=[];let accepted:Snapshot|null=null,active:ActiveMove|null=null,animating=false;
-    const reduced=matchMedia('(prefers-reduced-motion: reduce)');
     function signal(value:boolean){if(animating===value)return;animating=value;live.current.onAnimatingChange(value);}
     function orientCommander(root:T.Object3D){const sign=live.current.flipped?-1:1;root.traverse(o=>{if(o.userData.commanderLabel){o.rotation.z=live.current.flipped?Math.PI:0;o.position.z=sign*(o.userData.baseZ??.32);}if(o.userData.commanderUnit)o.position.z=sign*(o.userData.baseZ??-.17);});}
     function objectFor(code:string,index:number){
       let template=templates.get(code);
-      if(!template&&code==='#shot'){template=new T.Group();template.add(new T.Mesh(new T.SphereGeometry(.07,8,6),new T.MeshBasicMaterial({color:0xffda76})));templates.set(code,template);assets.add(template);}
+      if(!template&&code==='#shot'){
+        template=new T.Group();
+        template.add(new T.Mesh(new T.SphereGeometry(.16,12,10),new T.MeshBasicMaterial({color:0xfff7d6,toneMapped:false})));
+        template.add(new T.Mesh(new T.SphereGeometry(.3,12,10),new T.MeshBasicMaterial({color:0xff7b00,transparent:true,opacity:.72,depthWrite:false,toneMapped:false})));
+        templates.set(code,template);assets.add(template);
+      }
       if(!template&&code==='#'){template=new T.Group();const tile=new T.Mesh(new T.BoxGeometry(.93,.025,.93),new T.MeshBasicMaterial({color:0x0e1c19}));tile.position.y=.015;template.add(tile);templates.set(code,template);assets.add(template);}
       if(!template){template=props.kind==='commander'?commanderPiece(code,commanderModels!):props.kind==='chess'?chessPiece(code):props.kind==='xiangqi'?xiangqiPiece(code):props.kind==='caro'||props.kind==='tictactoe'?caroPiece(code,themeRef.current):discPiece(code);templates.set(code,template);assets.add(template);}
       const object=template.clone(true);if(props.kind==='commander')orientCommander(object);object.userData.square=index;object.position.copy(point(index));pieces.add(object);return object;
@@ -184,48 +188,49 @@ export default function SceneBoard(props:Props){
       }
     }
     type BattleParticle={mesh:T.Mesh;vx:number;vy:number;vz:number;born:number;life:number;s0:number;s1:number;op:number;ring?:boolean};
-    const battleFx=new T.Group();
     const battleParticles:BattleParticle[]=[];
     const ambientSmokes:T.Mesh[]=[];
-    let battleFxAttached=false,lastTrailAt=0;
-    const sphereGeo=new T.SphereGeometry(1,10,8),ringGeo=new T.RingGeometry(.45,1,20);ringGeo.rotateX(-Math.PI/2);
-    function ensureBattleFx(refObj?:T.Object3D){
-      if(battleFxAttached||props.kind!=='commander')return;
-      const root=refObj?.parent?.parent;if(!root)return;
-      root.add(battleFx);battleFxAttached=true;
-      for(let i=0;i<10;i++){
-        const mat=new T.MeshBasicMaterial({color:i%2?0x4b534a:0x6e6859,transparent:true,opacity:.14,depthWrite:false});
+    const blastLight=new T.PointLight(0xff8c24,0,16);blastLight.position.set(0,BOARD_SURFACE_Y+1.4,0);battleFx.add(blastLight);
+    let lastTrailAt=0,flashUntil=0;
+    const sphereGeo=new T.SphereGeometry(1,10,8),ringGeo=new T.RingGeometry(.48,1,24);ringGeo.rotateX(-Math.PI/2);
+    if(props.kind==='commander'){
+      for(let i=0;i<12;i++){
+        const mat=new T.MeshBasicMaterial({color:i%2?0x4b534a:0x6e6859,transparent:true,opacity:.18,depthWrite:false,toneMapped:false});
         const puff=new T.Mesh(sphereGeo,mat);
-        puff.position.set((Math.random()-.5)*cols*.85,BOARD_SURFACE_Y+.22+Math.random()*.35,(Math.random()-.5)*rows*.85);
-        puff.scale.setScalar(.22+Math.random()*.25);
+        puff.position.set((Math.random()-.5)*cols*.85,BOARD_SURFACE_Y+.26+Math.random()*.4,(Math.random()-.5)*rows*.85);
+        puff.scale.setScalar(.28+Math.random()*.32);
         battleFx.add(puff);ambientSmokes.push(puff);
       }
     }
     function spawnParticle(x:number,y:number,z:number,color:number,s0:number,s1:number,vx:number,vy:number,vz:number,born:number,life:number,op:number,ring=false){
-      const mat=new T.MeshBasicMaterial({color,transparent:true,opacity:op,depthWrite:false,side:ring?T.DoubleSide:T.FrontSide});
+      const mat=new T.MeshBasicMaterial({color,transparent:true,opacity:op,depthWrite:false,toneMapped:false,side:ring?T.DoubleSide:T.FrontSide});
       const mesh=new T.Mesh(ring?ringGeo:sphereGeo,mat);
       mesh.position.set(x,y,z);mesh.scale.setScalar(s0);
       battleFx.add(mesh);battleParticles.push({mesh,vx,vy,vz,born,life,s0,s1,op,ring});
     }
     function spawnMuzzle(sq:number,now:number){
-      const p=boardPoint(props.kind,sq);p.y+=.28;
-      spawnParticle(p.x,p.y,p.z,0xffd166,.12,.48,0,.15,0,now,190,.92);
-      spawnParticle(p.x,p.y,p.z,0xff6b2b,.08,.36,0,.1,0,now,220,.85);
-      for(let i=0;i<5;i++){
-        const a=Math.random()*Math.PI*2,sp=.25+Math.random()*.45;
-        spawnParticle(p.x,p.y,p.z,i%2?0x57534e:0x78716c,.09,.38,Math.cos(a)*sp,.45+Math.random()*.4,Math.sin(a)*sp,now,560+Math.random()*240,.52);
+      const p=boardPoint(props.kind,sq);p.y+=.34;
+      blastLight.position.set(p.x,BOARD_SURFACE_Y+1.5,p.z);blastLight.intensity=6;flashUntil=Math.max(flashUntil,now+360);
+      spawnParticle(p.x,p.y,p.z,0xfff7d6,.18,.68,0,.18,0,now,240,.96);
+      spawnParticle(p.x,p.y,p.z,0xff6b2b,.14,.55,0,.12,0,now,280,.9);
+      spawnParticle(p.x,p.y-.14,p.z,0xffbe0b,.16,.85,0,0,0,now,260,.82,true);
+      for(let i=0;i<6;i++){
+        const a=Math.random()*Math.PI*2,sp=.32+Math.random()*.55;
+        spawnParticle(p.x,p.y,p.z,i%2?0x57534e:0x78716c,.14,.54,Math.cos(a)*sp,.55+Math.random()*.45,Math.sin(a)*sp,now,680+Math.random()*280,.64);
       }
     }
     function spawnBlast(sq:number,now:number,delay=0,heavy=false){
-      const p=boardPoint(props.kind,sq),t0=now+delay,scale=heavy?1.35:1;p.y+=.16;
-      spawnParticle(p.x,p.y+.02,p.z,0xff9f1c,.15*scale,1.05*scale,0,0,0,t0,380,.88,true);
-      spawnParticle(p.x,p.y+.12,p.z,0xfff3b0,.14*scale,.62*scale,0,.35,0,t0,260,.95);
-      spawnParticle(p.x,p.y+.1,p.z,0xff5400,.18*scale,.78*scale,0,.28,0,t0,360,.88);
-      const count=heavy?12:8;
+      const p=boardPoint(props.kind,sq),t0=now+delay,scale=heavy?1.45:1.1;p.y+=.18;
+      blastLight.position.set(p.x,BOARD_SURFACE_Y+1.8,p.z);blastLight.intensity=heavy?9:6.5;flashUntil=Math.max(flashUntil,t0+520);
+      spawnParticle(p.x,p.y+.02,p.z,0xff9f1c,.22*scale,1.45*scale,0,0,0,t0,460,.92,true);
+      spawnParticle(p.x,p.y+.04,p.z,0xfff3b0,.16*scale,1.05*scale,0,0,0,t0+40,380,.85,true);
+      spawnParticle(p.x,p.y+.15,p.z,0xfff9db,.2*scale,.82*scale,0,.4,0,t0,320,.98);
+      spawnParticle(p.x,p.y+.12,p.z,0xff5400,.24*scale,1.05*scale,0,.32,0,t0,440,.92);
+      const count=heavy?14:10;
       for(let i=0;i<count;i++){
-        const a=Math.PI*2*i/count+Math.random()*.4,sp=(.35+Math.random()*.75)*scale;
-        const dark=i%3===0?0x292524:i%3===1?0x57534e:0x8c7a6b;
-        spawnParticle(p.x+(Math.random()-.5)*.14,p.y+.08,p.z+(Math.random()-.5)*.14,dark,.12*scale,.52*scale,Math.cos(a)*sp,.65+Math.random()*.75,Math.sin(a)*sp,t0+20,680+Math.random()*360,.68);
+        const a=Math.PI*2*i/count+Math.random()*.4,sp=(.45+Math.random()*.9)*scale;
+        const dark=i%4===0?0xff9f1c:i%3===0?0x292524:i%3===1?0x57534e:0x8c7a6b;
+        spawnParticle(p.x+(Math.random()-.5)*.18,p.y+.1,p.z+(Math.random()-.5)*.18,dark,.16*scale,.68*scale,Math.cos(a)*sp,.75+Math.random()*.85,Math.sin(a)*sp,t0+20,820+Math.random()*420,.76);
       }
     }
     function beginNext(now:number){
@@ -247,7 +252,6 @@ export default function SceneBoard(props:Props){
         return {object,actor,startY:object.position.y};
       });
       if(props.kind==='commander'){
-        ensureBattleFx(actors[0]?.object|| stationary.values().next().value);
         const blasted=new Set<number>();
         for(const a of plan.actors){
           if(a.from!==null&&(a.path==='fire'||a.path==='bomb'||plan.captures.length>0))spawnMuzzle(a.from,now);
@@ -255,8 +259,10 @@ export default function SceneBoard(props:Props){
             blasted.add(a.to);
             spawnBlast(a.to,now,Math.round(a.duration*(a.path==='burn'?.62:.78)),a.path==='bomb');
           }else if(a.from!==null&&plan.captures.length===0){
-            const p=boardPoint(props.kind,a.from);p.y+=.08;
-            spawnParticle(p.x,p.y,p.z,0x8c7a6b,.08,.28,(Math.random()-.5)*.2,.25,(Math.random()-.5)*.2,now,420,.38);
+            const p=boardPoint(props.kind,a.from);p.y+=.12;
+            for(let i=0;i<3;i++){
+              spawnParticle(p.x+(Math.random()-.5)*.15,p.y,p.z+(Math.random()-.5)*.15,0x8c7a6b,.12,.42,(Math.random()-.5)*.28,.32+Math.random()*.2,(Math.random()-.5)*.28,now,520,.52);
+            }
           }
         }
         for(const cap of plan.captures){
@@ -268,18 +274,24 @@ export default function SceneBoard(props:Props){
     let viewportWidth=Math.max(1,host.clientWidth||600),viewportHeight=Math.max(1,host.clientHeight||540);
     function update(){
       if(props.kind==='commander'&&!commanderModels)return;
-      const p=live.current,next=snapshot(p.gameKey,p.board,p.plyCount,p.history),change=incomingBoard(p.kind,accepted,next,p.history);
+      const p=live.current,prev=accepted,next=snapshot(p.gameKey,p.board,p.plyCount,p.history),change=incomingBoard(p.kind,accepted,next,p.history);
       accepted=next;
-      if(change.mode==='snap'||reduced.matches&&change.mode==='animate'){
+      if(change.mode==='snap'){
         queue.length=0;active=null;snap(p.board);signal(false);
+        if(prev&&prev.gameKey===next.gameKey&&next.plyCount>prev.plyCount&&p.last){
+          const now=performance.now(),latest=p.history[p.history.length-1];
+          playMoveSound(p.kind,{from:p.last.from??undefined,to:p.last.to,action:p.last.action,piece:latest?.piece,captures:latest?.captures,check:p.checkSquare!==null});
+          if(p.kind==='commander'){
+            if(p.last.from!==null)spawnMuzzle(p.last.from,now);
+            spawnBlast(p.last.to,now,60,Boolean(p.last.action?.includes('bomb')));
+          }
+        }
       }else if(change.mode==='animate'){
         queue.push(...change.steps);signal(true);if(!active)beginNext(performance.now());
       }
       drawHighlights();
       renderer.render(scene,camera);
     }
-    const motionPreference=()=>{if(reduced.matches&&accepted){queue.length=0;active=null;snap(accepted.board);signal(false);drawHighlights();renderer.render(scene,camera);}};
-    reduced.addEventListener('change',motionPreference);
     function view(){
       if(props.kind==='commander')orientCommander(pieces);
       controls.target.set(0,BOARD_SURFACE_Y,0);
@@ -325,19 +337,18 @@ export default function SceneBoard(props:Props){
       if(stopped)return;frame=requestAnimationFrame(render);
       if(!visible||document.hidden||time-lastFrame<30)return;
       const delta=Math.min(80,time-lastFrame),p=live.current;
-      landscape?.update(time*.001,reduced.matches);
+      landscape?.update(time*.001,false);
       const victims=new Set(active?.victims.map(victim=>victim.object)||[]);
       for(const [index,object]of stationary){
         if(victims.has(object))continue;
         const raised=!active&&p.selected===index&&p.board[index]!==null;
         const desiredY=BOARD_SURFACE_Y+(raised ? .26 : 0);
-        if(reduced.matches)object.position.y=desiredY;
-        else object.position.y+=(desiredY-object.position.y)*(1-Math.exp(-delta/65));
+        object.position.y+=(desiredY-object.position.y)*(1-Math.exp(-delta/65));
         object.scale.setScalar(1+(object.position.y-BOARD_SURFACE_Y)*.17);
       }
       if(active){
         const elapsed=time-active.startedAt;
-        const emitTrail=props.kind==='commander'&&time-lastTrailAt>34;
+        const emitTrail=props.kind==='commander'&&time-lastTrailAt>30;
         if(emitTrail)lastTrailAt=time;
         for(const moving of active.actors){
           const value=sampleActor(moving.actor,cols,rows,elapsed,moving.startY);
@@ -348,8 +359,9 @@ export default function SceneBoard(props:Props){
           }
           moving.object.scale.setScalar(1+Math.max(0,value.y-BOARD_SURFACE_Y)/moving.actor.height*.075);
           if(moving.actor.path==='burn')moving.object.scale.multiplyScalar(Math.max(.001,1-Math.max(0,(value.progress-.65)/.35)));
-          if(emitTrail&&(moving.actor.path==='fire'||moving.actor.path==='bomb'||moving.actor.path==='burn')&&value.progress>.04&&value.progress<.92){
-            spawnParticle(value.x,value.y,value.z,moving.actor.path==='fire'?0xff9f1c:0x57534e,.07,.28,(Math.random()-.5)*.08,.18,(Math.random()-.5)*.08,time,340,.58);
+          if(emitTrail&&value.progress>.04&&value.progress<.92){
+            const isFire=moving.actor.path==='fire'||moving.actor.path==='bomb'||moving.actor.path==='burn';
+            spawnParticle(value.x,value.y+(isFire?0:.05),value.z,moving.actor.path==='fire'?0xff9f1c:isFire?0x57534e:0x8c7a6b,isFire?.11:.08,isFire?.38:.28,(Math.random()-.5)*.1,.2,(Math.random()-.5)*.1,time,isFire?420:320,isFire?.7:.45);
           }
         }
         const removal=Math.max(0,Math.min(1,(elapsed/active.plan.duration-.59)/.26));
@@ -357,7 +369,10 @@ export default function SceneBoard(props:Props){
         if(elapsed>=active.plan.duration){const finalBoard=active.plan.after;snap(finalBoard);active=null;beginNext(time);}
       }
       if(props.kind==='commander'){
-        if(!battleFxAttached&&stationary.size>0)ensureBattleFx(stationary.values().next().value);
+        if(blastLight.intensity>0){
+          if(time>=flashUntil)blastLight.intensity=0;
+          else blastLight.intensity*=.88;
+        }
         for(let i=battleParticles.length-1;i>=0;i--){
           const pt=battleParticles[i],age=time-pt.born;
           if(age<0){pt.mesh.visible=false;continue;}
@@ -375,7 +390,7 @@ export default function SceneBoard(props:Props){
           puff.position.x+=Math.sin(time*.00045+i)*0.0025;
           puff.position.z+=Math.cos(time*.00038+i*1.7)*0.002;
           const mat=puff.material as T.MeshBasicMaterial;
-          mat.opacity=.09+.06*Math.sin(time*.0012+i*1.3);
+          mat.opacity=.12+.07*Math.sin(time*.0012+i*1.3);
         }
       }
       renderer.render(scene,camera);lastFrame=time;
@@ -389,7 +404,7 @@ export default function SceneBoard(props:Props){
       }).catch(()=>{if(!stopped){setFailed(true);live.current.onFallback();}});
     }
     return()=>{
-      stopped=true;controller.current=null;cancelAnimationFrame(frame);observer.disconnect();intersection.disconnect();reduced.removeEventListener('change',motionPreference);
+      stopped=true;controller.current=null;cancelAnimationFrame(frame);observer.disconnect();intersection.disconnect();
       renderer.domElement.removeEventListener('pointerdown',down,true);renderer.domElement.removeEventListener('pointermove',move,true);
       renderer.domElement.removeEventListener('pointerup',pick,true);renderer.domElement.removeEventListener('pointercancel',cancel,true);
       renderer.domElement.removeEventListener('lostpointercapture',cancel,true);renderer.domElement.removeEventListener('webglcontextlost',contextLost);

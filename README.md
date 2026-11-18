@@ -73,3 +73,11 @@ Kiểm tra `startup.test.mjs` mount React trong DOM giả lập, tải phiên kh
 Mục **Xếp hạng** hiển thị Elo, phân hạng, thống kê, các bậc, bảng người chơi và 12 bot riêng từng môn. Chọn **Đấu xếp hạng** từ danh mục hoặc chọn **Đấu rank** trong thiết lập chơi với máy. Luyện tập không tính điểm; tạo phòng riêng có tùy chọn tính Elo. Kết quả hiển thị thay đổi Elo do máy chủ tính.
 
 `MobileOrientation.tsx` dùng media query và sự kiện đổi hướng. Tỷ phú chặn bàn trên điện thoại dọc, tự mở khi ngang; mọi môn khác có tùy chọn lưu riêng trong `localStorage` theo môn. Nút toàn màn hình thử Orientation API khi trình duyệt hỗ trợ; nếu không, người chơi xoay máy thủ công. Không dùng CSS xoay giả bàn cờ. Lớp yêu cầu xoay dùng portal, khóa tương tác bàn và giữ focus; đồng hồ vẫn chạy. CSS điện thoại ngang đưa bàn bên trái, thao tác cuộn riêng bên phải, tôn trọng safe area.
+
+## SEO khi phát hành
+
+Đặt `SITE_URL` là tên miền HTTPS chính, ví dụ `SITE_URL=https://your-domain.example`, trước khi build. Docker Compose lấy giá trị từ `FRONTEND_ORIGIN`. Trên Vercel production, `SITE_URL` được ưu tiên hơn tên miền production Vercel cung cấp. Build thiếu tên miền và Vercel Preview xuất `noindex` và bỏ sitemap.
+
+Trang chủ và 16 trang `/choi/...` có tiêu đề, mô tả, canonical, nội dung HTML trước khi chạy JavaScript và ảnh chia sẻ. `robots.txt` trỏ đến sitemap ở bản production. Các URL phiên chơi, mời phòng và replay gửi `X-Robots-Tag: noindex`; kiểm tra quyền phòng vẫn do API thực hiện. Đường dẫn không tồn tại trả `404`.
+
+Trên tên miền chính, kiểm tra `/robots.txt`, `/sitemap.xml`, một trang `/choi/co-tuong` và một đường dẫn sai. Xác minh tên miền trong [Google Search Console](https://search.google.com/search-console), gửi `/sitemap.xml`, rồi dùng URL Inspection cho trang chủ và các môn ưu tiên. Đo trong [PageSpeed Insights](https://pagespeed.web.dev/) trên cả mobile và desktop. Theo dõi Core Web Vitals thực tế khi có đủ dữ liệu người dùng.

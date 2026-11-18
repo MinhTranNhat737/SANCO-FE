@@ -1,4 +1,4 @@
-import { Suspense, useState, useEffect, useRef, useId, type ReactNode, type FormEvent } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef, useId, type ReactNode, type FormEvent } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { ArrowRight, ArrowUpRight, BookOpen, Check, CheckCheck, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleHelp, Clock3, Copy, DoorOpen, Eye, EyeOff, Flag, Handshake, History, Home, Leaf, Link2, LoaderCircle, LockKeyhole, LogOut, Menu, MessageCircle, Plus, RotateCcw, Send, ShieldCheck, Sparkles, UserRound, Volume2, VolumeX, Wifi, WifiOff, X as Close } from 'lucide-react';
 import { api, API, ApiError } from './api';
@@ -9,11 +9,12 @@ import {META,RULE_TEXT,GAME_KINDS,sideSymbol,isParty,moveRequest,type GameKind,t
 import {playMoveSound} from './sound-effects';
 import GameCatalog from './GameCatalog';
 import GameEmblem from './GameEmblem';
-import RoomView from './RoomView';
-import Practice from './Practice';
-import Rankings from './Rankings';
 import {Trophy} from 'lucide-react';
 import {gamePage} from './game-links';
+
+const RoomView=lazy(()=>import('./RoomView'));
+const Practice=lazy(()=>import('./Practice'));
+const Rankings=lazy(()=>import('./Rankings'));
 
 type Page = 'home' | 'rooms' | 'rules' | 'history' | 'practice' | 'rankings';
 type Modal = 'choose' | 'invite' | 'create' | 'join' | 'login' | 'register' | 'profile' | 'feedback' | 'resign' | null;
@@ -203,7 +204,7 @@ export default function App() {
       {!modal && errorBox}{!user && !loading && <button className="button button-small" onClick={loadSession}><RotateCcw size={16}/>Kết nối lại máy chủ</button>}
       {room ? <Suspense fallback={<div className="empty-state"><LoaderCircle className="spin"/><p>Đang mở bàn cờ…</p></div>}><RoomView key={`${room.game.id}-${archived}`} room={room} busy={busy} connected={connected} latency={latency} archived={archived} sound={sound} onSound={()=>{setSound(!sound);localStorage.setItem('sc-sound',sound?'off':'on');}} onBack={() => navigate('rooms')} onAction={act} onInvite={copyInvite} onResign={() => openModal('resign')}/></Suspense>
       : page === 'practice' ? <Suspense fallback={<div className="empty-state"><LoaderCircle className="spin"/><p>Đang bày bàn luyện tập…</p></div>}><Practice key={`${practiceKind}-${practiceRanked}`} initialRanked={practiceRanked} initialKind={practiceKind} user={user} socket={socket.current} onBack={() => navigate('home')}/></Suspense>
-      : page === 'rankings' ? <Rankings user={user} onPlay={kind=>goPractice(kind,true)}/>
+      : page === 'rankings' ? <Suspense fallback={<div className="empty-state" role="status"><LoaderCircle className="spin"/><p>Đang tải xếp hạng…</p></div>}><Rankings user={user} onPlay={kind=>goPractice(kind,true)}/></Suspense>
       : page === 'home' ? <>
         <section className="quick-lobby"><div className="quick-lobby-brand"><img className="quick-lobby-logo" src="/thumbs/sanco-brand.jpg" alt="" width="384" height="384"/><h1>Chơi cờ online</h1></div><div className="quick-lobby-actions"><button className="button" disabled={!user} onClick={openCreateRoom}><Plus size={25}/>Tạo phòng</button><button className="button button-secondary" disabled={!user} onClick={()=>goPractice('chess')}><Bot size={25}/>Chơi với máy</button><button className="text-button" disabled={!user} onClick={()=>openModal('join')}><Link2 size={25}/>Vào phòng</button></div></section>
         {recent.length>0&&<section className="recent-section compact-recent"><div className="section-heading"><h2>Phòng gần đây</h2><button className="text-button" onClick={()=>navigate('rooms')}>Tất cả<ArrowRight size={15}/></button></div>{loading?<div className="empty-state"><LoaderCircle className="spin"/><p>Đang tải…</p></div>:recent.length?<RoomList rooms={recent.slice(0,3)} onOpen={openRoom}/>:<div className="compact-empty"><DoorOpen size={23}/><span>Chưa có phòng</span><button className="text-button" disabled={!user} onClick={openCreateRoom}><Plus size={16}/>Tạo phòng</button></div>}</section>}

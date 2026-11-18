@@ -34,13 +34,13 @@ export default function CommanderBoard({board,legal,enabled,last,checkSquare,win
   const latestPly=scene?.history?.[scene.history.length-1];
   const fromPt=last&&last.from!==null?cellPct(last.from):null,toPt=last?cellPct(last.to):null;
   const mover=last?commanderUnits(board[last.to]||(last.from!==null?board[last.from]:null)):[];
-  const isHeavy=Boolean(last&&(last.action==='fire'||last.action==='bomb'||latestPly?.captures?.length||mover.some(u=>['A','T','F','M','N'].includes(u[1]))));
+  const isHeavy=Boolean(last&&(last.action?.includes('fire')||last.action?.includes('bomb')||latestPly?.captures?.length||mover.some(u=>['A','T','F','M','N'].includes(u[1]))));
   const fxKey=last?`${last.from}-${last.to}-${last.action||'m'}-${scene?.plyCount||0}`:'none';
   return <div className="commander-surface">
     <div className={`ctl-board-wrap ${scene?'ctl-board-3d':''}`}>{scene?<Board3DBoundary onFallback={scene.onFallback}><Suspense fallback={<span className="ctl-model-loading" role="status">Đang bày bàn 3D…</span>}><SceneBoard {...scene} kind="commander" board={board} selected={selected} targets={candidates.map(m=>m.to)} last={last} checkSquare={checkSquare} winning={winning} flipped={flipped} enabled={enabled} onSquare={pick} airDefense={air} scenery={outdoors}/></Suspense></Board3DBoundary>:<FlatBoard kind="commander" board={board} selected={selected} targets={candidates.map(m=>m.to)} last={last} checkSquare={checkSquare} winning={winning} flipped={flipped} enabled={enabled} onSquare={pick}/>}
-      {!scene&&<div className="ctl-war-haze" aria-hidden="true">
+      <div className="ctl-war-haze" aria-hidden="true">
         <span className="ctl-smoke-drifter ctl-smoke-1"/><span className="ctl-smoke-drifter ctl-smoke-2"/><span className="ctl-smoke-drifter ctl-smoke-3"/>
-      </div>}
+      </div>
       {!scene&&last&&fromPt&&toPt&&<div key={fxKey} className={`ctl-battle-fx ${isHeavy?'ctl-battle-heavy':'ctl-battle-skirmish'}`} aria-hidden="true">
         <svg className="ctl-tracer-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
           <line x1={fromPt.x} y1={fromPt.y} x2={toPt.x} y2={toPt.y} className="ctl-tracer-glow"/>

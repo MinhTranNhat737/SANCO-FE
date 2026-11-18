@@ -30,7 +30,7 @@ export default function RoomView({room,busy,connected,latency,archived,sound,onS
   useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),250);return()=>clearInterval(timer);},[]);
   useEffect(()=>{setSelected(null);setPending(null);setPromotion(null);},[room.version]);
   const replay=step!==null,ply=history[(step??history.length)-1],board=replay?(step===0?g.initialBoard||Array(225).fill(null):ply?.board||g.board):g.board;
-  const last=ply?{from:ply.from,to:ply.to}:null,legal=g.legal||[],targets=kind==='caro'?[]:legal.filter(move=>move.to>=0&&(isPlacement(kind)||move.from===selected)).map(move=>move.to);
+  const last=ply?{from:ply.from,to:ply.to,action:ply.action}:null,legal=g.legal||[],targets=kind==='caro'?[]:legal.filter(move=>move.to>=0&&(isPlacement(kind)||move.from===selected)).map(move=>move.to);
   const canMove=!archived&&!replay&&!busy&&!visualBusy&&g.phase==='playing'&&g.turn===room.me.mark;
   const mine=room.me.role==='owner'?room.owner:room.guest!,opponent=room.me.role==='owner'?room.guest:room.owner;
   const clock=(side:string)=>{const remaining=g.remaining[side]-(g.phase==='playing'&&g.turn===side&&g.turnStartedAt!==null?Math.max(0,now+offset.current-g.turnStartedAt):0),seconds=Math.max(0,Math.ceil(remaining/1000));return `${Math.floor(seconds/60).toString().padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;};

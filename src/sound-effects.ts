@@ -117,7 +117,7 @@ function playCommanderSound(ctx: AudioContext, noise: AudioBuffer, now: number, 
     return;
   }
 
-  if (action === 'bomb' || (unit === 'F' && (captures || exploded))) {
+  if (action.includes('bomb') || (unit === 'F' && (captures || exploded))) {
     // Air strike: jet dive roar + falling whistle + heavy bomb detonation
     noiseBurst(ctx, noise, 'bandpass', 620, 1.4, now, 0.24, 0.16, 220);
     tone(ctx, 'sine', 980, 240, now + 0.02, 0.22, 0.1);
@@ -128,7 +128,7 @@ function playCommanderSound(ctx: AudioContext, noise: AudioBuffer, now: number, 
     return;
   }
 
-  if (action === 'fire' || (['A', 'T', 'M', 'N'].includes(unit) && (captures || exploded))) {
+  if (action.includes('fire') || (['A', 'T', 'M', 'N'].includes(unit) && (captures || exploded))) {
     // Artillery / Tank / Battleship cannon fire: sharp muzzle blast + shell whistle + impact boom
     noiseBurst(ctx, noise, 'bandpass', 950, 1.5, now, 0.09, 0.28, 260);
     tone(ctx, 'triangle', 185, 52, now, 0.11, 0.24);
