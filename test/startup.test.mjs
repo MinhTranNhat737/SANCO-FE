@@ -10,6 +10,7 @@ import {act,createElement} from 'react';
 import {KINDS,createPractice,practiceView,boardSide,legalMoves,makePracticeMove} from '../../be/src/practice-engine.js';
 import {newGame,publicRoom} from '../../be/src/room-game.js';
 import {botRoster,RANKS,ratingView} from '../../be/src/ratings.js';
+import {matchPresets} from '../../be/src/matchmaking.js';
 
 let vite,cache,dom,root,App,Boundary,createRoot,previewBoard,user;
 let CommanderBoard,MobileOrientation;
@@ -37,6 +38,7 @@ beforeEach(async()=>{
     if(pathname==='/api/practice'&&body)return json({game:practiceView(createPractice(body.kind,boardSide(body.kind),'medium','00000000-0000-4000-8000-000000000001'))});
     if(pathname==='/api/practice')return json({games:[]});
     if(pathname==='/api/ratings')return json({ratings:Object.fromEntries(KINDS.map(kind=>[kind,ratingView()])),ranks:RANKS});
+    if(pathname==='/api/matchmaking')return json({presets:matchPresets,ticket:{status:'idle'}});
     if(pathname.startsWith('/api/bots/'))return json({bots:botRoster(pathname.split('/').at(-1))});
     if(pathname.startsWith('/api/leaderboard/'))return json({players:[]});
     if(pathname==='/__dev/client-errors')return json({ok:true});throw Error('Unexpected request: '+pathname);
@@ -98,7 +100,7 @@ test('Commander 3D can be selected and safely falls back to the same playable bo
   const before=[...document.querySelectorAll('.flat-commander [data-square]')].map(c=>c.getAttribute('aria-label'));
   const button=[...document.querySelectorAll('.practice-display-switch button')].find(b=>b.textContent==='3D');assert.equal(button.disabled,false);
   const original=window.HTMLCanvasElement.prototype.getContext;window.HTMLCanvasElement.prototype.getContext=()=>null;
-  try{await click(button);await settle();await settle();await settle();assert.ok(document.querySelector('.flat-commander'));assert.equal(document.querySelector('.ctl-board-3d'),null);assert.deepEqual([...document.querySelectorAll('.flat-commander [data-square]')].map(c=>c.getAttribute('aria-label')),before);assert.ok(document.querySelector('.practice-session'));assert.equal(document.querySelector('.startup-message'),null);}finally{window.HTMLCanvasElement.prototype.getContext=original;}
+  try{await click(button);for(let i=0;i<30&&!document.querySelector('.flat-commander');i++)await settle();assert.ok(document.querySelector('.flat-commander'));assert.equal(document.querySelector('.ctl-board-3d'),null);assert.deepEqual([...document.querySelectorAll('.flat-commander [data-square]')].map(c=>c.getAttribute('aria-label')),before);assert.ok(document.querySelector('.practice-session'));assert.equal(document.querySelector('.startup-message'),null);}finally{window.HTMLCanvasElement.prototype.getContext=original;}
 });
 async function verifyBoardThemes(){
   const workspace=document.querySelector('.practice-workspace');
@@ -206,6 +208,8 @@ test('Saved board theme is restored after remounting the app',async()=>{
 test('Rankings displays separate game ratings, real leaderboard empty state and all 12 bot profiles',async()=>{
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
   await click([...document.querySelectorAll('.nav-item')].find(b=>b.textContent==='Xếp hạng'));
+  const pool=document.querySelectorAll('.ranking-filters select')[1];
+  await act(async()=>{pool.value='overall';pool.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
   assert.equal(document.querySelectorAll('.rank-bots article').length,12);
   assert.match(document.querySelector('.rank-profile').textContent,/1000/);
   assert.match(document.querySelector('.rankings-page').textContent,/Chưa có người chơi hoàn tất 10 ván/);
@@ -213,6 +217,7 @@ test('Rankings displays separate game ratings, real leaderboard empty state and 
   await act(async()=>{selector.value='xiangqi';selector.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
   assert.match(document.querySelector('.rank-profile').textContent,/Cờ tướng/);
   await click(document.querySelector('.rank-profile .button'));
+  for(let i=0;i<30&&!document.querySelector('.practice-workspace');i++)await settle();
   assert.equal(document.querySelector('.practice-workspace').classList.contains('practice-xiangqi'),true);
   assert.equal(document.querySelector('.rank-mode-options button[aria-pressed="true"]').textContent,'Đấu rank');
   assert.equal(document.querySelector('.side-options'),null);
@@ -221,8 +226,8 @@ test('Rankings displays separate game ratings, real leaderboard empty state and 
 test('Public game links open the requested game and mode directly',async()=>{
   window.history.replaceState(null,'','/?game=xiangqi&mode=ranked&utm_source=community');
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
-  assert.ok(document.querySelector('.practice-xiangqi .practice-setup'));
-  assert.equal(document.querySelector('.rank-mode-options button[aria-pressed="true"]').textContent,'Đấu rank');
+  assert.equal(document.querySelector('.match-settings select').value,'xiangqi');
+  assert.match(document.querySelector('.match-presets button[aria-pressed=true]').textContent,/10 phút/);
 
   await act(async()=>root.unmount());
   root=createRoot(document.getElementById('root'));
@@ -230,6 +235,66 @@ test('Public game links open the requested game and mode directly',async()=>{
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
   assert.equal(document.querySelector('.modal h2').textContent,'Tạo phòng');
   assert.equal(document.querySelector('.modal select').value,'monopoly');
+});
+
+test('Search uses the selected time control and cancellation returns to setup',async()=>{
+  const fallback=globalThis.fetch;
+  const commands=[];
+  globalThis.fetch=async(url,options={})=>{
+    const pathname=new URL(String(url),window.location.href).pathname;
+    if(pathname==='/api/matchmaking'&&options.body){
+      const action=JSON.parse(options.body);commands.push(action);
+      return json({ticket:action.action==='search'?{status:'searching',kind:action.kind,preset:action.preset,waitedMs:0,eloWindow:25,botAvailable:false}:{status:'idle'}});
+    }
+    return fallback(url,options);
+  };
+  window.history.replaceState(null,'','/?game=chess&mode=ranked');
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click([...document.querySelectorAll('.match-presets button')].find(b=>b.textContent.includes('3 + 2')));
+  await click(document.querySelector('.match-status .button'));
+  assert.deepEqual(commands[0],{action:'search',kind:'chess',preset:'3-2'});
+  assert.match(document.querySelector('.match-status [role="status"]').textContent,/±25 Elo/);
+  assert.equal(document.querySelector('.match-settings select').disabled,true);
+  await click(document.querySelector('.match-status .button'));
+  assert.deepEqual(commands[1],{action:'cancel'});
+  assert.equal(document.querySelector('.match-settings select').disabled,false);
+});
+
+test('A match found from search opens the authoritative online playing room with the selected clock',async()=>{
+  const fallback=globalThis.fetch;
+  const config=matchPresets.chess.find(preset=>preset.id==='10-0');
+  const owner={id:user.id,name:user.name,mark:'w',elo:1012,ready:true,rematch:false};
+  const guest={id:'user-two',name:'Đối thủ',mark:'b',elo:1030,ready:true,rematch:false};
+  const game=newGame(600000,'ranked-round','chess');game.phase='playing';game.turnStartedAt=Date.now();
+  const matched=publicRoom({id:'ABCD1234',kind:'chess',version:0,duration:600000,createdAt:Date.now(),owner,guest,game,ranked:true,matchmaking:config},user.id,Date.now());
+  globalThis.fetch=async(url,options={})=>{
+    const pathname=new URL(String(url),window.location.href).pathname;
+    if(pathname==='/api/matchmaking'&&options.body)return json({ticket:{status:'matched',kind:'chess',preset:'10-0',roomId:matched.id}});
+    if(pathname===`/api/rooms/${matched.id}`)return json({room:matched});
+    return fallback(url,options);
+  };
+  window.history.replaceState(null,'','/?game=chess&mode=ranked');
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click(document.querySelector('.match-status .button'));
+  for(let i=0;i<30&&!document.querySelector('.online-workspace');i++)await settle();
+  assert.match(window.location.search,/room=ABCD1234/);
+  assert.match(document.querySelector('.rank-room-label').textContent,/Cờ nhanh.*10\+0/);
+  assert.match(document.querySelector('.opponent-player').textContent,/Đối thủ.*1030 Elo/);
+});
+
+test('My rank shows position beyond the top 50 in the selected pool',async()=>{
+  const fallback=globalThis.fetch;
+  globalThis.fetch=async(url,options={})=>{
+    const parsed=new URL(String(url),window.location.href);
+    if(parsed.pathname==='/api/leaderboard/chess'){
+      assert.equal(parsed.searchParams.get('pool'),'rapid');
+      return json({players:[],me:{...ratingView({elo:1200,games:10}),position:52,rankedPlayers:126}});
+    }
+    return fallback(url,options);
+  };
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click([...document.querySelectorAll('.nav-item')].find(b=>b.textContent==='Xếp hạng'));
+  assert.match(document.querySelector('.my-rank').textContent,/#52 trên 126 người chơi/);
 });
 
 test('Ranked bot setup submits its selected profile, identifies the bot and disables undo/new game',async()=>{
@@ -245,6 +310,7 @@ test('Ranked bot setup submits its selected profile, identifies the bot and disa
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
   await click(document.querySelector('.collection-chess'));
   await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Đấu xếp hạng')));
+  await click([...document.querySelectorAll('.match-status button')].find(b=>b.textContent==='Đấu bot'));
   const selector=document.querySelector('.practice-setup select');
   await act(async()=>{selector.value='chess-bot-1000';selector.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
   await click(document.querySelector('.practice-start'));

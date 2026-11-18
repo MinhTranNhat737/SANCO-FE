@@ -1,4 +1,8 @@
-import type {Difficulty} from './practice-types';
+import type {Difficulty,GameKind} from './practice-types';
 export type Rating={elo:number;games:number;wins:number;draws:number;losses:number;peak:number;provisional:boolean;placementLeft:number;rank:string;tier:string;nextRank:string|null;nextElo:number|null};
 export type RatingChange=Rating&{before:number;after:number;delta:number};
 export type BotProfile={id:string;name:string;elo:number;rank:string;difficulty:Difficulty;estimated:boolean};
+export const POOL_LABELS={overall:'Elo chung',blitz:'Cờ chớp',rapid:'Cờ nhanh',classical:'Cờ dài'};
+export type RatingPool=keyof typeof POOL_LABELS;
+export type MatchPreset={id:string;minutes:number;increment:number;pool:Exclude<RatingPool,'overall'>};
+export type MatchTicket={status:'idle'}|{status:'searching';kind:GameKind;preset:string;waitedMs:number;eloWindow:number;botAvailable:boolean}|{status:'matched';kind:GameKind;preset:string;roomId:string};

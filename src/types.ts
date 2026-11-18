@@ -1,11 +1,12 @@
 import type {GameKind,PracticePly,PracticeMove,PartyState} from './practice-types';
+import type {MatchPreset} from './rating-types';
 export type Mark = string;
 export type Move = { cell: number; mark: Mark; at: number };
 export type User = { id: string; name: string; account: boolean; email: string | null };
 export type AuthProviders = { google: boolean; facebook: boolean };
-export type Seat = { name: string; mark: Mark; ready: boolean; rematch: boolean; online: boolean };
+export type Seat = { name: string; mark: Mark; ready: boolean; rematch: boolean; online: boolean;elo?:number };
 export type Room = {
-  ranked?:boolean;id: string; kind:GameKind; version: number; duration: number; createdAt: number; inviteExpiresAt: number; serverNow: number;
+  ranked?:boolean;matchmaking?:MatchPreset;id: string; kind:GameKind; version: number; duration: number; createdAt: number; inviteExpiresAt: number; serverNow: number;
   owner: Seat; guest: Seat | null; me: { role: 'owner' | 'guest'; mark: Mark; ready: boolean; rematch: boolean };
   players?:Seat[];capacity?:number;
   drawOffer: 'me' | 'opponent' | null;

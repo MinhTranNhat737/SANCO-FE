@@ -70,7 +70,7 @@ Kiểm tra `startup.test.mjs` mount React trong DOM giả lập, tải phiên kh
 
 ## Rank và điện thoại
 
-Mục **Xếp hạng** hiển thị Elo, phân hạng, thống kê, các bậc, bảng người chơi và 12 bot riêng từng môn. Chọn **Đấu xếp hạng** từ danh mục hoặc chọn **Đấu rank** trong thiết lập chơi với máy. Luyện tập không tính điểm; tạo phòng riêng có tùy chọn tính Elo. Kết quả hiển thị thay đổi Elo do máy chủ tính.
+Mở **Tìm trận** để chọn môn và thời gian. Đăng nhập để ghép với người chơi hoặc chọn **Đấu bot** để chơi với máy. Mục **Xếp hạng** lọc theo môn và nhóm thời gian, hiển thị Elo, kết quả, tiến độ phân hạng và vị trí cá nhân kể cả ngoài top 50. Ván ghép với người chơi tính vào nhóm thời gian tương ứng. Ván rank với bot và phòng riêng bật rank tính vào **Elo chung**.
 
 `MobileOrientation.tsx` dùng media query và sự kiện đổi hướng. Tỷ phú chặn bàn trên điện thoại dọc, tự mở khi ngang; mọi môn khác có tùy chọn lưu riêng trong `localStorage` theo môn. Nút toàn màn hình thử Orientation API khi trình duyệt hỗ trợ; nếu không, người chơi xoay máy thủ công. Không dùng CSS xoay giả bàn cờ. Lớp yêu cầu xoay dùng portal, khóa tương tác bàn và giữ focus; đồng hồ vẫn chạy. CSS điện thoại ngang đưa bàn bên trái, thao tác cuộn riêng bên phải, tôn trọng safe area.
 

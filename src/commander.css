@@ -31,10 +31,14 @@
 .ctl-toolbar,.ctl-order-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .ctl-toolbar{font-size:11px;padding:5px 10px}
 .ctl-water-key{display:inline-block;width:10px;height:10px;background:#34778b;margin-right:5px}
-.ctl-orders{padding:12px;background:var(--board-panel,#193a30);border:1px solid var(--board-border,#769a7f);margin:4px 0 10px;font-size:12px}
-.ctl-order-heading strong{font-weight:500;line-height:1.5}
-.ctl-unit-picker,.ctl-action-options{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-.ctl-unit-picker button,.ctl-action-options button{background:var(--board-button,#284b3d);color:var(--board-text,#f2eedc);border:1px solid var(--board-border,#73947a);border-radius:0;padding:9px;cursor:pointer;font:inherit}
+.ctl-orders{padding:12px 14px;background:rgba(15,34,27,.94);backdrop-filter:blur(8px);border:1.5px solid var(--board-border,#769a7f);margin:4px 0 10px;font-size:12px;box-shadow:0 10px 28px rgba(0,0,0,.55)}
+.ctl-orders-hud{position:absolute;left:10px;right:10px;bottom:10px;z-index:25;max-width:540px;margin:0 auto;border-radius:8px;pointer-events:auto}
+.ctl-orders-prompt{border-color:#ff9f1c;box-shadow:0 0 0 2px rgba(255,159,28,.35),0 14px 34px rgba(0,0,0,.72)}
+.ctl-order-heading strong{font-weight:600;line-height:1.5;color:#fff7d6}
+.ctl-unit-picker,.ctl-action-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.ctl-unit-picker button,.ctl-action-options button{background:var(--board-button,#284b3d);color:var(--board-text,#f2eedc);border:1.5px solid var(--board-border,#73947a);border-radius:5px;padding:9px 13px;cursor:pointer;font:inherit;font-weight:600}
+.ctl-action-options button.ctl-btn-bomb{background:linear-gradient(135deg,#d9480f,#e8590c);color:#fff9db;border-color:#ffd166;box-shadow:0 4px 12px rgba(217,72,15,.45)}
+.ctl-action-options button.ctl-btn-land{background:linear-gradient(135deg,#1b4332,#2d6a4f);color:#ecfdf5;border-color:#74c69d}
 .ctl-unit-picker button[aria-pressed=true]{background:#c3a769;color:#112c22;border-color:#e1cc8e}
 .ctl-unit-picker button:disabled{opacity:.45;cursor:default}
 .ctl-hint{font-size:11px;opacity:.8;margin:9px 0 0}

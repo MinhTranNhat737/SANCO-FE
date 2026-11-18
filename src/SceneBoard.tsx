@@ -161,7 +161,10 @@ export default function SceneBoard(props:Props){
     function marker(index:number,color:number,size=.4,opacity=.9){
       if(props.kind==='commander'){
         const geometry=new T.BufferGeometry().setFromPoints([new T.Vector3(-size,0,-size),new T.Vector3(size,0,-size),new T.Vector3(size,0,size),new T.Vector3(-size,0,size)]);
-        const outline=new T.LineLoop(geometry,new T.LineBasicMaterial({color,transparent:true,opacity,depthWrite:false}));outline.position.copy(point(index));outline.position.y=.385;highlights.add(outline);return;
+        const outline=new T.LineLoop(geometry,new T.LineBasicMaterial({color,transparent:true,opacity,depthWrite:false,toneMapped:false}));outline.position.copy(point(index));outline.position.y=.385;highlights.add(outline);
+        const frame=new T.Mesh(new T.RingGeometry(size*1.12,size*1.28,4),new T.MeshBasicMaterial({color,transparent:true,opacity:opacity*.85,depthWrite:false,toneMapped:false}));
+        frame.rotation.x=-Math.PI/2;frame.rotation.z=Math.PI/4;frame.position.copy(point(index));frame.position.y=.388;highlights.add(frame);
+        return;
       }
       const m=new T.Mesh(new T.RingGeometry(size-(props.kind==='xiangqi'?.065:.035),size,48),new T.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false}));
       m.rotation.x=-Math.PI/2;m.position.copy(point(index));m.position.y=.31;highlights.add(m);
@@ -179,7 +182,17 @@ export default function SceneBoard(props:Props){
         if(p.pendingSquare!==null&&p.pendingSquare>=0&&p.pendingSquare!==p.selected)marker(p.pendingSquare,new T.Color(palette.marker).getHex(),.45,p.kind==='xiangqi'?1:.9);
         if(p.kind!=='caro'&&p.kind!=='tictactoe'&&p.kind!=='go')for(const target of p.targets){
           if(target<0)continue;
-          if(p.board[target])marker(target,new T.Color(palette.marker).getHex(),.47,1);
+          if(p.board[target]){
+            const isEnemy=p.selected!==null&&p.board[p.selected]&&p.board[target]&&p.board[p.selected]![0]!==p.board[target]![0];
+            const tColor=p.kind==='commander'?(isEnemy?0xff4d29:0x38bdf8):new T.Color(palette.marker).getHex();
+            marker(target,tColor,.47,1);
+            if(p.kind==='commander'){
+              const ring=new T.Mesh(new T.RingGeometry(.42,.54,32),new T.MeshBasicMaterial({color:tColor,transparent:true,opacity:.95,depthWrite:false,toneMapped:false}));
+              ring.rotation.x=-Math.PI/2;ring.position.copy(point(target));ring.position.y=.41;highlights.add(ring);
+              const beacon=new T.Mesh(new T.CircleGeometry(.15,24),new T.MeshBasicMaterial({color:tColor,transparent:true,opacity:.95,depthWrite:false,toneMapped:false}));
+              beacon.rotation.x=-Math.PI/2;beacon.position.copy(point(target));beacon.position.y=.88;highlights.add(beacon);
+            }
+          }
           else{const dot=new T.Mesh(new T.CircleGeometry(p.kind==='xiangqi'?.14:.12,24),new T.MeshBasicMaterial({color:palette.marker,transparent:true,opacity:p.kind==='xiangqi'?1:.9,depthWrite:false}));dot.rotation.x=-Math.PI/2;dot.position.copy(point(target));dot.position.y=.312;highlights.add(dot);}
         }
         if(p.checkSquare!==null&&p.checkSquare>=0)marker(p.checkSquare,new T.Color(palette.check).getHex(),.5,1);

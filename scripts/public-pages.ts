@@ -70,7 +70,7 @@ function gameContent(kind:GameKind){
 <div class="public-actions"><a class="public-cta" href="${appLink(kind)}">Chơi với máy</a><a class="public-cta secondary" href="${appLink(kind,true)}">Đấu xếp hạng</a><a class="public-cta secondary" href="/?game=${kind}&amp;mode=friends">Chơi với bạn</a></div></div>
 <img src="/thumbs/${kind}.jpg" width="384" height="384" alt="" fetchpriority="high"></header>
 <h2>Luật ${escapeHtml(name)} trên Sân Cờ</h2><p>${escapeHtml(RULE_TEXT[kind])}</p>
-<h2>Chọn cách chơi</h2><ul class="public-modes"><li><strong>Luyện tập</strong> với bot ở ba độ khó. Có thể bắt đầu bằng phiên khách.</li><li><strong>Đấu xếp hạng</strong> với bot ở gần Elo của bạn. Điểm và hạng được tính riêng cho ${escapeHtml(name)}.</li><li><strong>Chơi với bạn</strong> qua liên kết mời trong phòng riêng, hỗ trợ ${isParty(kind)?'2–4':'2'} người. Chủ phòng cần đăng nhập.</li></ul>
+<h2>Chọn cách chơi</h2><ul class="public-modes"><li><strong>Luyện tập</strong> với bot ở ba độ khó. Có thể bắt đầu bằng phiên khách.</li><li><strong>Đấu xếp hạng</strong> với người chơi cùng thời gian và gần Elo của bạn. Điểm và hạng được tính riêng cho ${escapeHtml(name)}.</li><li><strong>Chơi với bạn</strong> qua liên kết mời trong phòng riêng, hỗ trợ ${isParty(kind)?'2–4':'2'} người. Chủ phòng cần đăng nhập.</li></ul>
 ${kind==='monopoly'?'<p>Trên điện thoại, xoay ngang khi vào bàn để xem bản đồ và điều khiển.</p>':''}
 <h2>Thử thêm một môn cờ</h2>${gameLinks(related)}
 </main>`
