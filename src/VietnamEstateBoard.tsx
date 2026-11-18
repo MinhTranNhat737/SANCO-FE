@@ -125,115 +125,296 @@ export function EstateInspector({
   </article>;
 }
 
-const OWNER_BG:Record<string,string>={R:'#f2b7ae',G:'#a8dec5',Y:'#f6df98',B:'#aecdf0'};
+const CLASSIC_GROUP_COLORS=[
+  '#7b2cbf', // Nhóm 0: Tím đậm
+  '#4cc9f0', // Nhóm 1: Xanh da trời
+  '#f72585', // Nhóm 2: Hồng cánh sen
+  '#fb8500', // Nhóm 3: Cam
+  '#e63946', // Nhóm 4: Đỏ tươi
+  '#facc15', // Nhóm 5: Vàng tươi
+  '#16a34a', // Nhóm 6: Xanh lá
+  '#1d4ed8', // Nhóm 7: Xanh lam đậm
+  '#0d9488', // Nhóm 8: Ngọc lam
+  '#9333ea', // Nhóm 9: Tím hoàng gia
+  '#dc2626'  // Nhóm 10: Đỏ đô (Hà Nội / TP.HCM)
+];
+
+const TOKEN_STYLES:Record<string,{fill:string;dark:string;label:string}>={
+  R:{fill:'#ef233c',dark:'#9b0a1e',label:'ĐỎ'},
+  G:{fill:'#10b981',dark:'#065f46',label:'XANH'},
+  Y:{fill:'#f59e0b',dark:'#92400e',label:'VÀNG'},
+  B:{fill:'#2563eb',dark:'#1e3a8a',label:'LAM'}
+};
+
+const OWNER_BG:Record<string,string>={R:'#ffe3e6',G:'#d8f8eb',Y:'#fef3c7',B:'#dbeafe'};
 const lines=(name:string)=>{const words=name.split(' ');if(name.length<=8||words.length===1)return [name];const split=Math.ceil(words.length/2);return [words.slice(0,split).join(' '),words.slice(split).join(' ')];};
-const titleSize=(rows:string[])=>{const maxLen=Math.max(...rows.map(r=>r.length));return maxLen>11?6.2:maxLen>9?7.0:rows.length>1?7.4:8.2;};
+const titleSize=(rows:string[])=>{const maxLen=Math.max(...rows.map(r=>r.length));return maxLen>11?6.2:maxLen>9?6.9:rows.length>1?7.3:8.0;};
 
 function SvgLandmark({cx,cy,kind,accent}:{cx:number;cy:number;kind:LandmarkKind;accent:string}){
-  return <g aria-hidden="true" transform={`translate(${cx} ${cy}) scale(1.18) translate(${-cx} ${-cy})`}>
-    <circle cx={cx} cy={cy} r="7.5" fill="#fff7e2" stroke={accent} strokeWidth="1.1"/>
+  return <g aria-hidden="true" transform={`translate(${cx} ${cy}) scale(1.08) translate(${-cx} ${-cy})`}>
+    <circle cx={cx} cy={cy} r="6.8" fill="#fffbeb" stroke={accent} strokeWidth="1"/>
     {kind==='hanoi'?<>
-      <path d={`M${cx-5.5} ${cy+2.5}H${cx+5.5}A6.5 6.5 0 0 1 ${cx-5.5} ${cy+2.5}Z`} fill="#2b7e9c"/>
-      <rect x={cx-3.2} y={cy-1.2} width="6.4" height="3.2" fill="#c99f5e"/>
-      <path d={`M${cx-4} ${cy-1.2}H${cx+4}L${cx+2.6} ${cy-3.4}H${cx-2.6}Z`} fill="#9e3328"/>
-      <path d={`M${cx-2.4} ${cy-3.4}L${cx} ${cy-5.8}L${cx+2.4} ${cy-3.4}Z`} fill="#9e3328"/>
+      <path d={`M${cx-5} ${cy+2.2}H${cx+5}A6 6 0 0 1 ${cx-5} ${cy+2.2}Z`} fill="#2b7e9c"/>
+      <rect x={cx-3} y={cy-1} width="6" height="3" fill="#c99f5e"/>
+      <path d={`M${cx-3.8} ${cy-1}H${cx+3.8}L${cx+2.4} ${cy-3.1}H${cx-2.4}Z`} fill="#9e3328"/>
+      <path d={`M${cx-2.2} ${cy-3.1}L${cx} ${cy-5.3}L${cx+2.2} ${cy-3.1}Z`} fill="#9e3328"/>
     </>:kind==='hcm'?<>
-      <rect x={cx+1} y={cy-5.2} width="2.2" height="10" fill="#2d658a"/>
-      <rect x={cx-5} y={cy+.2} width="5.5" height="4.8" fill="#d9c391"/>
-      <rect x={cx-3} y={cy-2.4} width="2" height="2.6" fill="#a84432"/>
+      <rect x={cx+1} y={cy-4.8} width="2" height="9.2" fill="#2d658a"/>
+      <rect x={cx-4.6} y={cy+.2} width="5" height="4.4" fill="#d9c391"/>
+      <rect x={cx-2.8} y={cy-2.2} width="1.8" height="2.4" fill="#a84432"/>
     </>:kind==='halong'?<>
-      <path d={`M${cx-5.5} ${cy+2.4}H${cx+5.5}A6.5 6.5 0 0 1 ${cx-5.5} ${cy+2.4}Z`} fill="#1f7a91"/>
-      <path d={`M${cx-5.2} ${cy+2.4}L${cx-2.8} ${cy-3.8}L${cx-.4} ${cy+2.4}Z`} fill="#3e6352"/>
-      <path d={`M${cx-.6} ${cy+2.4}L${cx+2.2} ${cy-4.6}L${cx+5} ${cy+2.4}Z`} fill="#2f5243"/>
-      <path d={`M${cx+1.6} ${cy+2.4}L${cx+3} ${cy-1.6}L${cx+4.8} ${cy+2.4}Z`} fill="#b83b2c"/>
+      <path d={`M${cx-5} ${cy+2.2}H${cx+5}A6 6 0 0 1 ${cx-5} ${cy+2.2}Z`} fill="#1f7a91"/>
+      <path d={`M${cx-4.8} ${cy+2.2}L${cx-2.5} ${cy-3.5}L${cx-.3} ${cy+2.2}Z`} fill="#3e6352"/>
+      <path d={`M${cx-.5} ${cy+2.2}L${cx+2} ${cy-4.2}L${cx+4.6} ${cy+2.2}Z`} fill="#2f5243"/>
     </>:kind==='hue'?<>
-      <rect x={cx-3.4} y={cy+1.2} width="6.8" height="3" fill="#6c3063"/>
-      <rect x={cx-2.5} y={cy-1.6} width="5" height="2.6" fill="#7e3b73"/>
-      <path d={`M${cx-3} ${cy-1.6}L${cx} ${cy-5.4}L${cx+3} ${cy-1.6}Z`} fill="#d9b25f"/>
+      <rect x={cx-3.2} y={cy+1} width="6.4" height="2.8" fill="#6c3063"/>
+      <rect x={cx-2.3} y={cy-1.4} width="4.6" height="2.4" fill="#7e3b73"/>
+      <path d={`M${cx-2.8} ${cy-1.4}L${cx} ${cy-5}L${cx+2.8} ${cy-1.4}Z`} fill="#d9b25f"/>
     </>:kind==='danang'?<>
-      <path d={`M${cx-5.5} ${cy+2.5}H${cx+5.5}A6.5 6.5 0 0 1 ${cx-5.5} ${cy+2.5}Z`} fill="#247291"/>
-      <path d={`M${cx-5.2} ${cy+2.2}Q${cx-2} ${cy-3.8} ${cx} ${cy}Q${cx+2.5} ${cy-3.4} ${cx+5} ${cy+1.8}`} fill="none" stroke="#d4911e" strokeWidth="1.8"/>
+      <path d={`M${cx-5} ${cy+2.2}H${cx+5}A6 6 0 0 1 ${cx-5} ${cy+2.2}Z`} fill="#247291"/>
+      <path d={`M${cx-4.8} ${cy+2}Q${cx-1.8} ${cy-3.5} ${cx} ${cy}Q${cx+2.2} ${cy-3.2} ${cx+4.6} ${cy+1.6}`} fill="none" stroke="#d4911e" strokeWidth="1.6"/>
     </>:kind==='lotus'?<>
-      <ellipse cx={cx} cy={cy-.2} rx="2" ry="4.6" fill="#d95b7d"/>
-      <ellipse cx={cx-2.4} cy={cy+.6} rx="1.7" ry="3.8" transform={`rotate(-28 ${cx-2.4} ${cy+.6})`} fill="#d95b7d"/>
-      <ellipse cx={cx+2.4} cy={cy+.6} rx="1.7" ry="3.8" transform={`rotate(28 ${cx+2.4} ${cy+.6})`} fill="#d95b7d"/>
-      <rect x={cx-4.5} y={cy+3.5} width="9" height="1.8" rx="1" fill="#3b8751"/>
+      <ellipse cx={cx} cy={cy-.2} rx="1.8" ry="4.2" fill="#d95b7d"/>
+      <ellipse cx={cx-2.2} cy={cy+.5} rx="1.5" ry="3.4" transform={`rotate(-28 ${cx-2.2} ${cy+.5})`} fill="#d95b7d"/>
+      <ellipse cx={cx+2.2} cy={cy+.5} rx="1.5" ry="3.4" transform={`rotate(28 ${cx+2.2} ${cy+.5})`} fill="#d95b7d"/>
     </>:kind==='coffee'?<>
-      <rect x={cx-3.6} y={cy-1.2} width="7.2" height="5.4" rx="1.5" fill="#5c331b"/>
-      <path d={`M${cx-1.6} ${cy-2.5}V${cy-4.6}M${cx+1.4} ${cy-2.5}V${cy-4.6}`} stroke="#8c593b" strokeWidth="1.1"/>
+      <rect x={cx-3.2} y={cy-1} width="6.4" height="4.8" rx="1.3" fill="#5c331b"/>
+      <path d={`M${cx-1.4} ${cy-2.2}V${cy-4.2}M${cx+1.2} ${cy-2.2}V${cy-4.2}`} stroke="#8c593b" strokeWidth="1"/>
     </>:kind==='tea'||kind==='dalat'||kind==='rice'?<>
-      <path d={`M${cx-6} ${cy+4.5}A5.5 5.5 0 0 1 ${cx+1} ${cy+4.5}Z`} fill="#4aa366"/>
-      <path d={`M${cx-1} ${cy+4.5}A5.5 5.5 0 0 1 ${cx+6} ${cy+4.5}Z`} fill="#2b7546"/>
+      <path d={`M${cx-5.4} ${cy+4}A5 5 0 0 1 ${cx+1} ${cy+4}Z`} fill="#4aa366"/>
+      <path d={`M${cx-1} ${cy+4}A5 5 0 0 1 ${cx+5.4} ${cy+4}Z`} fill="#2b7546"/>
     </>:kind==='fansipan'||kind==='mountain'?<>
-      <path d={`M${cx-5.5} ${cy+4.5}L${cx-1} ${cy-4.6}L${cx+3.5} ${cy+4.5}Z`} fill={accent}/>
-      <path d={`M${cx-2.2} ${cy-1.8}L${cx-1} ${cy-4.6}L${cx+.2} ${cy-1.8}Z`} fill="#fff"/>
+      <path d={`M${cx-5} ${cy+4}L${cx-.8} ${cy-4.2}L${cx+3.2} ${cy+4}Z`} fill={accent}/>
+      <path d={`M${cx-2} ${cy-1.6}L${cx-.8} ${cy-4.2}L${cx+.2} ${cy-1.6}Z`} fill="#fff"/>
     </>:<>
-      <path d={`M${cx-5} ${cy-.4}L${cx} ${cy-4.6}L${cx+5} ${cy-.4}Z`} fill={accent}/>
-      <rect x={cx-3.6} y={cy-.4} width="7.2" height="4.4" fill="#d4ae60"/>
-      <rect x={cx-1.1} y={cy+1.2} width="2.2" height="2.8" fill="#4a311c"/>
+      <path d={`M${cx-4.5} ${cy-.4}L${cx} ${cy-4.2}L${cx+4.5} ${cy-.4}Z`} fill={accent}/>
+      <rect x={cx-3.2} y={cy-.4} width="6.4" height="4" fill="#d4ae60"/>
+      <rect x={cx-1} y={cy+1} width="2" height="2.6" fill="#4a311c"/>
     </>}
+  </g>;
+}
+
+function SpecialCellArt({type,name,cx,cy}:{type:string;name:string;cx:number;cy:number}){
+  if(type==='chance'){
+    return <g aria-hidden="true">
+      <text x={cx} y={cy+8} textAnchor="middle" fontSize="24" fontWeight="900" fill="#e63946" stroke="#111" strokeWidth=".7">?</text>
+    </g>;
+  }
+  if(type==='community'){
+    return <g aria-hidden="true">
+      <rect x={cx-9} y={cy-4} width="18" height="11" rx="2" fill="#38bdf8" stroke="#111" strokeWidth="1.1"/>
+      <path d={`M${cx-10} ${cy-4}Q${cx} ${cy-10} ${cx+10} ${cy-4}Z`} fill="#facc15" stroke="#111" strokeWidth="1.1"/>
+      <rect x={cx-2} y={cy-5} width="4" height="5" rx="1" fill="#facc15" stroke="#111" strokeWidth=".8"/>
+    </g>;
+  }
+  if(type==='station'){
+    return <g aria-hidden="true">
+      <rect x={cx-10} y={cy-6} width="20" height="12" rx="3" fill="#22c55e" stroke="#111" strokeWidth="1.1"/>
+      <rect x={cx-7} y={cy-4} width="6" height="5" rx="1" fill="#e0f2fe"/>
+      <rect x={cx+1} y={cy-4} width="6" height="5" rx="1" fill="#e0f2fe"/>
+      <circle cx={cx-5.5} cy={cy+7} r="2.6" fill="#111"/>
+      <circle cx={cx+5.5} cy={cy+7} r="2.6" fill="#111"/>
+    </g>;
+  }
+  if(type==='utility'){
+    const water=name.toLowerCase().includes('nước');
+    return water?<g aria-hidden="true">
+      <path d={`M${cx} ${cy-8}C${cx-7} ${cy} ${cx-7} ${cy+7} ${cx} ${cy+7}C${cx+7} ${cy+7} ${cx+7} ${cy} ${cx} ${cy-8}Z`} fill="#38bdf8" stroke="#111" strokeWidth="1.1"/>
+    </g>:<g aria-hidden="true">
+      <circle cx={cx} cy={cy-2} r="6.5" fill="#fde047" stroke="#111" strokeWidth="1.1"/>
+      <rect x={cx-3} y={cy+4} width="6" height="3.5" rx="1" fill="#94a3b8" stroke="#111" strokeWidth=".9"/>
+    </g>;
+  }
+  if(type==='tax'){
+    return <g aria-hidden="true">
+      <polygon points={`${cx},${cy-8} ${cx+9},${cy-2} ${cx},${cy+8} ${cx-9},${cy-2}`} fill="#38bdf8" stroke="#111" strokeWidth="1.1"/>
+      <polygon points={`${cx},${cy-8} ${cx+4},${cy-2} ${cx},${cy+8} ${cx-4},${cy-2}`} fill="#bae6fd"/>
+    </g>;
+  }
+  if(type==='start'){
+    return <g aria-hidden="true">
+      <path d={`M${cx-16} ${cy+2}A16 14 0 0 1 ${cx+16} ${cy+2}`} fill="none" stroke="#ef4444" strokeWidth="3"/>
+      <path d={`M${cx-13} ${cy+2}A13 11 0 0 1 ${cx+13} ${cy+2}`} fill="none" stroke="#facc15" strokeWidth="2.6"/>
+      <path d={`M${cx-10} ${cy+2}A10 8 0 0 1 ${cx+10} ${cy+2}`} fill="none" stroke="#3b82f6" strokeWidth="2.4"/>
+      <path d={`M${cx+14} ${cy+9}H${cx-12}L${cx-7} ${cy+5}M${cx-12} ${cy+9}L${cx-7} ${cy+13}`} fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round"/>
+    </g>;
+  }
+  if(type==='jail'){
+    return <g aria-hidden="true">
+      <polygon points={`${cx},${cy-11} ${cx+13},${cy} ${cx},${cy+11} ${cx-13},${cy}`} fill="#fb923c" stroke="#111" strokeWidth="1.2"/>
+      <circle cx={cx} cy={cy+1} r="4.5" fill="#fde68a" stroke="#111" strokeWidth=".9"/>
+      <line x1={cx-6} y1={cy-7} x2={cx-6} y2={cy+7} stroke="#111" strokeWidth="1.3"/>
+      <line x1={cx} y1={cy-10} x2={cx} y2={cy+10} stroke="#111" strokeWidth="1.3"/>
+      <line x1={cx+6} y1={cy-7} x2={cx+6} y2={cy+7} stroke="#111" strokeWidth="1.3"/>
+    </g>;
+  }
+  if(type==='rest'){
+    return <g aria-hidden="true">
+      <path d={`M${cx-11} ${cy+3}L${cx+10} ${cy-5}L${cx+13} ${cy-2}L${cx-8} ${cy+6}Z`} fill="#c084fc" stroke="#111" strokeWidth="1"/>
+      <path d={`M${cx-2} ${cy-2}L${cx-9} ${cy-9}L${cx-5} ${cy-10}L${cx+3} ${cy-3}Z`} fill="#e9d5ff" stroke="#111" strokeWidth="1"/>
+      <path d={`M${cx+1} ${cy+1}L${cx+6} ${cy+9}L${cx+9} ${cy+8}L${cx+5} ${cy}Z`} fill="#e9d5ff" stroke="#111" strokeWidth="1"/>
+    </g>;
+  }
+  if(type==='gotojail'){
+    return <g aria-hidden="true">
+      <circle cx={cx} cy={cy+1} r="7.5" fill="#fde68a" stroke="#111" strokeWidth="1.1"/>
+      <path d={`M${cx-9} ${cy-3}Q${cx} ${cy-12} ${cx+9} ${cy-3}Z`} fill="#1d4ed8" stroke="#111" strokeWidth="1.1"/>
+      <rect x={cx-9} y={cy-4} width="18" height="2.4" rx="1" fill="#111"/>
+      <circle cx={cx} cy={cy-6.5} r="1.5" fill="#facc15"/>
+    </g>;
+  }
+  return null;
+}
+
+function CenterMascotCard({x,y,rotate,bg,title}:{x:number;y:number;rotate:number;bg:string;title:string}){
+  return <g transform={`translate(${x} ${y}) rotate(${rotate})`} aria-hidden="true">
+    <rect x="-78" y="-52" width="156" height="104" rx="4" fill={bg} stroke="#111111" strokeWidth="2.6"/>
+    <rect x="-72" y="-46" width="144" height="92" rx="2" fill="none" stroke="#11111155" strokeWidth="1" strokeDasharray="4 3"/>
+    {/* Classic Top-Hat Tycoon Mascot */}
+    <g transform="translate(0 -6)">
+      <path d="M-28 24 Q0 4 28 24 L20 34 L-20 34 Z" fill="#111111"/>
+      <path d="M-7 16 L0 28 L7 16 Z" fill="#ffffff"/>
+      <path d="M-2 18 L0 27 L2 18 Z" fill="#e63946"/>
+      <circle cx="0" cy="4" r="14" fill="#fffbeb" stroke="#111111" strokeWidth="2.2"/>
+      {/* Mustache & eyes */}
+      <circle cx="-5" cy="2" r="1.8" fill="#111111"/>
+      <circle cx="5" cy="2" r="1.8" fill="#111111"/>
+      <path d="M-11 9 Q-5 5 0 9 Q5 5 11 9 Q6 13 0 10 Q-6 13 -11 9 Z" fill="#ffffff" stroke="#111111" strokeWidth="1.4"/>
+      {/* Top hat */}
+      <rect x="-18" y="-11" width="36" height="4.5" rx="2" fill="#111111"/>
+      <rect x="-12" y="-28" width="24" height="18" rx="2" fill="#111111"/>
+      <rect x="-12" y="-15" width="24" height="3.5" fill="#e63946"/>
+      {/* Cane */}
+      <line x1="-34" y1="22" x2="34" y2="8" stroke="#111111" strokeWidth="3.2" strokeLinecap="round"/>
+      <path d="M34 8 Q41 6 39 13" fill="none" stroke="#111111" strokeWidth="3" strokeLinecap="round"/>
+    </g>
+    <text x="0" y="42" textAnchor="middle" fontSize="18" fontWeight="900" fill="#111111" letterSpacing="1.5">{title}</text>
   </g>;
 }
 
 function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:string}){
   const lvl=Math.max(1,Math.min(5,level));
-  const w=14+lvl*5,h=8+lvl*3.2,bx=x+30-w/2,by=y+52-h;
+  const w=14+lvl*5,h=8+lvl*3.2,bx=x+30-w/2,by=y+49-h;
   return <g aria-label={lvl===5?'Khách sạn':`Nhà cấp ${lvl}`}>
-    <rect x={bx} y={by} width={w} height={h} rx="2" fill="#f7eed2" stroke={color} strokeWidth="1.5"/>
-    <path d={`M${bx-2} ${by} L${x+30} ${by-4-lvl*1.1} L${bx+w+2} ${by} Z`} fill={color} stroke="#f5e3a4" strokeWidth=".9"/>
-    <text x={x+30} y={by+h-2.2} textAnchor="middle" fontSize={lvl===5?7.5:8} fontWeight="800" fill="#182d20">{lvl===5?'★KS':`C${lvl}`}</text>
+    <rect x={bx} y={by} width={w} height={h} rx="2" fill="#fffbeb" stroke="#111111" strokeWidth="1.4"/>
+    <path d={`M${bx-2} ${by} L${x+30} ${by-4-lvl*1.1} L${bx+w+2} ${by} Z`} fill={color} stroke="#111111" strokeWidth="1.1"/>
+    <text x={x+30} y={by+h-2} textAnchor="middle" fontSize={lvl===5?7.5:8} fontWeight="900" fill="#111111">{lvl===5?'★KS':`C${lvl}`}</text>
   </g>;
 }
 
-function FlatPlayerToken({cx,cy,side,index,isMine}:{cx:number;cy:number;side:string;index:number;isMine:boolean}){
-  const color=PARTY_COLORS[side]||'#c74b42';
-  return <g className="flat-player-token">
-    <circle cx={cx} cy={cy+2} r="9.5" fill="#08161099"/>
-    <circle cx={cx} cy={cy} r="9" fill={color} stroke={isMine?'#fff4c2':'#f0d894'} strokeWidth={isMine?2.4:1.6}/>
-    <path d={`M${cx-4.8} ${cy-6.8} L${cx-2.6} ${cy-10.5} L${cx} ${cy-8} L${cx+2.6} ${cy-10.5} L${cx+4.8} ${cy-6.8} Z`} fill="#f7df92" stroke="#5c4318" strokeWidth=".6"/>
-    <text x={cx} y={cy+3.2} textAnchor="middle" fontSize="8.8" fontWeight="800" fill="#fffdf4">{index+1}</text>
+function FlatPlayerToken({cx,cy,side,index,isMine,isTurn}:{cx:number;cy:number;side:string;index:number;isMine:boolean;isTurn:boolean}){
+  const style=TOKEN_STYLES[side]||{fill:PARTY_COLORS[side]||'#ef233c',dark:'#7f1d1d',label:`P${index+1}`};
+  return <g className="flat-player-token" aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
+    {isTurn&&<circle cx={cx} cy={cy} r="17.5" fill="none" stroke="#111111" strokeWidth="2.2" strokeDasharray="3 2"/>}
+    {isMine&&<circle cx={cx} cy={cy} r="15.5" fill="none" stroke="#facc15" strokeWidth="2.8"/>}
+    {/* Drop shadow */}
+    <ellipse cx={cx} cy={cy+11.5} rx="11" ry="4" fill="#00000055"/>
+    {/* Big high-contrast white shield halo so token never blends into the board */}
+    <circle cx={cx} cy={cy} r="13" fill="#ffffff" stroke="#111111" strokeWidth="2.4"/>
+    <circle cx={cx} cy={cy} r="10.4" fill={style.fill} stroke="#ffffff" strokeWidth="1.4"/>
+    {/* Character bust silhouette (head + shoulders + crown) */}
+    <path d={`M${cx-6.2} ${cy+6.8} C${cx-6.2} ${cy+2.2} ${cx+6.2} ${cy+2.2} ${cx+6.2} ${cy+6.8} Z`} fill="#ffffff"/>
+    <circle cx={cx} cy={cy-1.6} r="3.8" fill="#ffffff"/>
+    {/* Crown on top of token */}
+    <path d={`M${cx-5.5} ${cy-9.5} L${cx-3} ${cy-14} L${cx} ${cy-11} L${cx+3} ${cy-14} L${cx+5.5} ${cy-9.5} Z`} fill="#facc15" stroke="#111111" strokeWidth="1"/>
+    {/* Clear player badge pill at bottom of token */}
+    <rect x={cx-11} y={cy+5.2} width="22" height="9.2" rx="4.6" fill="#111111" stroke="#ffffff" strokeWidth="1.1"/>
+    <text x={cx} y={cy+12.1} textAnchor="middle" fontSize="6.8" fontWeight="900" fill="#fde047">{isMine?'BẠN':`${index+1}·${style.label}`}</text>
   </g>;
 }
 
 export default function VietnamEstateBoard({state,mySide,selected,onSelect}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void}){
+  const activePlayers=state.players.filter(v=>v.active);
+  const turnSide=state.players.find(p=>p.active&&p.side===(state as {turn?:string}).turn)?.side;
   return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
-    <defs>
-      <radialGradient id="vn-court-grad" cx="50%" cy="50%" r="58%">
-        <stop offset="0%" stopColor="#265441"/>
-        <stop offset="65%" stopColor="#183a2d"/>
-        <stop offset="100%" stopColor="#0f261d"/>
-      </radialGradient>
-    </defs>
-    <rect className="board-svg-base" width="780" height="780" rx="8" fill="#173327"/>
-    <rect className="board-svg-center" x="63" y="63" width="654" height="654" rx="6" fill="url(#vn-court-grad)" stroke="#d8b870" strokeWidth="2.5"/>
-    <rect x="75" y="75" width="630" height="630" rx="4" fill="none" stroke="#e8cf9066" strokeWidth="1.2"/>
-    <circle cx="390" cy="340" r="118" fill="#122b20aa" stroke="#d8b87066" strokeWidth="1.5"/>
-    <circle cx="390" cy="340" r="106" fill="none" stroke="#d8b87044" strokeDasharray="4 4"/>
+    <rect className="board-svg-base" width="780" height="780" rx="6" fill="#ffffff" stroke="#111111" strokeWidth="4"/>
+    <rect className="board-svg-center" x="60" y="60" width="660" height="660" fill="#fbfaf6" stroke="#111111" strokeWidth="2.8"/>
+
+    {/* Classic Center Court Graphics: Cơ hội (top-left), Diagonal CỜ TỶ PHÚ, Khí vận (bottom-right) */}
+    <CenterMascotCard x={225} y={230} rotate={-42} bg="#f9a8d4" title="CƠ HỘI"/>
+    <CenterMascotCard x={555} y={550} rotate={-42} bg="#fef08a" title="KHÍ VẬN"/>
+
+    <g transform="translate(390 390) rotate(-42)" aria-hidden="true">
+      <text x="3" y="-6" textAnchor="middle" fill="#0000001f" fontSize="68" fontWeight="900" letterSpacing="4">CỜ TỶ PHÚ</text>
+      <text className="board-svg-label" x="0" y="-9" textAnchor="middle" fill="#111111" fontSize="68" fontWeight="900" letterSpacing="4">CỜ TỶ PHÚ</text>
+      <text x="0" y="24" textAnchor="middle" fill="#dc2626" fontSize="18" fontWeight="900" letterSpacing="3">VIỆT NAM · 34 TỈNH THÀNH · VÒNG {state.round}</text>
+    </g>
+
     {VN_CELLS.map(c=>{
-      const[r,col]=estateCell(c.index,13),x=col*60,y=r*60,owned=state.property[c.index],lvl=state.houses[c.index]||0,ownerColor=owned?PARTY_COLORS[owned]:'',isCorner=c.index%12===0;
+      const[r,col]=estateCell(c.index,13),x=col*60,y=r*60,owned=state.property[c.index],lvl=state.houses[c.index]||0,ownerColor=owned?TOKEN_STYLES[owned]?.fill||PARTY_COLORS[owned]:'',isCorner=c.index%12===0;
+      const isSelected=selected===c.index;
+      const groupColor=c.group!==undefined?CLASSIC_GROUP_COLORS[c.group]||VN_GROUP_COLORS[c.group]:isCorner?'#dc2626':c.type==='station'?'#16a34a':c.type==='utility'?'#eab308':'#0284c7';
       const rows=lines(c.name),fs=titleSize(rows),landmark=PROVINCE_LANDMARKS[c.name];
-      return <g key={c.index} data-owned={Boolean(owned)||selected===c.index} role="button" tabIndex={0} aria-label={`Xem ${c.name}`} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
-        <rect className={selected===c.index?'board-svg-selected':'board-svg-lot'} x={x+1} y={y+1} width="58" height="58" rx={isCorner?3:1.5} fill={selected===c.index?'#f6e9b2':owned?OWNER_BG[owned]||'#faf3e2':isCorner?'#f2dfb3':ownable(c)?'#faf4e4':'#eadbc0'} stroke={selected===c.index?'#fff5b8':owned?ownerColor:isCorner?'#c9a252':'#576e5a'} strokeWidth={selected===c.index?3.4:owned?2.8:isCorner?1.8:1.1}/>
-        <rect x={x+2} y={y+2} width="56" height="7" rx="1" fill={c.group!==undefined?VN_GROUP_COLORS[c.group]:isCorner?'#9e3b2e':c.type==='station'?'#295440':c.type==='utility'?'#b58428':'#7d6b42'}/>
-        {owned&&<rect x={x+2} y={y+52} width="56" height="6" fill={ownerColor}/>}
-        {rows.map((line,i)=><text key={i} x={x+30} y={y+(rows.length===1?17:14.5+i*7.8)} textAnchor="middle" fontSize={fs} fontWeight="800" fill="#12281c" textLength={line.length>10?52:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
-        {!lvl&&landmark&&<SvgLandmark cx={x+30} cy={y+32} kind={landmark.kind} accent={landmark.accent}/>}
-        {!lvl&&<g>
-          <rect x={x+6} y={y+42} width="48" height="10.5" rx="3.5" fill={owned?ownerColor:isCorner?'#8c2f24':ownable(c)?'#183528':'#3b4f3e'} opacity={owned?.92:1}/>
-          <text x={x+30} y={y+49.5} textAnchor="middle" fontSize="7.6" fontWeight="800" fill="#fff5d6">{ownable(c)?c.price:c.type==='start'?'+400':c.type==='chance'?'CƠ HỘI':c.type==='community'?'KHÍ VẬN':c.type==='tax'?`−${c.amount}`:c.type==='gotojail'?'VÀO TÙ':c.type==='jail'?'THĂM TÙ':'NGHỈ'}</text>
-        </g>}
-        {lvl>0&&<FlatBuilding x={x} y={y} level={lvl} color={ownerColor||'#a45e44'}/>}
-        {state.mortgaged?.[c.index]&&<path d={`M${x+5} ${y+48}l49-33`} stroke="#a25945" strokeWidth="3" opacity=".7"/>}
+      // Place color header strip facing the center of the board, like classic Monopoly
+      const sideEdge=!isCorner&&(r===12?'top':col===0?'right':r===0?'bottom':'left');
+      return <g key={c.index} data-owned={Boolean(owned)||isSelected} role="button" tabIndex={0} aria-label={`Xem ${c.name}`} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
+        <rect
+          className={isSelected?'board-svg-selected':'board-svg-lot'}
+          x={x}
+          y={y}
+          width="60"
+          height="60"
+          fill={isSelected?'#fef08a':owned?OWNER_BG[owned]||'#ffffff':isCorner?'#fff7ed':'#ffffff'}
+          stroke={isSelected?'#dc2626':owned?ownerColor:'#111111'}
+          strokeWidth={isSelected?3.4:owned?2.6:1.6}
+        />
+        {!isCorner&&c.type==='property'&&<>
+          {sideEdge==='top'&&<rect x={x+1} y={y+1} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
+          {sideEdge==='bottom'&&<rect x={x+1} y={y+48} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
+          {sideEdge==='left'&&<rect x={x+1} y={y+1} width="11" height="58" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
+          {sideEdge==='right'&&<rect x={x+48} y={y+1} width="11" height="58" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
+        </>}
+        {owned&&<rect x={x+2} y={sideEdge==='bottom'?y+2:y+54} width="56" height="4.5" fill={ownerColor}/>}
+
+        {rows.map((line,i)=>{
+          const baseY=sideEdge==='top'?22:13.5;
+          return <text key={i} x={x+30} y={y+(rows.length===1?baseY+3:baseY+i*7.6)} textAnchor="middle" fontSize={fs} fontWeight="900" fill="#111111" textLength={line.length>10?46:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>;
+        })}
+
+        {!lvl&&(c.type==='property'&&landmark
+          ?<SvgLandmark cx={x+30} cy={y+(sideEdge==='top'?36.5:29.5)} kind={landmark.kind} accent={groupColor}/>
+          :<SpecialCellArt type={c.type} name={c.name} cx={x+30} cy={y+(isCorner?31:31)}/>
+        )}
+
+        {!lvl&&<text
+          x={x+30}
+          y={y+(sideEdge==='bottom'?45:55.5)}
+          textAnchor="middle"
+          fontSize="7.8"
+          fontWeight="900"
+          fill={isCorner||c.type==='tax'||c.type==='chance'?'#dc2626':'#111111'}
+        >
+          {ownable(c)?`${c.price} đ`:c.type==='start'?'+400 đ':c.type==='chance'?'CƠ HỘI':c.type==='community'?'KHÍ VẬN':c.type==='tax'?`−${c.amount} đ`:c.type==='gotojail'?'VÔ TÙ':c.type==='jail'?'THĂM TÙ':'SÂN BAY'}
+        </text>}
+
+        {lvl>0&&<FlatBuilding x={x} y={y} level={lvl} color={ownerColor||groupColor}/>}
+        {state.mortgaged?.[c.index]&&<path d={`M${x+5} ${y+52}L${x+55} ${y+8}`} stroke="#dc2626" strokeWidth="3" opacity=".85"/>}
       </g>;
     })}
-    <text className="board-svg-label" x="390" y="268" textAnchor="middle" fill="#f0da9e" fontSize="12" fontWeight="700" letterSpacing="2">★ SÂN CỜ HOÀNG GIA ★</text>
-    <text className="board-svg-label" x="390" y="314" textAnchor="middle" fill="#f8e7b5" fontSize="46" fontFamily="Georgia,serif" fontWeight="700">TỶ PHÚ</text>
-    <text className="board-svg-label" x="390" y="357" textAnchor="middle" fill="#dfcfa0" fontSize="28" fontFamily="Georgia,serif" fontWeight="700">VIỆT NAM</text>
-    <text className="board-svg-label" x="390" y="395" textAnchor="middle" fill="#d4dfc4" fontSize="14" fontWeight="600">34 tỉnh thành · Vòng {state.round}</text>
-    <text className="board-svg-label" x="390" y="452" textAnchor="middle" fill="#f5e7be" fontSize="62">{state.diceValues?.map(v=>['','⚀','⚁','⚂','⚃','⚄','⚅'][v]).join(' ')||'⚄ ⚁'}</text>
-    {state.players.filter(v=>v.active).map((p,i)=>{
+
+    {/* Render player character tokens on top with smart per-cell grouping so they never overlap or hide */}
+    {activePlayers.map((p,i)=>{
       const[r,c]=estateCell(p.position,13);
-      return <FlatPlayerToken key={p.side} cx={c*60+14+(i%2)*32} cy={r*60+35+Math.floor(i/2)*15} side={p.side} index={i} isMine={p.side===mySide}/>;
+      const cellmates=activePlayers.filter(other=>other.position===p.position);
+      const slot=cellmates.findIndex(other=>other.side===p.side);
+      const total=cellmates.length;
+      const offsets=total===1
+        ?[[30,31]]
+        :total===2
+          ?[[18,31],[42,31]]
+          :total===3
+            ?[[17,22],[43,22],[30,42]]
+            :[[17,20],[43,20],[17,42],[43,42]];
+      const [ox,oy]=offsets[slot]||[30,31];
+      return <FlatPlayerToken
+        key={p.side}
+        cx={c*60+ox}
+        cy={r*60+oy}
+        side={p.side}
+        index={i}
+        isMine={p.side===mySide}
+        isTurn={p.side===turnSide}
+      />;
     })}
   </svg></div>;
 }

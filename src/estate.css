@@ -24,4 +24,5 @@
 .estate-special-note{margin:4px 0 0;font-size:11px;line-height:1.65;color:#cfe0c5}
 .estate-card-actions{display:flex;flex-wrap:wrap;gap:7px;padding-top:6px;border-top:1px solid #59725344}
 .estate-card-actions .button{flex:1;min-width:110px}
-.vn-estate-flat g[role=button]{cursor:pointer}.vn-estate-flat g[role=button]:focus{outline:none}.vn-estate-flat g[role=button]:focus>rect:first-child{stroke:#fff0aa;stroke-width:3}
+.vn-estate-flat g[role=button]{cursor:pointer}.vn-estate-flat g[role=button]:focus{outline:none}.vn-estate-flat g[role=button]:focus>rect:first-child{stroke:#dc2626;stroke-width:3.2}
+.vn-estate-flat .flat-player-token{pointer-events:none;filter:drop-shadow(0 2px 3px #00000066)}

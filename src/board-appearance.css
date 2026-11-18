@@ -66,16 +66,16 @@
 .practice-flat-board[data-board-theme].flat-xiangqi :is(.flat-file,.flat-rank) {color:var(--board-ink);text-shadow:none;}
 .practice-flat-board[data-board-theme] .flat-cell.legal:has(.flat-piece) {box-shadow:inset 0 0 0 3px var(--board-marker);}
 .party-board[data-board-theme] {border-radius:0;}
-.party-board[data-board-theme] svg rect {rx:0;ry:0;}
-.party-board[data-board-theme] .board-svg-base {fill:var(--board-base);}
-.party-board[data-board-theme] .board-svg-center {fill:var(--party-center);stroke:var(--board-grid);}
-.party-board[data-board-theme] .board-svg-label {fill:var(--party-center-ink);}
+.party-board[data-board-theme]:not(:has(.vn-estate-flat)) svg rect {rx:0;ry:0;}
+.party-board[data-board-theme]:not(:has(.vn-estate-flat)) .board-svg-base {fill:var(--board-base);}
+.party-board[data-board-theme]:not(:has(.vn-estate-flat)) .board-svg-center {fill:var(--party-center);stroke:var(--board-grid);}
+.party-board[data-board-theme]:not(:has(.vn-estate-flat)) .board-svg-label {fill:var(--party-center-ink);}
 .party-board[data-board-theme] .board-svg-home {fill:var(--party-home);}
 .party-board[data-board-theme] .board-svg-path {fill:var(--party-lot);stroke:var(--board-grid);}
 .party-board[data-board-theme] .board-svg-path-label {fill:var(--party-lot-ink);}
-.party-board[data-board-theme] g[data-owned="false"] .board-svg-lot {fill:var(--party-lot);}
-.party-board[data-board-theme] g[data-owned="false"] text {fill:var(--party-lot-ink);}
-.party-board[data-board-theme] .board-svg-selected {stroke:var(--board-marker);stroke-width:3;}
+.party-board[data-board-theme]:not(:has(.vn-estate-flat)) g[data-owned="false"] .board-svg-lot {fill:var(--party-lot);}
+.party-board[data-board-theme]:not(:has(.vn-estate-flat)) g[data-owned="false"] text {fill:var(--party-lot-ink);}
+.party-board[data-board-theme]:not(:has(.vn-estate-flat)) .board-svg-selected {stroke:var(--board-marker);stroke-width:3;}
 @media(max-width:650px) {
   .board-view-options {gap:5px;}
   .board-appearance button {padding:7px 8px;min-height:36px;}
