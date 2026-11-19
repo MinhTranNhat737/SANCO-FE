@@ -1,11 +1,12 @@
 import BoardAppearance,{useBoardTheme} from './BoardAppearance';
-import {playDiceSound,playMoveSound} from './sound-effects';
+import {playDiceSound,playMoveSound,playPurchaseSound,playBidSound} from './sound-effects';
 import EstateControls from './EstateControls';
+import EstateAuctionModal from './EstateAuctionModal';
 import VietnamEstateBoard,{EstateInspector} from './VietnamEstateBoard';
-import {isVietnam} from './estate-data';
+import {isVietnam,VN_CELLS,SIDE_NAMES,cash} from './estate-data';
 import type {DiceRoll} from './three/dice-motion.ts';
 import {lazy,Suspense,useEffect,useRef,useState} from 'react';
-import {Box,Layers,RotateCcw,Dice5,Flag} from 'lucide-react';
+import {Box,Layers,RotateCcw,Dice5,Flag,Gavel,Trophy} from 'lucide-react';
 import {moveRequest,type GameKind,type PartyState,type PracticeMove} from './practice-types';
 import Board3DBoundary from './Board3DBoundary';
 import {PARTY_SIDES as SIDES,PARTY_COLORS as COLORS,CITIES,GROUP_COLORS,LUDO_PATH as PATH,LUDO_SAFE as SAFE,groupOf,estateCell as ring} from './three/party-layout.ts';
@@ -46,18 +47,55 @@ function FlatPartyBoard({kind,state,mySide,selected,onSelect}:{kind:GameKind;sta
   }))}</svg></div>;
 }
 
-export function PartyBoard({kind,state,mySide,legal=[],enabled=false,onMove,gameKey='preview',animate=true,lastDie=null,rollKey='',rolls=[],onAnimatingChange}:{kind:GameKind;state:PartyState;mySide:string;legal?:PracticeMove[];enabled?:boolean;onMove?:(move:PracticeMove)=>void;gameKey?:string;animate?:boolean;lastDie?:number|null;rollKey?:string;rolls?:DiceRoll[];onAnimatingChange?:(busy:boolean)=>void}){
+export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=false,onMove,gameKey='preview',animate=true,lastDie=null,rollKey='',rolls=[],onAnimatingChange}:{kind:GameKind;state:PartyState;mySide:string;turn?:string;playerNames?:Record<string,string>;legal?:PracticeMove[];enabled?:boolean;onMove?:(move:PracticeMove)=>void;gameKey?:string;animate?:boolean;lastDie?:number|null;rollKey?:string;rolls?:DiceRoll[];onAnimatingChange?:(busy:boolean)=>void}){
   const [boardTheme]=useBoardTheme();
   const [view,setView]=useState<'3d'|'2d'>(()=>typeof window!=='undefined'&&'WebGLRenderingContext' in window&&localStorage.getItem('sc-party-view')!=='2d'?'3d':'2d'),[top,setTop]=useState(false),[reset,setReset]=useState(0),[failed,setFailed]=useState(false);
   const [rolling,setRolling]=useState(false),[holding,setHolding]=useState(false),[selectedCell,setSelectedCell]=useState<number|null>(null);
   const [flatHold,setFlatHold]=useState<{x:number;y:number}|null>(null);
   const [flatRoll,setFlatRoll]=useState<{fromX:number;fromY:number;tick:number}|null>(null);
+  const [purchaseFx,setPurchaseFx]=useState<{lot:number;side:string;price:number;source:'buy'|'auction';key:number}|null>(null);
   const stageRef=useRef<HTMLDivElement>(null);
   const grabRef=useRef<((e:PointerEvent)=>void)|null>(null);
   const pointerHandledRef=useRef(false);
   const seenRollRef=useRef(rollKey);
+  const prevPropRef=useRef<(string|null)[]>([...state.property]);
+  const prevBidRef=useRef<number>(state.auction?.bid||0);
+  const fxSeqRef=useRef(0);
   const partySig=`${kind}:${state.players.map(p=>`${p.position}:${p.tokens.join(',')}`).join('|')}:${state.property.join(',')}:${state.houses.join(',')}`;
   const seenPartyRef=useRef(partySig);
+
+  useEffect(()=>{
+    prevPropRef.current=[...state.property];
+    prevBidRef.current=state.auction?.bid||0;
+    setPurchaseFx(null);
+  },[gameKey]);
+
+  useEffect(()=>{
+    const prev=prevPropRef.current;
+    prevPropRef.current=[...state.property];
+    if(!animate||kind!=='monopoly')return;
+    for(let i=0;i<state.property.length;i++){
+      if(!prev[i]&&state.property[i]){
+        const side=state.property[i]!;
+        const lp=state.lastPurchase?.lot===i?state.lastPurchase:null;
+        const price=lp?.price??VN_CELLS[i]?.price??0;
+        const source=lp?.source??'buy';
+        const key=++fxSeqRef.current;
+        setPurchaseFx({lot:i,side,price,source,key});
+        playPurchaseSound(source==='auction');
+        const timer=setTimeout(()=>setPurchaseFx(cur=>cur?.key===key?null:cur),3200);
+        return()=>clearTimeout(timer);
+      }
+    }
+  },[state.property.join(','),animate,kind]);
+
+  useEffect(()=>{
+    const bid=state.auction?.bid||0;
+    if(animate&&kind==='monopoly'&&bid>prevBidRef.current){
+      playBidSound();
+    }
+    prevBidRef.current=bid;
+  },[state.auction?.bid,animate,kind]);
 
   useEffect(()=>{
     if(!animate){seenPartyRef.current=partySig;return;}
@@ -137,15 +175,22 @@ export function PartyBoard({kind,state,mySide,legal=[],enabled=false,onMove,game
     setFlatHold(toStagePercent(e.clientX,e.clientY));
   };
 
-  const flat=()=>vietnam?<VietnamEstateBoard state={state} mySide={mySide} selected={inspect} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)}/>:<FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)}/>;
+  const flat=()=>vietnam?<VietnamEstateBoard state={state} mySide={mySide} selected={inspect} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} auctionLot={state.auction?.lot??null}/>:<FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)}/>;
   const choose=(v:'3d'|'2d')=>{setView(v);localStorage.setItem('sc-party-view',v);};
   const fallback=()=>{setFailed(true);setView('2d');};
   const isBusyRoll=rolling||Boolean(flatRoll);
+  const buyerName=purchaseFx?(playerNames?.[purchaseFx.side]||SIDE_NAMES[purchaseFx.side]||purchaseFx.side):'';
+  const boughtCell=purchaseFx?VN_CELLS[purchaseFx.lot]:null;
 
   return <div data-board-theme={boardTheme} className={`party-board party-table party-table-${view}`}>
     <div className="party-table-toolbar"><span className="party-material-label">{kind==='ludo'?'CÁ NGỰA':'TỶ PHÚ'}<small>{kind==='monopoly'?'Bấm vào ô bất kỳ để xem thông tin':view==='3d'?'Bộ cờ Sân Cờ':'Mặt bàn'}</small></span><div className="board-view-options"><BoardAppearance/><div role="group" aria-label="Kiểu bộ cờ"><button className={view==='3d'?'selected':''} disabled={failed} aria-pressed={view==='3d'} onClick={()=>choose('3d')}><Box size={15}/>3D</button><button className={view==='2d'?'selected':''} aria-pressed={view==='2d'} onClick={()=>choose('2d')}><Layers size={15}/>2D</button></div></div></div>
     <div className="party-stage-wrap" ref={stageRef}>
-      {view==='3d'?<Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m=>onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} grabRef={grabRef} onCellSelect={i=>setSelectedCell(prev=>prev===i?null:i)} onHoldChange={setHolding} onAnimatingChange={busy=>{setRolling(busy);onAnimatingChange?.(busy);}}/></Suspense></Board3DBoundary>:flat()}
+      {view==='3d'?<Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m=>onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} auctionLot={state.auction?.lot??null} grabRef={grabRef} onCellSelect={i=>setSelectedCell(prev=>prev===i?null:i)} onHoldChange={setHolding} onAnimatingChange={busy=>{setRolling(busy);onAnimatingChange?.(busy);}}/></Suspense></Board3DBoundary>:flat()}
+      {vietnam&&purchaseFx&&boughtCell&&<div key={purchaseFx.key} className="estate-purchase-banner" role="status" aria-live="polite" style={{'--owner-color':COLORS[purchaseFx.side]||'#d7a431'} as React.CSSProperties}>
+        <span className="estate-purchase-icon">{purchaseFx.source==='auction'?<Gavel size={16}/>:<Trophy size={16}/>}</span>
+        <span><strong>{buyerName}</strong> {purchaseFx.source==='auction'?'thắng đấu giá':'đã mua'} <strong>{boughtCell.name}</strong> · <em>{cash(purchaseFx.price)}</em></span>
+      </div>}
+      {vietnam&&onMove&&<EstateAuctionModal state={state} mySide={mySide} turn={turn} playerNames={playerNames} legal={legal} enabled={enabled} busy={isBusyRoll} onMove={m=>onMove(moveRequest(m))}/>}
       {view==='2d'&&flatHold&&<div className="board-dice-hand-follower" style={{left:`${flatHold.x}%`,top:`${flatHold.y}%`}} aria-hidden="true">
         <div className="board-held-dice">
           <PipDie value={((Math.round(flatHold.x+flatHold.y)%6)+1)} className="is-shaking"/>

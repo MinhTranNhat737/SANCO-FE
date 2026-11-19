@@ -328,9 +328,13 @@ function FlatPlayerToken({cx,cy,side,index,isMine,isTurn,compact=false}:{cx:numb
   </g>;
 }
 
-export default function VietnamEstateBoard({state,mySide,selected,onSelect}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void}){
+export default function VietnamEstateBoard({state,mySide,selected,onSelect,justPurchasedLot=null,justPurchasedKey=0,auctionLot=null}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void;justPurchasedLot?:number|null;justPurchasedKey?:number;auctionLot?:number|null}){
   const activePlayers=state.players.filter(v=>v.active);
   const turnSide=state.players.find(p=>p.active&&p.side===(state as {turn?:string}).turn)?.side;
+  const burstCell=justPurchasedLot!=null?VN_CELLS[justPurchasedLot]:null;
+  const burstCoords=burstCell?estateCell(burstCell.index,13):null;
+  const burstOwner=burstCell?state.property[burstCell.index]:null;
+  const burstColor=burstOwner?TOKEN_STYLES[burstOwner]?.fill||PARTY_COLORS[burstOwner]||'#f59e0b':'#f59e0b';
   return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
     <rect className="board-svg-base" width="780" height="780" rx="6" fill="#ffffff" stroke="#111111" strokeWidth="4"/>
     <rect className="board-svg-center" x="60" y="60" width="660" height="660" fill="#fbfaf6" stroke="#111111" strokeWidth="2.8"/>
@@ -348,28 +352,38 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect}:{sta
     {VN_CELLS.map(c=>{
       const[r,col]=estateCell(c.index,13),x=col*60,y=r*60,owned=state.property[c.index],lvl=state.houses[c.index]||0,ownerColor=owned?TOKEN_STYLES[owned]?.fill||PARTY_COLORS[owned]:'',isCorner=c.index%12===0;
       const isSelected=selected===c.index;
+      const isAuction=auctionLot===c.index;
+      const ownerStyle=owned?TOKEN_STYLES[owned]:null;
       const groupColor=c.group!==undefined?CLASSIC_GROUP_COLORS[c.group]||VN_GROUP_COLORS[c.group]:isCorner?'#dc2626':c.type==='station'?'#16a34a':c.type==='utility'?'#eab308':'#0284c7';
       const rows=lines(c.name),fs=titleSize(rows),landmark=PROVINCE_LANDMARKS[c.name];
       // Place color header strip facing the center of the board, like classic Monopoly
       const sideEdge=!isCorner&&(r===12?'top':col===0?'right':r===0?'bottom':'left');
       return <g key={c.index} data-owned={Boolean(owned)||isSelected} role="button" tabIndex={0} aria-label={`Xem ${c.name}`} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
         <rect
-          className={isSelected?'board-svg-selected':'board-svg-lot'}
+          className={isAuction?'board-svg-lot vn-auction-lot-pulse':isSelected?'board-svg-selected':'board-svg-lot'}
           x={x}
           y={y}
           width="60"
           height="60"
-          fill={isSelected?'#fef08a':owned?OWNER_BG[owned]||'#ffffff':isCorner?'#fff7ed':'#ffffff'}
-          stroke={isSelected?'#dc2626':owned?ownerColor:'#111111'}
-          strokeWidth={isSelected?3.4:owned?2.6:1.6}
+          fill={isAuction?'#fef08a':isSelected?'#fef08a':owned?OWNER_BG[owned]||'#ffffff':isCorner?'#fff7ed':'#ffffff'}
+          stroke={isAuction?'#d97706':isSelected?'#dc2626':owned?ownerColor:'#111111'}
+          strokeWidth={isAuction?3.8:isSelected?3.4:owned?2.8:1.6}
         />
+        {owned&&<rect x={x+2.4} y={y+2.4} width="55.2" height="55.2" fill="none" stroke="#facc15" strokeWidth="1.2" opacity=".85"/>}
         {!isCorner&&c.type==='property'&&<>
           {sideEdge==='top'&&<rect x={x+1} y={y+1} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
           {sideEdge==='bottom'&&<rect x={x+1} y={y+48} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
           {sideEdge==='left'&&<rect x={x+1} y={y+1} width="11" height="58" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
           {sideEdge==='right'&&<rect x={x+48} y={y+1} width="11" height="58" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
         </>}
-        {owned&&<rect x={x+2} y={sideEdge==='bottom'?y+2:y+54} width="56" height="4.5" fill={ownerColor}/>}
+        {owned&&<>
+          {/* Corner ownership pennant */}
+          <path d={`M${x+45} ${y+1} L${x+59} ${y+1} L${x+59} ${y+15} Z`} fill={ownerColor} stroke="#ffffff" strokeWidth=".9"/>
+          <circle cx={x+54.6} cy={y+5.4} r="2" fill="#fde047"/>
+          {/* Owner crest banner */}
+          <rect x={x+3} y={sideEdge==='bottom'?y+2:y+48.5} width="54" height="9.5" rx="2.5" fill={ownerColor} stroke="#111111" strokeWidth=".9"/>
+          <text x={x+30} y={sideEdge==='bottom'?y+9.2:y+55.6} textAnchor="middle" fontSize="6.7" fontWeight="900" fill="#ffffff" letterSpacing=".3">{`★ ${ownerStyle?.label||owned}`}</text>
+        </>}
 
         {rows.map((line,i)=>{
           const baseY=sideEdge==='top'?22:13.5;
@@ -381,7 +395,7 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect}:{sta
           :<SpecialCellArt type={c.type} name={c.name} cx={x+30} cy={y+(isCorner?31:31)}/>
         )}
 
-        {!lvl&&<text
+        {!lvl&&!owned&&<text
           x={x+30}
           y={y+(sideEdge==='bottom'?45:55.5)}
           textAnchor="middle"
@@ -424,5 +438,28 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect}:{sta
         compact={total>4}
       />;
     })}
+
+    {/* Live Purchase Celebration Burst Effect on the newly bought tile */}
+    {burstCoords&&<g key={justPurchasedKey} className="vn-buy-burst" style={{transformOrigin:`${burstCoords[1]*60+30}px ${burstCoords[0]*60+30}px`}} aria-hidden="true">
+      <rect className="vn-buy-flash" x={burstCoords[1]*60} y={burstCoords[0]*60} width="60" height="60" rx="4" fill="#fde047"/>
+      <circle className="vn-buy-ring" cx={burstCoords[1]*60+30} cy={burstCoords[0]*60+30} r="14" fill="none" stroke={burstColor} strokeWidth="5"/>
+      <circle className="vn-buy-ring-2" cx={burstCoords[1]*60+30} cy={burstCoords[0]*60+30} r="10" fill="none" stroke="#facc15" strokeWidth="3.5"/>
+      {[0,45,90,135,180,225,270,315].map(deg=>{
+        const rad=deg*Math.PI/180,cx=burstCoords[1]*60+30,cy=burstCoords[0]*60+30;
+        return <polygon
+          key={deg}
+          className="vn-buy-spark"
+          style={{'--sx':`${Math.cos(rad)*36}px`,'--sy':`${Math.sin(rad)*36}px`} as React.CSSProperties}
+          points={`${cx},${cy-4} ${cx+3},${cy} ${cx},${cy+4} ${cx-3},${cy}`}
+          fill={deg%90===0?'#facc15':burstColor}
+          stroke="#111111"
+          strokeWidth=".7"
+        />;
+      })}
+      <g className="vn-buy-stamp" style={{transformOrigin:`${burstCoords[1]*60+30}px ${burstCoords[0]*60+30}px`}}>
+        <rect x={burstCoords[1]*60+2} y={burstCoords[0]*60+19} width="56" height="20" rx="5" fill={burstColor} stroke="#fef08a" strokeWidth="2.2"/>
+        <text x={burstCoords[1]*60+30} y={burstCoords[0]*60+32.2} textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#ffffff" letterSpacing=".6">ĐÃ MUA!</text>
+      </g>
+    </g>}
   </svg></div>;
 }

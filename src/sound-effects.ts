@@ -310,3 +310,37 @@ export function playDiceSound(kind: GameKind = 'ludo'): void {
     // Ignore audio context restrictions
   }
 }
+
+export function playPurchaseSound(isAuction = false): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx, noise} = audio;
+  try {
+    const now = ctx.currentTime;
+    if (isAuction) {
+      // Auction gavel knock + triumphant golden chord
+      noiseBurst(ctx, noise, 'bandpass', 520, 2.5, now, 0.045, 0.24);
+      tone(ctx, 'triangle', 190, 82, now, 0.06, 0.22);
+    }
+    const start = isAuction ? now + 0.07 : now;
+    tone(ctx, 'triangle', 523.25, 523.25, start, 0.12, 0.14);
+    tone(ctx, 'triangle', 659.25, 659.25, start + 0.06, 0.14, 0.15);
+    tone(ctx, 'sine', 783.99, 783.99, start + 0.12, 0.18, 0.16);
+    tone(ctx, 'sine', 1046.5, 1046.5, start + 0.18, 0.26, 0.17);
+  } catch {
+    // Ignore audio context restrictions
+  }
+}
+
+export function playBidSound(): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx} = audio;
+  try {
+    const now = ctx.currentTime;
+    tone(ctx, 'sine', 660, 880, now, 0.09, 0.12);
+    tone(ctx, 'triangle', 990, 1320, now + 0.05, 0.09, 0.09);
+  } catch {
+    // Ignore audio context restrictions
+  }
+}

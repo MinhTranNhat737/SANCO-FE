@@ -26,3 +26,93 @@
 .estate-card-actions .button{flex:1;min-width:110px}
 .vn-estate-flat g[role=button]{cursor:pointer}.vn-estate-flat g[role=button]:focus{outline:none}.vn-estate-flat g[role=button]:focus>rect:first-child{stroke:#dc2626;stroke-width:3.2}
 .vn-estate-flat .flat-player-token{pointer-events:none;filter:drop-shadow(0 2px 3px #00000066)}
+
+/* Center Buy Decision & Live Auction Modal over the Monopoly Board */
+.estate-center-overlay{position:absolute;inset:0;z-index:28;display:grid;place-items:center;padding:14px;background:radial-gradient(circle at center,#0d171188,#080f0b55);backdrop-filter:blur(2px);pointer-events:auto;animation:estateCenterIn .22s cubic-bezier(.22,1,.36,1)}
+@keyframes estateCenterIn{0%{opacity:0;transform:scale(.95)}100%{opacity:1;transform:scale(1)}}
+.estate-center-card{width:min(410px,96%);max-height:calc(100% - 12px);overflow-y:auto;border-radius:16px;background:linear-gradient(165deg,var(--panel,#231c14),var(--bg-soft,#16110c));border:1.5px solid #e4c574cc;box-shadow:0 24px 60px #000c,0 0 0 1px #ffffff14 inset;color:var(--text,#f4efe0)}
+.estate-center-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px;color:#fff;text-shadow:0 1px 2px #0008;border-bottom:1px solid #0004}
+.estate-center-kicker{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase}
+.estate-center-min{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;background:#00000044;border:1px solid #ffffff38;color:#fff;font-size:10.5px;font-weight:600;cursor:pointer}
+.estate-center-min:hover{background:#00000066}
+.estate-center-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:11px}
+.estate-center-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.estate-center-title-row h3{margin:0;font-size:19px;line-height:1.2;color:#fff2cc}
+.estate-center-listprice{text-align:right;flex-shrink:0;padding:5px 10px;border-radius:9px;background:var(--bg-soft,#17130d);border:1px solid var(--border-strong,#5a4c35)}
+.estate-center-listprice small{display:block;font-size:9.5px;color:var(--secondary,#c9bf9f);text-transform:uppercase;letter-spacing:.5px}
+.estate-center-listprice strong{font-size:14px;color:#f6dc8d;font-variant-numeric:tabular-nums}
+
+.estate-auction-hero{display:grid;grid-template-columns:1.15fr 1fr;gap:8px}
+.estate-auction-price-box,.estate-auction-leader-box{padding:10px 12px;border-radius:11px;background:var(--bg-soft,#18120c);border:1px solid #e4c57444}
+.estate-auction-price-box small,.estate-auction-leader-box small{display:block;font-size:10px;color:var(--secondary,#c7be9f);margin-bottom:3px}
+.estate-auction-price-box strong{font-size:21px;color:#fde047;font-variant-numeric:tabular-nums;line-height:1.15}
+.estate-leader-pill{display:inline-flex;align-items:center;gap:6px;max-width:100%;font-size:13px;color:#fff5d6}
+.estate-leader-pill>i{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px #ffffff33}
+.estate-leader-pill>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.estate-leader-empty{font-size:12px;color:var(--muted,#9f957a)}
+
+.estate-auction-roster{display:flex;flex-wrap:wrap;gap:5px}
+.estate-bidder-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;font-size:10.5px;background:var(--bg-soft,#18130d);border:1px solid var(--border,#4a3f2f);color:#e4dec8}
+.estate-bidder-chip>i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.estate-bidder-chip>em{font-style:normal;font-size:9.5px;font-weight:700;opacity:.85}
+.estate-bidder-chip.is-leader{border-color:#facc15;background:#facc151f;color:#fef08a}
+.estate-bidder-chip.is-active{border-color:#38bdf8;box-shadow:0 0 0 2px #38bdf833;color:#e0f2fe}
+.estate-bidder-chip.is-passed{opacity:.45;text-decoration:line-through}
+
+.estate-bid-feed{display:flex;flex-direction:column;gap:4px;padding:7px 10px;border-radius:9px;background:#0000002e;border:1px solid var(--border,#43392a);max-height:84px;overflow-y:auto}
+.estate-bid-feed-row{display:flex;align-items:center;gap:6px;font-size:11px;color:#dbd4bc}
+.estate-bid-feed-row>i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+.estate-bid-controls{display:flex;flex-direction:column;gap:9px;padding-top:4px;border-top:1px solid var(--border,#4e4230)}
+.estate-bid-turn-banner{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#fde68a;background:#f59e0b1f;border:1px solid #f59e0b55;padding:7px 10px;border-radius:9px}
+.estate-bid-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.estate-step-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px;border-radius:9px;background:linear-gradient(180deg,var(--panel-hover,#382d1f),var(--panel-2,#261e15));border:1.5px solid #d9b66288;color:#fff3cc;cursor:pointer;transition:transform .14s ease,border-color .14s ease,background .14s ease}
+.estate-step-btn:hover:not(:disabled){transform:translateY(-1px);border-color:#fde047;background:linear-gradient(180deg,#4d3d28,#34281a)}
+.estate-step-btn:disabled{opacity:.38;cursor:not-allowed}
+.estate-step-btn strong{font-size:12.5px;color:#fde047;line-height:1.1}
+.estate-step-btn small{font-size:9.5px;color:#e4d9b5;font-variant-numeric:tabular-nums}
+
+.estate-custom-bid-row{display:flex;gap:7px}
+.estate-custom-bid-row input{flex:1;min-width:0;min-height:38px;border-radius:8px;border:1px solid #8a734a;background:var(--bg-soft,#15100b);color:#fff6da;padding:6px 10px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.estate-custom-bid-row .button{flex-shrink:0;min-height:38px;padding:0 14px}
+.estate-pass-btn{min-height:38px}
+.estate-bid-waiting{padding:11px 12px;border-radius:10px;background:#00000033;border:1px dashed #d5b66e66;text-align:center}
+.estate-bid-waiting strong{display:block;font-size:12.5px;color:#f7e4ad;margin-bottom:3px}
+.estate-bid-waiting small{font-size:11px;color:var(--secondary,#c9bf9e)}
+
+.estate-buy-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.estate-buy-facts>span{padding:7px 9px;border-radius:9px;background:var(--bg-soft,#18120c);border:1px solid var(--border,#493e2e);font-size:10px;color:var(--secondary,#c9bf9f);display:flex;flex-direction:column;gap:2px}
+.estate-buy-facts>span>strong{font-size:12.5px;color:#f8e5b2;font-variant-numeric:tabular-nums}
+.estate-buy-actions{display:flex;flex-direction:column;gap:8px}
+.estate-buy-primary{min-height:44px;font-size:13.5px}
+.estate-buy-secondary-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.estate-buy-secondary-row .button{min-height:40px;font-size:12px;justify-content:center}
+.estate-skip-btn{border-color:#9b5b5288!important;color:#f5cbc4!important}
+.estate-skip-btn:hover:not(:disabled){background:#7f2d2433!important;border-color:#ef4444aa!important}
+.estate-center-footnote{margin:0;text-align:center;font-size:10.5px;color:var(--muted,#a79d83)}
+
+.estate-center-reopen{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:26;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,#332717,#1e170e);border:1.5px solid #e6c670;color:#fff1c4;font-size:12px;box-shadow:0 10px 24px #0009;cursor:pointer}
+.estate-center-reopen.is-auction{border-color:#fde047;animation:reopenPulse 1.6s infinite}
+@keyframes reopenPulse{0%,100%{box-shadow:0 8px 20px #0008,0 0 0 0 #fde04766}50%{box-shadow:0 8px 24px #000a,0 0 0 6px #fde04700}}
+
+/* Purchase Celebration Banner */
+.estate-purchase-banner{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:30;display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;background:linear-gradient(135deg,#251d13f2,#14100bf2);border:1.5px solid var(--owner-color,#facc15);box-shadow:0 12px 30px #000b,0 0 20px color-mix(in srgb,var(--owner-color,#facc15) 38%,transparent);color:#fff7dc;font-size:12.5px;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;animation:purchaseBannerPop .34s cubic-bezier(.22,1,.36,1)}
+.estate-purchase-icon{width:26px;height:26px;border-radius:50%;background:var(--owner-color,#d7a431);color:#fff;display:grid;place-items:center;flex-shrink:0}
+.estate-purchase-banner em{font-style:normal;color:#fde047;font-weight:800}
+@keyframes purchaseBannerPop{0%{opacity:0;transform:translate(-50%,-12px) scale(.88)}100%{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* 2D SVG Property Purchase Burst & Auction Tile Pulse */
+.vn-auction-lot-pulse{animation:vnAuctionPulse 1.1s infinite ease-in-out}
+@keyframes vnAuctionPulse{0%,100%{filter:drop-shadow(0 0 2px #facc15)}50%{filter:drop-shadow(0 0 9px #f59e0b)}}
+.vn-buy-burst{pointer-events:none}
+.vn-buy-flash{animation:vnBuyFlash 1.2s ease-out forwards}
+@keyframes vnBuyFlash{0%{opacity:.88}100%{opacity:0}}
+.vn-buy-ring{transform-box:fill-box;transform-origin:center;animation:vnBuyRing 1.05s cubic-bezier(.16,1,.3,1) forwards}
+.vn-buy-ring-2{transform-box:fill-box;transform-origin:center;animation:vnBuyRing 1.25s .1s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes vnBuyRing{0%{transform:scale(.55);opacity:1}100%{transform:scale(3.6);opacity:0}}
+.vn-buy-spark{animation:vnBuySpark 1.1s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes vnBuySpark{0%{transform:translate(0,0) scale(1.25);opacity:1}75%{opacity:1}100%{transform:translate(var(--sx),var(--sy)) scale(.35);opacity:0}}
+.vn-buy-stamp{animation:vnBuyStamp 2.4s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes vnBuyStamp{0%{transform:scale(2.1) rotate(-14deg);opacity:0}14%{transform:scale(.95) rotate(-5deg);opacity:1}24%{transform:scale(1.04) rotate(-4deg);opacity:1}78%{transform:scale(1) rotate(-4deg);opacity:1}100%{transform:scale(.92) translateY(-10px) rotate(-4deg);opacity:0}}
+
+@media(max-width:650px){.estate-center-card{width:100%}.estate-bid-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.estate-buy-facts{grid-template-columns:1fr 1fr}.estate-auction-hero{grid-template-columns:1fr}}

@@ -425,3 +425,24 @@ test('Creating a Monopoly room defaults to casual mode, supports 8 players, and 
   assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-avatar').length,8);
   assert.equal(document.querySelectorAll('.party-lobby-seats .party-avatar').length,8);
 });
+
+test('Monopoly center buy decision and live auction modal render quick bid steps and skip action',async()=>{
+  const {default:EstateAuctionModal}=await vite.ssrLoadModule('/src/EstateAuctionModal.tsx');
+  const game=createPractice('monopoly','R','medium','auction-ui-test');
+  game.party.players[0].position=1;game.party.stage='buy';
+  const sent=[];
+  await act(async()=>root.render(createElement(EstateAuctionModal,{state:game.party,mySide:'R',turn:'R',playerNames:{R:'Minh',G:'Nam'},legal:[{from:null,to:1,action:'buy'},{from:null,to:-1,action:'auction'},{from:null,to:-1,action:'skip_buy'}],enabled:true,onMove:m=>sent.push(m)})));await settle();
+  assert.ok(document.querySelector('.estate-buy-center'),'Center buy modal must appear on unowned land');
+  await click(document.querySelector('.estate-skip-btn'));
+  assert.equal(sent[0].command,'skip_buy');
+
+  game.party.stage='auction';
+  game.party.auction={lot:1,bid:100,leader:'G',passed:[],returnSide:'R',history:[{side:'G',action:'bid',amount:100,at:1}]};
+  await act(async()=>root.render(createElement(EstateAuctionModal,{state:game.party,mySide:'R',turn:'R',playerNames:{R:'Minh',G:'Nam'},legal:[{from:null,to:-1,action:'bid'},{from:null,to:-1,action:'pass_bid'}],enabled:true,onMove:m=>sent.push(m)})));await settle();
+  assert.ok(document.querySelector('.estate-auction-center'),'Center auction modal must appear');
+  const stepButtons=[...document.querySelectorAll('.estate-step-btn')];
+  assert.equal(stepButtons.length,4);
+  await click(stepButtons[1]); // +20 tr => 120 tr
+  assert.equal(sent[1].command,'bid');
+  assert.equal(sent[1].details.amount,120);
+});

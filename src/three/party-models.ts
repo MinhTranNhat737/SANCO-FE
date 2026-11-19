@@ -311,17 +311,24 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     tint.raycast=()=>{};
     cellGroup.add(tint);
 
-    const frameMat=new T.MeshStandardMaterial({color:isMortgaged?'#8c584c':ownerColor,roughness:.28,metalness:.22,emissive:ownerColor,emissiveIntensity:isMortgaged?.05:.22});
-    const bThick=tileSpan*.075,bHeight=.028,half=tileSpan*.455;
+    const frameMat=new T.MeshStandardMaterial({color:isMortgaged?'#8c584c':ownerColor,roughness:.26,metalness:.26,emissive:ownerColor,emissiveIntensity:isMortgaged?.05:.28});
+    const studMat=gold();
+    const bThick=tileSpan*.08,bHeight=.032,half=tileSpan*.455;
     for(const s of[-1,1]){
       const barX=mesh(new T.BoxGeometry(tileSpan*.96,bHeight,bThick),frameMat,cellGroup,0,bHeight/2,s*half);
       const barZ=mesh(new T.BoxGeometry(bThick,bHeight,tileSpan*.96),frameMat,cellGroup,s*half,bHeight/2,0);
       barX.castShadow=false;barZ.castShadow=false;
       barX.raycast=()=>{};barZ.raycast=()=>{};
     }
-    // Inner-edge owner crest bar
-    const crest=mesh(new T.BoxGeometry(tileSpan*.96,.042,tileSpan*.20),frameMat,cellGroup,0,.021,-tileSpan*.38);
+    // 4 golden corner boundary studs + raised owner crest plaque
+    for(const sx of[-1,1])for(const sz of[-1,1]){
+      const stud=mesh(new T.CylinderGeometry(.022,.028,.065,8),studMat,cellGroup,sx*half,.033,sz*half);
+      stud.castShadow=false;stud.raycast=()=>{};
+    }
+    const crest=mesh(new T.BoxGeometry(tileSpan*.96,.048,tileSpan*.21),frameMat,cellGroup,0,.024,-tileSpan*.38);
     crest.castShadow=false;crest.raycast=()=>{};
+    const crestTrim=mesh(new T.BoxGeometry(tileSpan*.98,.012,tileSpan*.04),studMat,cellGroup,0,.052,-tileSpan*.38);
+    crestTrim.castShadow=false;crestTrim.raycast=()=>{};
     root.add(cellGroup);
 
     // 2. Tiered 3D Building (Level 1..5) scaled clearly by level
