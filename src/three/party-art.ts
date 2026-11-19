@@ -211,24 +211,24 @@ function drawSpecialIcon(ctx:CanvasRenderingContext2D,type:string,cx:number,cy:n
 
 function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme){
   const palette=BOARD_PALETTES[theme];
-  const inner=108,innerSpan=384;
+  const inner=600/13,innerSpan=600-inner*2;
   round(ctx,inner,inner,innerSpan,innerSpan,0,palette.center,'#546658',1.4);
   text(ctx,'TỶ PHÚ',300,268,33,palette.centerInk,UI_FONT,'900');
   text(ctx,'VIỆT NAM',300,303,19,palette.centerInk,UI_FONT,'800');
   VN_CELLS.forEach(c=>{
-    const {x,y,width:w,height:h}=estateBounds(c.index,13),wide=w>h,corner=c.index%12===0;
+    const {x,y,width:w,height:h}=estateBounds(c.index,13),corner=c.index%12===0;
     const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:'#64748b';
     round(ctx,x+.4,y+.4,w-.8,h-.8,0,corner?palette.special:palette.lot,'#34483b',1);
     if(c.type==='property')round(ctx,x+1,y+1,w-2,4.4,0,bandColor);
-    const rows=estateTitleLines(c.name,!wide&&!corner),fs=wide?8.7:corner?11.4:8;
-    const tx=x+(wide?w*.44:w/2),ty=y+(wide?10:corner?17:13);
-    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.3),fs,palette.lotInk,UI_FONT,'850',wide?w*.47:w-4));
-    const artX=x+(wide?12.7:w/2),artY=y+(wide?h/2:corner?50:56);
+    const rows=estateTitleLines(c.name,true),fs=7.3;
+    const tx=x+w/2,ty=y+(rows.length>1?10.5:14);
+    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.3),fs,palette.lotInk,UI_FONT,'850',w-5));
+    const artX=x+w/2,artY=y+h*.67;
     if(!PROVINCE_LANDMARKS[c.name]){
-      ctx.save();ctx.translate(artX,artY);ctx.scale(corner?1.6:1,corner?1.6:1);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
+      ctx.save();ctx.translate(artX,artY);ctx.scale(.7,.7);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
     }
     const price=own?c.price+' tr':c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount+' tr':'';
-    if(price)text(ctx,price,tx,y+(wide?26:corner?71:74),corner?11:8,palette.lotInk,UI_FONT,'850',wide?w*.47:w-4);
+    if(price)text(ctx,price,tx,y+h*.91,6.5,palette.lotInk,UI_FONT,'850',w-5);
   });
 }
 

@@ -1,6 +1,6 @@
 /* Keep the estate controls readable even inside the compact game shell. */
 .party-table-estate .party-stage-wrap>.vn-estate-flat {
-  width:min(calc(100% - 16px),820px);
+  width:min(calc(100% - 16px),720px);
   max-width:100%;
   margin:8px auto;
   border-width:3px;
@@ -86,7 +86,7 @@
 .board-focus-shell .practice-workspace.practice-monopoly .party-roster small {font-size:13px}
 .board-focus-shell .practice-workspace.practice-monopoly .party-roster>article {padding:12px}
 @media(min-width:1101px) {
-  .board-focus-shell .practice-workspace.practice-monopoly .party-stage-wrap>.vn-estate-flat {width:min(calc(100% - 16px),820px)!important;max-width:100%!important;margin:8px auto!important}
+  .board-focus-shell .practice-workspace.practice-monopoly .party-stage-wrap>.vn-estate-flat {width:min(calc(100% - 16px),720px)!important;max-width:100%!important;margin:8px auto!important}
 }
 @media(max-width:650px) {
   .party-table-estate .estate-buy-secondary-row {grid-template-columns:1fr}

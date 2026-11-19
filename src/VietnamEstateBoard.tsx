@@ -283,8 +283,8 @@ function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:st
 
 function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false,crowded=false}:{cx:number;cy:number;side:string;cell:number;index:number;isMine:boolean;isTurn:boolean;compact?:boolean;crowded?:boolean}){
   const style=TOKEN_STYLES[side]||{fill:PARTY_COLORS[side]||'#ef233c',dark:'#7f1d1d',label:`P${index+1}`};
-  const scale=crowded?.3:compact?.5:1;
-  return <g className="flat-player-token" data-token-side={side} data-token-cell={cell} transform={compact||crowded?`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`:undefined} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
+  const scale=crowded?.24:compact?.34:.5;
+  return <g className="flat-player-token" data-token-side={side} data-token-cell={cell} transform={`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
     {isTurn&&<circle cx={cx} cy={cy} r="17.5" fill="none" stroke="#111111" strokeWidth="2.2" strokeDasharray="3 2"/>}
     {isMine&&<circle cx={cx} cy={cy} r="15.5" fill="none" stroke="#facc15" strokeWidth="2.8"/>}
     {/* Drop shadow */}
@@ -308,40 +308,40 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
   const turnSide=(state as {turn?:string}).turn;
   const glowId=useId().replaceAll(':','');
   const glowLots=justPurchasedLots??(justPurchasedLot!=null?[justPurchasedLot]:[]);
-  const bounds=(index:number)=>estateBounds(index,13,900);
-  return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 900 900" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
+  const bounds=(index:number)=>estateBounds(index,13,780);
+  return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
     <defs><filter id={glowId} x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4"/></filter></defs>
-    <rect className="board-svg-base" width="900" height="900" fill="#fff" stroke="#111827" strokeWidth="3"/>
-    <rect className="board-svg-center" x="162" y="162" width="576" height="576" fill="#f5f3eb" stroke="#111827" strokeWidth="2"/>
+    <rect className="board-svg-base" width="780" height="780" fill="#fff" stroke="#111827" strokeWidth="3"/>
+    <rect className="board-svg-center" x="60" y="60" width="660" height="660" fill="#f5f3eb" stroke="#111827" strokeWidth="2"/>
     <g aria-hidden="true">
-      <text className="board-svg-label" x="450" y="427" textAnchor="middle" fill="#172d24" fontSize="52" fontWeight="900">TỶ PHÚ</text>
-      <text x="450" y="465" textAnchor="middle" fill="#475b50" fontSize="23" fontWeight="800">VIỆT NAM</text>
-      <text x="450" y="506" textAnchor="middle" fill="#475b50" fontSize="19" fontWeight="700">Vòng {state.round}</text>
+      <text className="board-svg-label" x="390" y="367" textAnchor="middle" fill="#172d24" fontSize="44" fontWeight="900">TỶ PHÚ</text>
+      <text x="390" y="405" textAnchor="middle" fill="#475b50" fontSize="23" fontWeight="800">VIỆT NAM</text>
+      <text x="390" y="446" textAnchor="middle" fill="#475b50" fontSize="19" fontWeight="700">Vòng {state.round}</text>
     </g>
     {VN_CELLS.map(c=>{
       const {x,y,width:w,height:h}=bounds(c.index),owned=state.property[c.index],lvl=state.houses[c.index]||0;
-      const wide=w>h,corner=c.index%12===0,rows=estateTitleLines(c.name,!wide&&!corner);
+      const corner=c.index%12===0,rows=estateTitleLines(c.name,true),occupied=activePlayers.some(p=>p.position===c.index);
       const color=owned?TOKEN_STYLES[owned]?.fill||PARTY_COLORS[owned]:'#111827';
       const accent=c.group!==undefined?CLASSIC_GROUP_COLORS[c.group]||VN_GROUP_COLORS[c.group]:'#64748b';
       const selectedHere=selected===c.index,auction=auctionLot===c.index,landmark=PROVINCE_LANDMARKS[c.name];
-      const tx=wide?x+w*.44:x+w/2,ty=y+(wide?19:corner?30:24),fs=wide?13:corner?17:12;
-      const artX=x+(wide?19:w/2),artY=y+(wide?h/2:corner?75:84);
+      const tx=x+w/2,ty=y+(rows.length>1?18:24),fs=9.5;
+      const artX=x+w/2,artY=y+40;
       const price=ownable(c)?c.price+' tr':c.type==='start'?'+'+estateSalary(state)+' tr':c.type==='tax'?'−'+c.amount+' tr':'';
       return <g key={c.index} data-cell-index={c.index} data-owned={Boolean(owned)||selectedHere} role="button" tabIndex={0} aria-label={'Xem '+c.name} aria-pressed={selectedHere} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
         <rect className={auction?'board-svg-lot vn-auction-lot-pulse':selectedHere?'board-svg-selected':'board-svg-lot'} x={x} y={y} width={w} height={h} fill={auction||selectedHere?'#fef08a':owned?OWNER_BG[owned]||'#fff':corner?'#fff3da':'#fff'} stroke={auction?'#d97706':selectedHere?'#dc2626':color} strokeWidth={selectedHere||owned||auction?3:1.6}/>
-        {c.type==='property'&&<rect x={x+1} y={y+1} width={w-2} height="7" fill={accent}/>}
-        {rows.map((line,i)=><text key={i} x={tx} y={ty+i*(fs+2)} textAnchor="middle" fontSize={fs} fontWeight="850" fill="#111827" textLength={line.length>(wide?12:corner?18:6)?(wide?w*.47:corner?w-16:w-6):undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
-        {lvl>0?<g transform={'translate('+artX+' '+artY+') scale(.85) translate(-30 -30)'}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={'translate('+artX+' '+artY+') scale(1.65)'}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={'translate('+artX+' '+artY+') scale('+(corner?1.6:1)+')'}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>}
-        {price&&<text x={tx} y={y+(wide?43:corner?107:111)} textAnchor="middle" fontSize={corner?17:12} fontWeight="850" fill={ownable(c)?'#172d24':'#b91c1c'}>{price}</text>}
-        {owned&&<rect x={x+1} y={y+h-6} width={w-2} height="5" fill={color}/>}
+        {c.type==='property'&&<rect x={x+1} y={y+1} width={w-2} height="6" fill={accent}/>}
+        {rows.map((line,i)=><text key={i} x={tx} y={ty+i*(fs+2)} textAnchor="middle" fontSize={fs} fontWeight="850" fill="#111827" textLength={line.length>9?w-8:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
+        {!occupied&&(lvl>0?<g transform={'translate('+artX+' '+artY+') scale(.48) translate(-30 -38)'}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={'translate('+artX+' '+artY+') scale(1.05)'}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={'translate('+artX+' '+artY+') scale(.65)'}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>)}
+        {price&&<text x={tx} y={y+56} textAnchor="middle" fontSize={8.5} fontWeight="850" fill={ownable(c)?'#172d24':'#b91c1c'}>{price}</text>}
+        {owned&&<rect x={x+1} y={y+h-3} width={w-2} height="2" fill={color}/>}
         {state.mortgaged?.[c.index]&&<path d={'M'+(x+5)+' '+(y+h-8)+'L'+(x+w-5)+' '+(y+10)} stroke="#dc2626" strokeWidth="3" opacity=".85"/>}
       </g>;
     })}
     {activePlayers.map((p,i)=>{
-      const b=bounds(p.position),wide=b.width>b.height,cellmates=activePlayers.filter(other=>other.position===p.position),slot=cellmates.findIndex(other=>other.side===p.side),many=cellmates.length>4;
-      // Reserve the inner end of each deep lot for pieces, away from its name and price.
-      const ox=wide?b.width*(.76+Math.floor(slot/(many?4:2))*.14):b.width*(cellmates.length===1?.5:.28+(slot%2)*.44);
-      const oy=wide?b.height*(cellmates.length===1?.5:many?.17+(slot%4)*.22:.28+(slot%2)*.44):b.height*(cellmates.length===1?.85:many?.75+Math.floor(slot/2)*.065:.79+Math.floor(slot/2)*.13);
+      const b=bounds(p.position),cellmates=activePlayers.filter(other=>other.position===p.position),slot=cellmates.findIndex(other=>other.side===p.side),many=cellmates.length>4;
+      // Pieces replace the icon while leaving the name and price visible.
+      const ox=b.width*(cellmates.length===1?.5:many?.16+(slot%4)*.225:.3+(slot%2)*.4);
+      const oy=b.height*(cellmates.length<=2?2/3:many?.59+Math.floor(slot/4)*.155:.59+Math.floor(slot/2)*.155);
       return <FlatPlayerToken key={p.side} cx={b.x+ox} cy={b.y+oy} side={p.side} cell={p.position} index={i} isMine={p.side===mySide} isTurn={p.side===turnSide} compact={cellmates.length>1} crowded={many}/>;
     })}
     {glowLots.filter(lot=>lot>=0&&lot<48).map(lot=>{const b=bounds(lot),side=state.property[lot];return <g key={justPurchasedKey+':'+lot} className="vn-ownership-glow" data-glow-lot={lot} aria-hidden="true">
