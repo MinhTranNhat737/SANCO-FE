@@ -48,12 +48,20 @@ function FlatPartyBoard({kind,state,mySide,selected,onSelect}:{kind:GameKind;sta
   }))}</svg></div>;
 }
 
+const randomFace=()=>{
+  if(typeof crypto!=='undefined'&&crypto.getRandomValues){
+    const buf=new Uint8Array(4);
+    for(;;){crypto.getRandomValues(buf);for(let i=0;i<4;i++)if(buf[i]<252)return (buf[i]%6)+1;}
+  }
+  return Math.floor(Math.random()*6)+1;
+};
+
 export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=false,onMove,gameKey='preview',animate=true,lastDie=null,rollKey='',rolls=[],onAnimatingChange}:{kind:GameKind;state:PartyState;mySide:string;turn?:string;playerNames?:Record<string,string>;legal?:PracticeMove[];enabled?:boolean;onMove?:(move:PracticeMove)=>void;gameKey?:string;animate?:boolean;lastDie?:number|null;rollKey?:string;rolls?:DiceRoll[];onAnimatingChange?:(busy:boolean)=>void}){
   const [boardTheme]=useBoardTheme();
   const [view,setView]=useState<'3d'|'2d'>(()=>typeof window!=='undefined'&&'WebGLRenderingContext' in window&&localStorage.getItem('sc-party-view')!=='2d'?'3d':'2d'),[top,setTop]=useState(false),[reset,setReset]=useState(0),[failed,setFailed]=useState(false);
   const [animPhase,setAnimPhase]=useState<'idle'|'dice'|'walk'>('idle'),[holding,setHolding]=useState(false),[selectedCell,setSelectedCell]=useState<number|null>(null);
-  const [flatHold,setFlatHold]=useState<{x:number;y:number}|null>(null);
-  const [flatRoll,setFlatRoll]=useState<{fromX:number;fromY:number;tick:number}|null>(null);
+  const [flatHold,setFlatHold]=useState<{x:number;y:number;d1:number;d2:number}|null>(null);
+  const [flatRoll,setFlatRoll]=useState<{fromX:number;fromY:number;d1:number;d2:number}|null>(null);
   const [displayPos,setDisplayPos]=useState<Record<string,number>>(()=>Object.fromEntries(state.players.map(p=>[p.side,p.position])));
   const [purchaseFx,setPurchaseFx]=useState<{lot:number;side:string;price:number;source:'buy'|'auction';key:number}|null>(null);
   const [featuredQueue,setFeaturedQueue]=useState<EstateEvent[]>([]);
@@ -260,7 +268,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       if(view==='2d'){
         stopFlatTimers();
         setAnimPhase('dice');
-        setFlatRoll(prev=>prev||{fromX:68,fromY:76,tick:1});
+        setFlatRoll(prev=>prev||{fromX:68,fromY:76,d1:randomFace(),d2:randomFace()});
         onAnimatingChange?.(true);
         diceTimerRef.current=setTimeout(()=>{
           diceTimerRef.current=null;
@@ -276,7 +284,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
 
   useEffect(()=>{
     if(!flatRoll)return;
-    const id=setInterval(()=>setFlatRoll(prev=>prev?{...prev,tick:(prev.tick%6)+1}:null),90);
+    const id=setInterval(()=>setFlatRoll(prev=>prev?{...prev,d1:randomFace(),d2:randomFace()}:null),85);
     return()=>clearInterval(id);
   },[Boolean(flatRoll)]);
 
@@ -291,7 +299,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
 
   useEffect(()=>{
     if(!flatHold)return;
-    const onMoveWin=(e:PointerEvent)=>setFlatHold(toStagePercent(e.clientX,e.clientY));
+    const onMoveWin=(e:PointerEvent)=>{const pt=toStagePercent(e.clientX,e.clientY);setFlatHold({x:pt.x,y:pt.y,d1:randomFace(),d2:randomFace()});};
     const onUpWin=(e:PointerEvent)=>{
       const drop=toStagePercent(e.clientX,e.clientY);
       setFlatHold(null);
@@ -299,7 +307,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       if(rollMove&&enabled){
         stopFlatTimers();
         setAnimPhase('dice');
-        setFlatRoll({fromX:drop.x,fromY:drop.y,tick:1});
+        setFlatRoll({fromX:drop.x,fromY:drop.y,d1:randomFace(),d2:randomFace()});
         onAnimatingChange?.(true);
         diceTimerRef.current=setTimeout(()=>{
           diceTimerRef.current=null;
@@ -323,7 +331,8 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       return;
     }
     setHolding(true);
-    setFlatHold(toStagePercent(e.clientX,e.clientY));
+    const pt=toStagePercent(e.clientX,e.clientY);
+    setFlatHold({x:pt.x,y:pt.y,d1:randomFace(),d2:randomFace()});
   };
 
   const visual2DState:PartyState=view==='2d'&&kind==='monopoly'&&isBoardBusy
@@ -347,13 +356,13 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       {vietnam&&onMove&&<EstateAuctionModal state={state} mySide={mySide} turn={turn} playerNames={playerNames} legal={legal} enabled={enabled} busy={isBoardBusy} onMove={m=>onMove(moveRequest(m))}/>}
       {view==='2d'&&flatHold&&<div className="board-dice-hand-follower" style={{left:`${flatHold.x}%`,top:`${flatHold.y}%`}} aria-hidden="true">
         <div className="board-held-dice">
-          <PipDie value={((Math.round(flatHold.x+flatHold.y)%6)+1)} className="is-shaking"/>
-          {vietnam&&<PipDie value={((Math.round(flatHold.x*2+flatHold.y)%6)+1)} className="is-shaking"/>}
+          <PipDie value={flatHold.d1} className="is-shaking"/>
+          {vietnam&&<PipDie value={flatHold.d2} className="is-shaking"/>}
         </div>
       </div>}
       {view==='2d'&&flatRoll&&<div className="board-dice-roller" style={{'--drop-x':`${flatRoll.fromX-50}%`,'--drop-y':`${flatRoll.fromY-50}%`} as React.CSSProperties} aria-hidden="true">
-        <PipDie value={flatRoll.tick} className="is-tumbling"/>
-        {vietnam&&<PipDie value={((flatRoll.tick+2)%6)+1} className="is-tumbling delay"/>}
+        <PipDie value={flatRoll.d1} className="is-tumbling"/>
+        {vietnam&&<PipDie value={flatRoll.d2} className="is-tumbling delay"/>}
       </div>}
       {kind==='monopoly'&&selectedCell!==null&&<div className="party-cell-popup-wrap">
         <EstateInspector state={state} selected={selectedCell} onClose={()=>setSelectedCell(null)} legal={legal} enabled={enabled} onAction={m=>onMove?.(moveRequest(m))}/>

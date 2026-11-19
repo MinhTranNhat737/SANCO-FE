@@ -8,7 +8,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {BoardGesture} from './three/board-gesture.ts';
 import {PARTY_SIDES,MONOPOLY_SIDES,PARTY_COLORS,ludoCell,worldPoint,ludoRoute,estatePoint,estateCell,estateIndexAt} from './three/party-layout.ts';
 import {SURFACE,table,horse,estateToken,estateAssets,dice,diceRotation,tabletopProps,dispose} from './three/party-models.ts';
-import {DiceRollQueue,sampleDiceThrow,THROW_DURATION,type DiceRoll} from './three/dice-motion.ts';
+import {DiceRollQueue,sampleDiceThrow,randomThrowVariant,THROW_DURATION,type DiceRoll,type DiceThrowVariant} from './three/dice-motion.ts';
 import type {PartyState,PracticeMove} from './practice-types';
 
 type Props={
@@ -65,7 +65,7 @@ export default function ScenePartyBoard(props:Props){
     scene.add(cellHighlight);
 
     const rollQueue=new DiceRollQueue();rollQueue.reset(props.rolls);const pendingRolls:DiceRoll[]=[];
-    let activeThrow:{roll:DiceRoll;started:number;previous:T.Quaternion;secondPrevious?:T.Quaternion;releaseOrigin?:T.Vector3}|null=null,wasAnimate=props.animate;
+    let activeThrow:{roll:DiceRoll;started:number;previous:T.Quaternion;secondPrevious?:T.Quaternion;releaseOrigin?:T.Vector3;variant:DiceThrowVariant;secondVariant:DiceThrowVariant}|null=null,wasAnimate=props.animate;
     let pendingDrop:{origin:T.Vector3;started:number}|null=null;
     let heldDice:{active:boolean;point:T.Vector3;started:number;moved:boolean;downX:number;downY:number}={active:false,point:rest.clone(),started:0,moved:false,downX:0,downY:0};
     let animPhase:'idle'|'dice'|'walk'='idle';
@@ -81,7 +81,7 @@ export default function ScenePartyBoard(props:Props){
       const roll=pendingRolls.shift();if(!roll)return;
       const drop=pendingDrop;pendingDrop=null;
       const started=drop?now-THROW_DURATION*.48:now;
-      activeThrow={roll,started,previous:die.quaternion.clone(),secondPrevious:secondDie?.quaternion.clone(),releaseOrigin:drop?.origin};
+      activeThrow={roll,started,previous:die.quaternion.clone(),secondPrevious:secondDie?.quaternion.clone(),releaseOrigin:drop?.origin,variant:randomThrowVariant(),secondVariant:randomThrowVariant()};
       emitPhase('dice');
     }
     let assetRoot=new T.Group();scene.add(assetRoot);let assetKey='';
@@ -311,9 +311,9 @@ export default function ScenePartyBoard(props:Props){
           moving=true;
         }
       }else if(activeThrow){
-        const pose=sampleDiceThrow(time-activeThrow.started,activeThrow.roll.value,rest,activeThrow.previous,activeThrow.releaseOrigin);
+        const pose=sampleDiceThrow(time-activeThrow.started,activeThrow.roll.value,rest,activeThrow.previous,activeThrow.releaseOrigin,activeThrow.variant);
         die.position.copy(pose.position);die.quaternion.copy(pose.rotation);
-        if(secondDie){const second=sampleDiceThrow(time-activeThrow.started,activeThrow.roll.faces?.[1]||1,rest,activeThrow.secondPrevious,activeThrow.releaseOrigin);secondDie.position.copy(second.position).add(new T.Vector3(.72,0,0));secondDie.quaternion.copy(second.rotation);}
+        if(secondDie){const second=sampleDiceThrow(time-activeThrow.started,activeThrow.roll.faces?.[1]||1,rest,activeThrow.secondPrevious,activeThrow.releaseOrigin,activeThrow.secondVariant);secondDie.position.copy(second.position).add(new T.Vector3(.72,0,0));secondDie.quaternion.copy(second.rotation);}
         moving=true;
         if(pose.done){
           activeThrow=null;
