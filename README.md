@@ -7,6 +7,8 @@ npm run dev
 
 Mở `http://127.0.0.1:5173/`. Chạy backend trong `../be/` ở cổng 3001. Vite chuyển tiếp `/api` và `/socket.io`, nên cookie phiên hoạt động qua cùng origin.
 
+Đăng nhập Google/Facebook và HTTPS local: xem [hướng dẫn cấu hình OAuth trong SANCO-BE](https://github.com/MinhTranNhat737/SANCO-BE/blob/main/OAUTH-SETUP.md).
+
 ```sh
 npm run build
 npm run typecheck

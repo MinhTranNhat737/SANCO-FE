@@ -1,4 +1,8 @@
 node_modules/
 dist/
 .env
+.env.*
+!.env.example
+client_secret*.json
+.certs/
 *.log
