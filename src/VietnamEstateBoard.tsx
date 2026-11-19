@@ -306,10 +306,10 @@ function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:st
   </g>;
 }
 
-function FlatPlayerToken({cx,cy,side,index,isMine,isTurn,compact=false}:{cx:number;cy:number;side:string;index:number;isMine:boolean;isTurn:boolean;compact?:boolean}){
+function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false}:{cx:number;cy:number;side:string;cell:number;index:number;isMine:boolean;isTurn:boolean;compact?:boolean}){
   const style=TOKEN_STYLES[side]||{fill:PARTY_COLORS[side]||'#ef233c',dark:'#7f1d1d',label:`P${index+1}`};
   const scale=compact?0.74:1;
-  return <g className="flat-player-token" transform={compact?`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`:undefined} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
+  return <g className="flat-player-token" data-token-side={side} data-token-cell={cell} transform={compact?`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`:undefined} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
     {isTurn&&<circle cx={cx} cy={cy} r="17.5" fill="none" stroke="#111111" strokeWidth="2.2" strokeDasharray="3 2"/>}
     {isMine&&<circle cx={cx} cy={cy} r="15.5" fill="none" stroke="#facc15" strokeWidth="2.8"/>}
     {/* Drop shadow */}
@@ -428,6 +428,7 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
         cx={c*60+ox}
         cy={r*60+oy}
         side={p.side}
+        cell={p.position}
         index={i}
         isMine={p.side===mySide}
         isTurn={p.side===turnSide}

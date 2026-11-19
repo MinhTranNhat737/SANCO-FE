@@ -463,7 +463,7 @@ test('Monopoly event overlay renders Chance/Community 3D card flip, Jail slam an
   assert.match(document.querySelector('.estate-jail-card').textContent,/VÀO TRẠI GIAM.*Gieo 3 đôi liên tiếp/);
 });
 
-test('Monopoly hides dice result and buy form until dice settles and piece lands on destination cell',async()=>{
+test('Monopoly hides dice result and freezes bot & human tokens until dice settles, then walks step-by-step before showing modals',async()=>{
   localStorage.setItem('sc-party-view','2d');
   const {PartyBoard}=await vite.ssrLoadModule('/src/PartyBoard.tsx');
   const game=createPractice('monopoly','R','medium','seq-choreo-test');
@@ -471,16 +471,48 @@ test('Monopoly hides dice result and buy form until dice settles and piece lands
   await act(async()=>root.render(createElement(PartyBoard,{kind:'monopoly',state:initial,mySide:'R',turn:'R',legal:[{from:null,to:-1,action:'roll'}],enabled:true,onMove:()=>{},gameKey:'seq-choreo-test',animate:true,lastDie:null,rollKey:'',rolls:[]})));
   await settle();
 
-  // Simulate roll result: 1 + 2 = 3 steps -> lands on cell 3 (stage = 'buy')
+  // 1) Human rolls 2 + 3 = 5 steps -> lands on cell 5 (stage = 'buy')
   const rolled=structuredClone(initial);
-  rolled.players[0].position=3;rolled.stage='buy';rolled.dice=3;rolled.diceValues=[1,2];
-  await act(async()=>root.render(createElement(PartyBoard,{kind:'monopoly',state:rolled,mySide:'R',turn:'R',legal:[{from:null,to:3,action:'buy'},{from:null,to:-1,action:'auction'},{from:null,to:-1,action:'skip_buy'}],enabled:true,onMove:()=>{},gameKey:'seq-choreo-test',animate:true,lastDie:1,rollKey:'0:100',rolls:[{key:'0:100',value:1,faces:[1,2],side:'R'}]})));
-  // Immediately after roll starts: dice is rolling -> no rolled banner spoiler, no buy modal yet!
+  rolled.players[0].position=5;rolled.stage='buy';rolled.dice=5;rolled.diceValues=[2,3];
+  await act(async()=>root.render(createElement(PartyBoard,{kind:'monopoly',state:rolled,mySide:'R',turn:'R',legal:[{from:null,to:5,action:'buy'},{from:null,to:-1,action:'auction'},{from:null,to:-1,action:'skip_buy'}],enabled:true,onMove:()=>{},gameKey:'seq-choreo-test',animate:true,lastDie:2,rollKey:'0:100',rolls:[{key:'0:100',value:2,faces:[2,3],side:'R'}]})));
+  // While dice is rolling (t=0ms and t=400ms): token MUST stay at cell 0, no rolled banner, no buy modal!
+  assert.equal(document.querySelector('[data-token-side="R"]')?.getAttribute('data-token-cell'),'0','Human token must not move before dice settles');
   assert.equal(document.querySelector('.party-rolled-banner'),null,'Dice result must stay hidden while rolling');
   assert.equal(document.querySelector('.estate-buy-center'),null,'Buy modal must stay hidden while rolling');
 
-  // Wait for 820ms dice roll + 3 steps * 120ms walk (~1350ms total)
-  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,1450));});
-  assert.ok(document.querySelector('.party-rolled-banner'),'Dice result appears after dice settles');
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,400));});
+  assert.equal(document.querySelector('[data-token-side="R"]')?.getAttribute('data-token-cell'),'0','Human token must still be frozen mid-roll');
+  assert.equal(document.querySelector('.party-rolled-banner'),null,'Dice result must still stay hidden mid-roll');
+
+  // After 820ms dice finishes, mid-walk (t=960ms): dice banner is visible, token is stepping mid-way (1..4), buy modal STILL hidden!
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,560));});
+  assert.ok(document.querySelector('.party-rolled-banner'),'Dice result appears as soon as dice settles');
+  const midCell=Number(document.querySelector('[data-token-side="R"]')?.getAttribute('data-token-cell'));
+  assert.ok(midCell>=1&&midCell<5,`Human token should walk step-by-step instead of teleporting (got cell ${midCell})`);
+  assert.equal(document.querySelector('.estate-buy-center'),null,'Buy modal must wait until feet touch destination cell');
+
+  // After walk finishes (t=1700ms): token is at cell 5 AND buy modal appears!
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,750));});
+  assert.equal(document.querySelector('[data-token-side="R"]')?.getAttribute('data-token-cell'),'5','Human token lands on cell 5');
   assert.ok(document.querySelector('.estate-buy-center'),'Buy modal appears once piece lands on destination cell');
+
+  // 2) Bot ('G') rolls 3 + 3 = 6 steps -> lands on cell 6!
+  const botRolled=structuredClone(rolled);
+  botRolled.players[1].position=6;botRolled.stage='buy';botRolled.dice=6;botRolled.diceValues=[3,3];
+  await act(async()=>root.render(createElement(PartyBoard,{kind:'monopoly',state:botRolled,mySide:'R',turn:'G',legal:[],enabled:false,onMove:()=>{},gameKey:'seq-choreo-test',animate:true,lastDie:3,rollKey:'1:200',rolls:[{key:'0:100',value:2,faces:[2,3],side:'R'},{key:'1:200',value:3,faces:[3,3],side:'G'}]})));
+  // Immediately after bot roll arrives & mid-roll (t=400ms): BOT MUST STAY AT CELL 0!
+  assert.equal(document.querySelector('[data-token-side="G"]')?.getAttribute('data-token-cell'),'0','Bot token must NOT move before dice finishes rolling');
+  assert.equal(document.querySelector('.party-rolled-banner'),null,'Bot dice result must stay hidden while rolling');
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,420));});
+  assert.equal(document.querySelector('[data-token-side="G"]')?.getAttribute('data-token-cell'),'0','Bot token must remain frozen at cell 0 mid-roll');
+
+  // After dice settles (t=960ms): dice banner visible, bot walking step-by-step (1..5)
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,540));});
+  assert.ok(document.querySelector('.party-rolled-banner'),'Bot dice result appears after dice settles');
+  const botMid=Number(document.querySelector('[data-token-side="G"]')?.getAttribute('data-token-cell'));
+  assert.ok(botMid>=1&&botMid<6,`Bot token must walk step-by-step after dice settles (got cell ${botMid})`);
+
+  // After walk finishes: bot lands on cell 6
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,850));});
+  assert.equal(document.querySelector('[data-token-side="G"]')?.getAttribute('data-token-cell'),'6','Bot token lands on cell 6 after walk');
 });

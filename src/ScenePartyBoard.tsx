@@ -146,7 +146,13 @@ export default function ScenePartyBoard(props:Props){
           }else if(baseline){piece.route=[];piece.position=position;piece.node.position.set(target.x,SURFACE,target.z);}
           else if(position!==piece.position){
             const teleport=vietnam&&p.state.movement?.side===player.side&&p.state.movement.teleport;
-            const path=props.kind==='ludo'?ludoRoute(player.side,token,piece.position,position):teleport?[target]:Array.from({length:(position-piece.position+trackLength)%trackLength},(_,i)=>estatePoint((piece!.position+i+1)%trackLength,seat,estateSize));
+            const fwd=(position-piece.position+trackLength)%trackLength,bwd=(piece.position-position+trackLength)%trackLength;
+            const path=props.kind==='ludo'
+              ?ludoRoute(player.side,token,piece.position,position)
+              :teleport?[target]
+              :bwd<=6&&bwd<fwd
+                ?Array.from({length:bwd},(_,i)=>estatePoint((piece!.position-i-1+trackLength)%trackLength,seat,estateSize))
+                :Array.from({length:fwd},(_,i)=>estatePoint((piece!.position+i+1)%trackLength,seat,estateSize));
             if(p.animate&&!reduced){piece.route.push(...path);piece.from.copy(piece.node.position);piece.started=now+rollWait;}else{piece.route=[];piece.node.position.set(target.x,SURFACE,target.z);}
             piece.position=position;
           }
@@ -288,7 +294,7 @@ export default function ScenePartyBoard(props:Props){
           (pt.mesh.material as T.MeshStandardMaterial).opacity=Math.max(0,1-dt);
         }
       }
-      for(const piece of pieces.values())if(piece.route.length){moving=true;if(activeThrow||time<piece.started)continue;const target=piece.route[0],t=Math.min(1,(time-piece.started)/(piece.route.length>2?100:180)),ease=t*t*(3-2*t);piece.node.position.set(T.MathUtils.lerp(piece.from.x,target.x,ease),SURFACE+Math.sin(t*Math.PI)*.16,T.MathUtils.lerp(piece.from.z,target.z,ease));if(t===1){piece.route.shift();piece.from.copy(piece.node.position);piece.started=time;}}
+      for(const piece of pieces.values())if(piece.route.length){moving=true;if(activeThrow||pendingDrop||pendingRolls.length>0||time<piece.started)continue;const target=piece.route[0],t=Math.min(1,(time-piece.started)/(piece.route.length>2?100:180)),ease=t*t*(3-2*t);piece.node.position.set(T.MathUtils.lerp(piece.from.x,target.x,ease),SURFACE+Math.sin(t*Math.PI)*.16,T.MathUtils.lerp(piece.from.z,target.z,ease));if(t===1){piece.route.shift();piece.from.copy(piece.node.position);piece.started=time;}}
       if(heldDice.active){
         const shakeX=Math.sin(time*.028)*.08,shakeY=Math.cos(time*.034)*.05,shakeZ=Math.sin(time*.024)*.07;
         const holdPos=new T.Vector3(heldDice.point.x+shakeX,heldDice.point.y+shakeY,heldDice.point.z+shakeZ);

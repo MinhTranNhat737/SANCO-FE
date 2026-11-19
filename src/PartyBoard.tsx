@@ -63,6 +63,11 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
   const [flatHold,setFlatHold]=useState<{x:number;y:number;d1:number;d2:number}|null>(null);
   const [flatRoll,setFlatRoll]=useState<{fromX:number;fromY:number;d1:number;d2:number}|null>(null);
   const [displayPos,setDisplayPos]=useState<Record<string,number>>(()=>Object.fromEntries(state.players.map(p=>[p.side,p.position])));
+  const displayPosRef=useRef<Record<string,number>>(displayPos);
+  const syncDisplayPos=(positions:Record<string,number>)=>{
+    displayPosRef.current=positions;
+    setDisplayPos(positions);
+  };
   const [purchaseFx,setPurchaseFx]=useState<{lot:number;side:string;price:number;source:'buy'|'auction';key:number}|null>(null);
   const [featuredQueue,setFeaturedQueue]=useState<EstateEvent[]>([]);
   const [eventToasts,setEventToasts]=useState<EstateEvent[]>([]);
@@ -101,7 +106,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     prevBidRef.current=state.auction?.bid||0;
     seenEventIdRef.current=state.events?.reduce((m,e)=>Math.max(m,e.id),0)||0;
     seenRollRef.current=rollKey;
-    setDisplayPos(Object.fromEntries(state.players.map(p=>[p.side,p.position])));
+    syncDisplayPos(Object.fromEntries(state.players.map(p=>[p.side,p.position])));
     setFlatRoll(null);
     setAnimPhase('idle');
     onAnimatingChange?.(false);
@@ -114,7 +119,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
   // Keep 2D display positions synced when idle or not animating (never overwrite during a pending roll!)
   useEffect(()=>{
     if(!animate||(view==='2d'&&animPhase==='idle'&&!flatRoll&&!hasPendingRoll)){
-      setDisplayPos(Object.fromEntries(state.players.map(p=>[p.side,p.position])));
+      syncDisplayPos(Object.fromEntries(state.players.map(p=>[p.side,p.position])));
     }
   },[state.players.map(p=>`${p.side}:${p.position}`).join(','),animate,view,animPhase,Boolean(flatRoll),hasPendingRoll]);
 
@@ -122,7 +127,13 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     if(walkTimerRef.current){clearInterval(walkTimerRef.current);walkTimerRef.current=null;}
     const targetState=latestStateRef.current;
     if(kind!=='monopoly'){
-      setDisplayPos(Object.fromEntries(targetState.players.map(p=>[p.side,p.position])));
+      syncDisplayPos(Object.fromEntries(targetState.players.map(p=>[p.side,p.position])));
+      setAnimPhase('idle');
+      onAnimatingChange?.(false);
+      return;
+    }
+    const needsWalk=targetState.players.some(p=>(displayPosRef.current[p.side]??p.position)!==p.position);
+    if(!needsWalk){
       setAnimPhase('idle');
       onAnimatingChange?.(false);
       return;
@@ -130,27 +141,26 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     setAnimPhase('walk');
     walkTimerRef.current=setInterval(()=>{
       const latest=latestStateRef.current;
+      const prev=displayPosRef.current;
+      const next:Record<string,number>={...prev};
       let done=true;
-      setDisplayPos(prev=>{
-        const next={...prev};
-        for(const p of latest.players){
-          const cur=prev[p.side]??p.position;
-          if(cur===p.position)continue;
-          const teleport=latest.movement?.side===p.side&&latest.movement.teleport;
-          const fwd=(p.position-cur+trackLen)%trackLen;
-          const bwd=(cur-p.position+trackLen)%trackLen;
-          if(teleport||(fwd>18&&bwd>6)){
-            next[p.side]=p.position;
-          }else if(bwd<=6&&bwd<fwd){
-            next[p.side]=(cur-1+trackLen)%trackLen;
-            if(next[p.side]!==p.position)done=false;
-          }else{
-            next[p.side]=(cur+1)%trackLen;
-            if(next[p.side]!==p.position)done=false;
-          }
+      for(const p of latest.players){
+        const cur=prev[p.side]??p.position;
+        if(cur===p.position)continue;
+        const teleport=latest.movement?.side===p.side&&latest.movement.teleport;
+        const fwd=(p.position-cur+trackLen)%trackLen;
+        const bwd=(cur-p.position+trackLen)%trackLen;
+        if(teleport||(fwd>18&&bwd>6)){
+          next[p.side]=p.position;
+        }else if(bwd<=6&&bwd<fwd){
+          next[p.side]=(cur-1+trackLen)%trackLen;
+          if(next[p.side]!==p.position)done=false;
+        }else{
+          next[p.side]=(cur+1)%trackLen;
+          if(next[p.side]!==p.position)done=false;
         }
-        return next;
-      });
+      }
+      syncDisplayPos(next);
       if(done){
         if(walkTimerRef.current){clearInterval(walkTimerRef.current);walkTimerRef.current=null;}
         setAnimPhase('idle');
@@ -339,8 +349,8 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     ?{...state,players:state.players.map(p=>({...p,position:displayPos[p.side]??p.position}))}
     :state;
   const flat=()=>vietnam?<VietnamEstateBoard state={visual2DState} mySide={mySide} selected={inspect} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx}/>:<FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)}/>;
-  const choose=(v:'3d'|'2d')=>{stopFlatTimers();setFlatRoll(null);setAnimPhase('idle');onAnimatingChange?.(false);setView(v);localStorage.setItem('sc-party-view',v);};
-  const fallback=()=>{stopFlatTimers();setFlatRoll(null);setAnimPhase('idle');onAnimatingChange?.(false);setFailed(true);setView('2d');};
+  const choose=(v:'3d'|'2d')=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setAnimPhase('idle');onAnimatingChange?.(false);setView(v);localStorage.setItem('sc-party-view',v);};
+  const fallback=()=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setAnimPhase('idle');onAnimatingChange?.(false);setFailed(true);setView('2d');};
   const buyerName=purchaseFx?(playerNames?.[purchaseFx.side]||SIDE_NAMES[purchaseFx.side]||purchaseFx.side):'';
   const boughtCell=purchaseFx?VN_CELLS[purchaseFx.lot]:null;
 
