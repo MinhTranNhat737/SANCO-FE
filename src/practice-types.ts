@@ -14,6 +14,7 @@ export type PracticeMove = { from: number | null; to: number; promotion?: string
 export function moveRequest(move:PracticeMove){const {action,...rest}=move;return {...rest,...(action?{command:action}:{})};}
 export type PracticePly = PracticeMove & { side: string; piece: string; captured: string | null; label: string; at: number; board: (string | null)[]; check: boolean; checkSquare: number | null; flips?:number[]; passed?:string|null;party?:PartyState;captures?:number[];effects?:{from:number;to:number;unit:string;mode:string;burnt:boolean}[];die?:number;dice?:number[] };
 export type PracticeGame = {
+  botEngine?:{id:string;name:string;style:string;styleName:string};
   ranked?:boolean;bot?:import('./rating-types').BotProfile;playerElo?:number;ratingChange?:import('./rating-types').RatingChange;
   id: string; kind: GameKind; difficulty: Difficulty; humanSide: string; version: number; rules: string; phase: 'playing' | 'finished';
   turn: string; board: (string | null)[]; initialBoard: (string | null)[]; moves: PracticePly[]; thinking: boolean; legal: PracticeMove[];
