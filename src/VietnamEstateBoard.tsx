@@ -328,13 +328,14 @@ function FlatPlayerToken({cx,cy,side,index,isMine,isTurn,compact=false}:{cx:numb
   </g>;
 }
 
-export default function VietnamEstateBoard({state,mySide,selected,onSelect,justPurchasedLot=null,justPurchasedKey=0,auctionLot=null}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void;justPurchasedLot?:number|null;justPurchasedKey?:number;auctionLot?:number|null}){
+export default function VietnamEstateBoard({state,mySide,selected,onSelect,justPurchasedLot=null,justPurchasedKey=0,auctionLot=null,tileFx=null}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void;justPurchasedLot?:number|null;justPurchasedKey?:number;auctionLot?:number|null;tileFx?:{lot:number;type:string;amount:number;key:number}|null}){
   const activePlayers=state.players.filter(v=>v.active);
   const turnSide=state.players.find(p=>p.active&&p.side===(state as {turn?:string}).turn)?.side;
   const burstCell=justPurchasedLot!=null?VN_CELLS[justPurchasedLot]:null;
   const burstCoords=burstCell?estateCell(burstCell.index,13):null;
   const burstOwner=burstCell?state.property[burstCell.index]:null;
   const burstColor=burstOwner?TOKEN_STYLES[burstOwner]?.fill||PARTY_COLORS[burstOwner]||'#f59e0b':'#f59e0b';
+  const fxCoords=tileFx&&tileFx.lot>=0&&tileFx.lot<48?estateCell(tileFx.lot,13):null;
   return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
     <rect className="board-svg-base" width="780" height="780" rx="6" fill="#ffffff" stroke="#111111" strokeWidth="4"/>
     <rect className="board-svg-center" x="60" y="60" width="660" height="660" fill="#fbfaf6" stroke="#111111" strokeWidth="2.8"/>
@@ -461,5 +462,21 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
         <text x={burstCoords[1]*60+30} y={burstCoords[0]*60+32.2} textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#ffffff" letterSpacing=".6">ĐÃ MUA!</text>
       </g>
     </g>}
+
+    {/* Live Tile Event Effect (Tax, Cash Loss, Jail, Card, Salary) directly on the target tile */}
+    {tileFx&&fxCoords&&(()=>{
+      const fxX=fxCoords[1]*60,fxY=fxCoords[0]*60,cx=fxX+30,cy=fxY+30;
+      const isGain=tileFx.amount>0,isJail=tileFx.type==='jail',isCard=tileFx.type==='card';
+      const fxColor=isJail?'#dc2626':isGain?'#10b981':isCard?'#f59e0b':'#ef4444';
+      const label=isJail?'VÀO TÙ!':tileFx.amount!==0?`${isGain?'+':'−'}${Math.abs(tileFx.amount)} tr`:isCard?'THẺ!':'';
+      return <g key={tileFx.key} className="vn-tile-fx" aria-hidden="true">
+        <rect className="vn-buy-flash" x={fxX} y={fxY} width="60" height="60" rx="4" fill={fxColor}/>
+        <circle className="vn-buy-ring" cx={cx} cy={cy} r="14" fill="none" stroke={fxColor} strokeWidth="4.5"/>
+        {label&&<g className="vn-fx-float">
+          <rect x={cx-32} y={cy-13} width="64" height="22" rx="11" fill={isGain?'#065f46':'#7f1d1d'} stroke={isGain?'#6ee7b7':'#fca5a5'} strokeWidth="2"/>
+          <text x={cx} y={cy+1.5} textAnchor="middle" fontSize="10.5" fontWeight="900" fill="#ffffff">{label}</text>
+        </g>}
+      </g>;
+    })()}
   </svg></div>;
 }

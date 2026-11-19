@@ -446,3 +446,19 @@ test('Monopoly center buy decision and live auction modal render quick bid steps
   assert.equal(sent[1].command,'bid');
   assert.equal(sent[1].details.amount,120);
 });
+
+test('Monopoly event overlay renders Chance/Community 3D card flip, Jail slam and cash loss reasons',async()=>{
+  const {default:EstateEventOverlay}=await vite.ssrLoadModule('/src/EstateEventOverlay.tsx');
+  const cardEv={id:1,type:'card',deck:'chance',card:2,side:'R',title:'Sửa chữa công trình',reason:'Thẻ Cơ hội: thanh toán 120 triệu',amount:-120,lot:7,at:1};
+  const taxEv={id:2,type:'tax',side:'G',title:'Nộp thuế ngân sách',reason:'Nộp Thuế thu nhập',amount:-150,lot:4,at:2};
+  await act(async()=>root.render(createElement(EstateEventOverlay,{featured:cardEv,toasts:[taxEv],playerNames:{R:'Minh',G:'Nam'},onDismissFeatured:()=>{},onDismissToast:()=>{}})));await settle();
+  assert.ok(document.querySelector('.estate-card-scene.deck-chance'),'Chance card flip must render');
+  assert.match(document.querySelector('.estate-card-front').textContent,/Sửa chữa công trình/);
+  assert.ok(document.querySelector('.estate-cash-toast.is-tax'),'Tax cash loss toast must render');
+  assert.match(document.querySelector('.estate-cash-toast.is-tax').textContent,/Nam.*150 tr.*Thuế thu nhập/);
+
+  const jailEv={id:3,type:'jail',side:'R',title:'Vào Trại giam!',reason:'Gieo 3 đôi liên tiếp',amount:0,lot:12,at:3};
+  await act(async()=>root.render(createElement(EstateEventOverlay,{featured:jailEv,toasts:[],playerNames:{R:'Minh'},onDismissFeatured:()=>{},onDismissToast:()=>{}})));await settle();
+  assert.ok(document.querySelector('.estate-jail-card'),'Jail bars slam must render');
+  assert.match(document.querySelector('.estate-jail-card').textContent,/VÀO TRẠI GIAM.*Gieo 3 đôi liên tiếp/);
+});

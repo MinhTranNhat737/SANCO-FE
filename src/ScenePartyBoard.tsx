@@ -19,6 +19,7 @@ type Props={
   justPurchasedLot?:number|null;
   justPurchasedKey?:number;
   auctionLot?:number|null;
+  tileFx?:{lot:number;type:string;amount:number;key:number}|null;
   onAnimatingChange?:(busy:boolean)=>void;onHoldChange?:(holding:boolean)=>void;onCellSelect?:(index:number)=>void;
   grabRef?:React.MutableRefObject<((e:PointerEvent)=>void)|null>;
 };
@@ -80,11 +81,11 @@ export default function ScenePartyBoard(props:Props){
     type BurstFx={group:T.Group;ring:T.Mesh;particles:{mesh:T.Mesh;vx:number;vy:number;vz:number}[];started:number;duration:number};
     const bursts:BurstFx[]=[];
     let seenPurchaseKey=props.justPurchasedKey||0;
-    function spawnPurchaseBurst(lot:number,side:string,now:number){
+    let seenTileFxKey=props.tileFx?.key||0;
+    function spawnTileBurst(lot:number,primaryColor:string,secondaryColor:string,now:number){
       const [r,c]=estateCell(lot,estateSize),step=600/estateSize,pt=worldPoint([c*step+step*.5,r*step+step*.5]);
-      const color=PARTY_COLORS[side]||'#f59e0b';
       const group=new T.Group();group.position.set(pt.x,SURFACE+.03,pt.z);
-      const ringMat=new T.MeshBasicMaterial({color,side:T.DoubleSide,transparent:true,opacity:.95,depthWrite:false});
+      const ringMat=new T.MeshBasicMaterial({color:primaryColor,side:T.DoubleSide,transparent:true,opacity:.95,depthWrite:false});
       const ring=new T.Mesh(new T.RingGeometry(tileSpan*.24,tileSpan*.38,32),ringMat);
       ring.rotation.x=-Math.PI/2;
       group.add(ring);
@@ -92,7 +93,8 @@ export default function ScenePartyBoard(props:Props){
       for(let i=0;i<12;i++){
         const angle=(i/12)*Math.PI*2+(i%2)*.18;
         const speed=.85+(i%3)*.32;
-        const mat=new T.MeshStandardMaterial({color:i%2===0?'#facc15':color,emissive:i%2===0?'#f59e0b':color,emissiveIntensity:.65,roughness:.22,metalness:.55,transparent:true,opacity:1});
+        const col=i%2===0?secondaryColor:primaryColor;
+        const mat=new T.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.65,roughness:.22,metalness:.55,transparent:true,opacity:1});
         const m=new T.Mesh(new T.OctahedronGeometry(.068,0),mat);
         m.position.set(0,.05,0);
         group.add(m);
@@ -100,6 +102,9 @@ export default function ScenePartyBoard(props:Props){
       }
       scene.add(group);
       bursts.push({group,ring,particles,started:now,duration:1250});
+    }
+    function spawnPurchaseBurst(lot:number,side:string,now:number){
+      spawnTileBurst(lot,PARTY_COLORS[side]||'#f59e0b','#facc15',now);
     }
     const pieces=new Map<string,Piece>(),reduced=false;
     const sidePool=props.kind==='monopoly'?MONOPOLY_SIDES:PARTY_SIDES;
@@ -127,6 +132,13 @@ export default function ScenePartyBoard(props:Props){
         seenPurchaseKey=p.justPurchasedKey||0;
         const ownerSide=p.state.property[p.justPurchasedLot]||'R';
         spawnPurchaseBurst(p.justPurchasedLot,ownerSide,now);
+      }
+      if(props.kind==='monopoly'&&p.animate&&!baseline&&p.tileFx&&p.tileFx.key>seenTileFxKey){
+        seenTileFxKey=p.tileFx.key;
+        const isGain=p.tileFx.amount>0,isCard=p.tileFx.type==='card';
+        const c1=isGain?'#10b981':isCard?'#f59e0b':'#ef4444';
+        const c2=isGain?'#fde047':isCard?'#fde047':'#fb923c';
+        spawnTileBurst(p.tileFx.lot,c1,c2,now);
       }
       const rollWait=activeThrow?Math.max(0,THROW_DURATION-(now-activeThrow.started))+pendingRolls.length*THROW_DURATION:0;
       for(const player of p.state.players){if(!player.active)continue;const seat=seatOf(player.side),tokens=props.kind==='ludo'?player.tokens:[player.position];
@@ -311,7 +323,7 @@ export default function ScenePartyBoard(props:Props){
     frame=requestAnimationFrame(render);
     return()=>{closed=true;if(live.current.grabRef)live.current.grabRef.current=null;cancelAnimationFrame(frame);resize.disconnect();controls.removeEventListener('change',markDirty);controls.dispose();renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('webglcontextlost',lost);window.removeEventListener('pointermove',winMove);window.removeEventListener('pointerup',winUp);controller.current=null;live.current.onAnimatingChange?.(false);live.current.onHoldChange?.(false);dispose(scene);environment?.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();};
   },[props.kind,props.gameKey]);
-  useEffect(()=>{controller.current?.sync();},[props.state,props.enabled,props.legal,props.mySide,props.animate,props.lastDie,props.rollKey,props.selectedCell,props.justPurchasedLot,props.justPurchasedKey,props.auctionLot]);
+  useEffect(()=>{controller.current?.sync();},[props.state,props.enabled,props.legal,props.mySide,props.animate,props.lastDie,props.rollKey,props.selectedCell,props.justPurchasedLot,props.justPurchasedKey,props.auctionLot,props.tileFx]);
   useEffect(()=>{controller.current?.appearance(boardTheme);},[boardTheme]);
   useEffect(()=>{controller.current?.camera();},[props.topView,props.resetKey]);
   return <div className="party-model" ref={host} role="img" aria-label={`Bộ cờ ${props.kind==='ludo'?'Cá ngựa':props.state.edition==='vn-v2'?'Tỷ phú Việt Nam':'Tỷ phú bản cũ'} 3D, bàn gỗ và quân cờ nổi.`}/>;

@@ -344,3 +344,70 @@ export function playBidSound(): void {
     // Ignore audio context restrictions
   }
 }
+
+export function playCardFlipSound(positive = true): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx, noise} = audio;
+  try {
+    const now = ctx.currentTime;
+    // Crisp card flick swish
+    noiseBurst(ctx, noise, 'bandpass', 2400, 2.2, now, 0.06, 0.14);
+    noiseBurst(ctx, noise, 'bandpass', 1800, 1.8, now + 0.09, 0.05, 0.11);
+    if (positive) {
+      tone(ctx, 'triangle', 587.33, 587.33, now + 0.12, 0.11, 0.12);
+      tone(ctx, 'sine', 880, 880, now + 0.18, 0.16, 0.14);
+      tone(ctx, 'sine', 1174.66, 1174.66, now + 0.25, 0.22, 0.13);
+    } else {
+      tone(ctx, 'triangle', 440, 392, now + 0.12, 0.14, 0.13);
+      tone(ctx, 'sawtooth', 330, 246.94, now + 0.22, 0.22, 0.08);
+    }
+  } catch {
+    // Ignore audio context restrictions
+  }
+}
+
+export function playTaxOrLossSound(): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx, noise} = audio;
+  try {
+    const now = ctx.currentTime;
+    // Descending coin drain chime
+    tone(ctx, 'triangle', 520, 360, now, 0.12, 0.15);
+    tone(ctx, 'triangle', 390, 240, now + 0.1, 0.16, 0.15);
+    noiseBurst(ctx, noise, 'highpass', 2600, 2.5, now + 0.05, 0.06, 0.08);
+  } catch {
+    // Ignore audio context restrictions
+  }
+}
+
+export function playJailSound(): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx, noise} = audio;
+  try {
+    const now = ctx.currentTime;
+    // Heavy iron prison gate slam + metallic lock bolt
+    noiseBurst(ctx, noise, 'lowpass', 580, 1.4, now, 0.12, 0.28, 120);
+    tone(ctx, 'sawtooth', 165, 62, now, 0.18, 0.22);
+    noiseBurst(ctx, noise, 'bandpass', 1650, 5.5, now + 0.14, 0.09, 0.18);
+    tone(ctx, 'square', 420, 210, now + 0.14, 0.09, 0.09);
+  } catch {
+    // Ignore audio context restrictions
+  }
+}
+
+export function playSalarySound(): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx} = audio;
+  try {
+    const now = ctx.currentTime;
+    tone(ctx, 'sine', 659.25, 659.25, now, 0.09, 0.13);
+    tone(ctx, 'sine', 987.77, 987.77, now + 0.07, 0.12, 0.14);
+    tone(ctx, 'triangle', 1318.5, 1318.5, now + 0.14, 0.2, 0.13);
+  } catch {
+    // Ignore audio context restrictions
+  }
+}
