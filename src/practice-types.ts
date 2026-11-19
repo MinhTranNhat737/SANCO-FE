@@ -81,7 +81,7 @@ export function previewBoard(kind:GameKind):(string|null)[]{
   }
   return board;
 }
-export const LEVELS: Record<Difficulty, { name: string; description: string }> = { easy: { name: 'Dễ', description: 'Làm quen, thử những nước đầu.' }, medium: { name: 'Vừa', description: 'Một đối thủ để cùng tiến bộ.' }, hard: { name: 'Khá', description: 'Suy nghĩ kỹ hơn trước mỗi nước.' } };
+export const LEVELS: Record<Difficulty, { name: string; description: string }> = { easy: { name: 'Dễ', description: 'Làm quen, thử những nước đầu.' }, medium: { name: 'Vừa', description: 'Một đối thủ để cùng tiến bộ.' }, hard: { name: 'Khó', description: 'Tính sâu, ưu tiên nước mạnh và hạn chế sai sót.' } };
 export const X_LABELS: Record<string, string> = { rK: '帥', bK: '將', rA: '仕', bA: '士', rB: '相', bB: '象', rN: '馬', bN: '馬', rR: '俥', bR: '車', rC: '炮', bC: '砲', rP: '兵', bP: '卒' };
 export const X_NAMES: Record<string, string> = { K: 'Tướng', A: 'Sĩ', B: 'Tượng', N: 'Mã', R: 'Xe', C: 'Pháo', P: 'Tốt' };
 export const CHESS_LABELS: Record<string, string> = { wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙', bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟' };

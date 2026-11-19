@@ -184,6 +184,10 @@ for(const kind of KINDS){
     await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
     await click(document.querySelector(`.collection-${kind}`));
     await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Chơi với máy')));
+    if(['chess','xiangqi'].includes(kind)){
+      assert.equal(document.querySelector('.difficulty-options button[aria-pressed="true"]').textContent,'Khó');
+      assert.match(document.querySelector('.practice-setup').textContent,/3 giây/);
+    }
     await click(document.querySelector('.practice-start'));
     assert.ok(document.querySelector('.practice-session'));assert.ok(document.querySelector('[role="grid"],.party-board'));
     await verifyBoardThemes();
@@ -205,12 +209,13 @@ test('Saved board theme is restored after remounting the app',async()=>{
   assert.equal(document.querySelector('.board-appearance button').getAttribute('aria-pressed'),'true');
 });
 
-test('Rankings displays separate game ratings, real leaderboard empty state and all 12 bot profiles',async()=>{
+test('Rankings displays separate game ratings, real leaderboard empty state and elite chess bot profiles',async()=>{
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
   await click([...document.querySelectorAll('.nav-item')].find(b=>b.textContent==='Xếp hạng'));
   const pool=document.querySelectorAll('.ranking-filters select')[1];
   await act(async()=>{pool.value='overall';pool.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
-  assert.equal(document.querySelectorAll('.rank-bots article').length,12);
+  assert.equal(document.querySelectorAll('.rank-bots article').length,16);
+  assert.match(document.querySelector('.rank-bots').textContent,/3200/);
   assert.match(document.querySelector('.rank-profile').textContent,/1000/);
   assert.match(document.querySelector('.rankings-page').textContent,/Chưa có người chơi hoàn tất 10 ván/);
   const selector=document.querySelector('.rankings-page select');
