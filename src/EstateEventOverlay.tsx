@@ -54,15 +54,15 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
     </div>}
 
     {/* 2. Simple, Clean Card Reveal (Cơ Hội / Khí Vận) */}
-    {featured&&featured.type==='card'&&<div className="estate-fx-stage" role="status" aria-live="polite" onClick={onDismissFeatured}>
+    {featured&&(featured.type==='card'||featured.type==='market')&&<div className="estate-fx-stage" role="status" aria-live="polite" onClick={onDismissFeatured}>
       <div key={featured.id} className={`estate-card-scene deck-${featured.deck||'chance'}`} onClick={e=>e.stopPropagation()}>
         <div className="estate-card-front">
           <div className="estate-card-front-top">
-            <span className="estate-card-deck-pill">{featured.deck==='community'?'Khí vận':'Cơ hội'}</span>
+            <span className="estate-card-deck-pill">{featured.type==='market'?'Thị trường':featured.deck==='community'?'Khí vận':'Cơ hội'}</span>
             <button type="button" className="estate-fx-close" aria-label="Đóng thẻ" onClick={onDismissFeatured}><X size={14}/></button>
           </div>
           <div className="estate-card-head">
-            <span className="estate-card-icon-ring">{cardIcon(featured.card)}</span>
+            <span className="estate-card-icon-ring">{featured.type==='market'?<Landmark size={20}/>:cardIcon(featured.card)}</span>
             <div>
               <h3 className="estate-card-title">{featured.title}</h3>
               <p className="estate-card-desc">{featured.reason}</p>
@@ -71,7 +71,7 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
           <div className="estate-card-footer">
             <span className="estate-card-player">
               <i style={{background:PARTY_COLORS[featured.side]||'#d7a431'}}/>
-              {nameOf(featured.side)}
+              {featured.type==='market'?'Áp dụng toàn bàn':nameOf(featured.side)}
             </span>
             {featured.amount!==0&&<span className={`estate-card-amount ${featured.amount>0?'pos':'neg'}`}>
               {featured.amount>0?`+${cash(featured.amount)}`:`−${cash(Math.abs(featured.amount))}`}

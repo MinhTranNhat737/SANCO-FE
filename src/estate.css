@@ -176,3 +176,32 @@
 .estate-jail-hint{display:block;font-size:10.5px;color:#b89494}
 
 @media(max-width:650px){.estate-center-card{width:100%}.estate-bid-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.estate-buy-facts{grid-template-columns:1fr 1fr}.estate-auction-hero{grid-template-columns:1fr}}
+.estate-mode-picker {grid-column:1/-1;min-width:0}
+.estate-mode-preview,.estate-mode-strip,.estate-mode-wallet {padding:12px 14px;border:1px solid #b18b4260;background:var(--panel-bg,#302618);color:var(--text,#f4e7ce);border-radius:8px;line-height:1.55}
+.estate-mode-preview {margin-top:9px}
+.estate-mode-preview p {margin:5px 0;font-size:13px}
+.estate-mode-preview small,.estate-mode-wallet small {display:block;opacity:.85}
+.estate-mode-strip {display:flex;flex-wrap:wrap;gap:5px 14px;margin:0 0 14px;font-size:13px}
+.estate-mode-strip>span {flex:1 1 300px}
+.estate-mode-strip small {flex-basis:100%;color:#f2c76d}
+.estate-mode-wallet {margin-bottom:10px;font-size:13px}
+.estate-mode-wallet span {display:block;margin-top:6px;color:#f2c76d}
+.estate-counter {display:grid;gap:8px;margin:10px 0}
+.estate-counter form {display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.estate-counter label {min-width:0;font-size:12px}
+.estate-counter input {width:100%;min-width:0;box-sizing:border-box}
+.estate-counter form>.button {grid-column:1/-1}
+.estate-start-current {margin-top:9px}
+.vn-ownership-glow {pointer-events:none;animation:estate-ownership-glow 2.3s ease-out both}
+@keyframes estate-ownership-glow {0%{opacity:0}12%{opacity:1}35%{opacity:.65}55%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.vn-ownership-glow{animation:none;opacity:.75}.vn-buy-burst .vn-fx-float{animation:none}}
+.estate-tutorial {margin:0 0 10px;border:1px solid #b18b4250;border-radius:8px;background:var(--panel-bg,#302618);color:var(--text,#f4e7ce);font-size:13px;text-align:left}
+.estate-tutorial-header {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px}
+.estate-tutorial-header p {margin:0;line-height:1.5}
+.estate-tutorial-header button {flex-shrink:0;white-space:nowrap}
+.estate-tutorial-lesson {border-top:1px solid #b18b4230;padding:12px}
+.estate-tutorial-lesson h3 {font-size:15px;margin:7px 0}
+.estate-tutorial-lesson p {line-height:1.65;margin:0 0 12px;max-width:85ch}
+.estate-tutorial-lesson small {opacity:.8}
+.estate-tutorial-lesson nav {display:flex;justify-content:space-between;gap:12px}
+@media(max-width:540px){.estate-tutorial-header {align-items:flex-start}.estate-tutorial-header p {font-size:12px}}

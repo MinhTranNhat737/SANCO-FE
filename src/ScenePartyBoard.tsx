@@ -17,6 +17,7 @@ type Props={
   animate:boolean;lastDie:number|null;rollKey:string;rolls:DiceRoll[];
   selectedCell?:number|null;
   justPurchasedLot?:number|null;
+  justPurchasedLots?:number[];
   justPurchasedKey?:number;
   auctionLot?:number|null;
   tileFx?:{lot:number;type:string;amount:number;key:number}|null;
@@ -85,7 +86,7 @@ export default function ScenePartyBoard(props:Props){
       emitPhase('dice');
     }
     let assetRoot=new T.Group();scene.add(assetRoot);let assetKey='';
-    type BurstFx={group:T.Group;ring:T.Mesh;particles:{mesh:T.Mesh;vx:number;vy:number;vz:number}[];started:number;duration:number};
+    type BurstFx={group:T.Group;ring:T.Mesh;glow?:T.Mesh;particles:{mesh:T.Mesh;vx:number;vy:number;vz:number}[];started:number;duration:number};
     const bursts:BurstFx[]=[];
     let seenPurchaseKey=props.justPurchasedKey||0;
     let seenTileFxKey=props.tileFx?.key||0;
@@ -100,7 +101,17 @@ export default function ScenePartyBoard(props:Props){
       bursts.push({group,ring,particles:[],started:now,duration:750});
     }
     function spawnPurchaseBurst(lot:number,side:string,now:number){
-      spawnTileBurst(lot,PARTY_COLORS[side]||'#f59e0b','#facc15',now);
+      const [r,c]=estateCell(lot,estateSize),step=600/estateSize,pt=worldPoint([c*step+step*.5,r*step+step*.5]);
+      const group=new T.Group();group.position.set(pt.x,SURFACE+.035,pt.z);
+      const color=PARTY_COLORS[side]||'#f59e0b';
+      const shape=new T.Shape();shape.moveTo(-.46,-.46);shape.lineTo(.46,-.46);shape.lineTo(.46,.46);shape.lineTo(-.46,.46);shape.closePath();
+      const hole=new T.Path();hole.moveTo(-.4,-.4);hole.lineTo(-.4,.4);hole.lineTo(.4,.4);hole.lineTo(.4,-.4);hole.closePath();shape.holes.push(hole);
+      const ring=new T.Mesh(new T.ShapeGeometry(shape),new T.MeshBasicMaterial({color,side:T.DoubleSide,transparent:true,depthWrite:false}));
+      ring.rotation.x=-Math.PI/2;ring.scale.setScalar(tileSpan);
+      const glow=new T.Mesh(new T.PlaneGeometry(tileSpan*.94,tileSpan*.94),new T.MeshBasicMaterial({color,side:T.DoubleSide,transparent:true,opacity:.22,blending:T.AdditiveBlending,depthWrite:false}));
+      glow.rotation.x=-Math.PI/2;glow.position.y=.002;
+      group.add(ring,glow);scene.add(group);
+      bursts.push({group,ring,glow,particles:[],started:now,duration:2000});
     }
     const pieces=new Map<string,Piece>(),reduced=false;
     const sidePool=props.kind==='monopoly'?MONOPOLY_SIDES:PARTY_SIDES;
@@ -126,8 +137,9 @@ export default function ScenePartyBoard(props:Props){
       }
       if(props.kind==='monopoly'&&p.animate&&!baseline&&p.justPurchasedLot!=null&&(p.justPurchasedKey||0)>seenPurchaseKey){
         seenPurchaseKey=p.justPurchasedKey||0;
-        const ownerSide=p.state.property[p.justPurchasedLot]||'R';
-        spawnPurchaseBurst(p.justPurchasedLot,ownerSide,now);
+        for(const lot of p.justPurchasedLots??[p.justPurchasedLot]){
+          if(lot>=0&&lot<p.state.property.length)spawnPurchaseBurst(lot,p.state.property[lot]||'R',now);
+        }
       }
       if(props.kind==='monopoly'&&p.animate&&!baseline&&p.tileFx&&p.tileFx.key>seenTileFxKey){
         seenTileFxKey=p.tileFx.key;
@@ -281,10 +293,11 @@ export default function ScenePartyBoard(props:Props){
         const fx=bursts[i],dt=(time-fx.started)/fx.duration;
         if(dt>=1){scene.remove(fx.group);dispose(fx.group);bursts.splice(i,1);continue;}
         moving=true;
-        const s=1+dt*2.4;
+        const s=fx.glow?tileSpan*(1+Math.sin(dt*Math.PI*3)*.025):1+dt*2.4;
         fx.ring.scale.setScalar(s);
-        fx.ring.position.y=dt*.28;
+        fx.ring.position.y=fx.glow?0:dt*.28;
         (fx.ring.material as T.MeshBasicMaterial).opacity=Math.max(0,(1-dt)*.95);
+        if(fx.glow)(fx.glow.material as T.MeshBasicMaterial).opacity=(.18+.2*Math.sin(dt*Math.PI*3)**2)*(1-dt);
         const sec=dt*(fx.duration/1000);
         for(const pt of fx.particles){
           pt.mesh.position.set(pt.vx*sec,Math.max(.03,.05+pt.vy*sec-2.6*sec*sec),pt.vz*sec);
@@ -338,7 +351,7 @@ export default function ScenePartyBoard(props:Props){
     frame=requestAnimationFrame(render);
     return()=>{closed=true;if(live.current.grabRef)live.current.grabRef.current=null;cancelAnimationFrame(frame);resize.disconnect();controls.removeEventListener('change',markDirty);controls.dispose();renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('webglcontextlost',lost);window.removeEventListener('pointermove',winMove);window.removeEventListener('pointerup',winUp);controller.current=null;live.current.onAnimatingChange?.(false);live.current.onHoldChange?.(false);dispose(scene);environment?.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();};
   },[props.kind,props.gameKey]);
-  useEffect(()=>{controller.current?.sync();},[props.state,props.enabled,props.legal,props.mySide,props.animate,props.lastDie,props.rollKey,props.selectedCell,props.justPurchasedLot,props.justPurchasedKey,props.auctionLot,props.tileFx]);
+  useEffect(()=>{controller.current?.sync();},[props.state,props.enabled,props.legal,props.mySide,props.animate,props.lastDie,props.rollKey,props.selectedCell,props.justPurchasedLot,props.justPurchasedKey,props.justPurchasedLots,props.auctionLot,props.tileFx]);
   useEffect(()=>{controller.current?.appearance(boardTheme);},[boardTheme]);
   useEffect(()=>{controller.current?.camera();},[props.topView,props.resetKey]);
   return <div className="party-model" ref={host} role="img" aria-label={`Bộ cờ ${props.kind==='ludo'?'Cá ngựa':props.state.edition==='vn-v2'?'Tỷ phú Việt Nam':'Tỷ phú bản cũ'} 3D, bàn gỗ và quân cờ nổi.`}/>;

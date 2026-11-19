@@ -6,6 +6,7 @@ export type User = { id: string; name: string; account: boolean; email: string |
 export type AuthProviders = { google: boolean; facebook: boolean };
 export type Seat = { name: string; mark: Mark; ready: boolean; rematch: boolean; online: boolean;elo?:number };
 export type Room = {
+  estateMode?:'auto'|'classic';
   ranked?:boolean;matchmaking?:MatchPreset;id: string; kind:GameKind; version: number; duration: number; createdAt: number; inviteExpiresAt: number; serverNow: number;
   owner: Seat; guest: Seat | null; me: { role: 'owner' | 'guest'; mark: Mark; ready: boolean; rematch: boolean };
   players?:Seat[];capacity?:number;

@@ -3,6 +3,8 @@ import {playDiceSound,playMoveSound,playPurchaseSound,playBidSound,playCardFlipS
 import EstateControls from './EstateControls';
 import EstateAuctionModal from './EstateAuctionModal';
 import EstateEventOverlay from './EstateEventOverlay';
+import EstateTutorial from './EstateTutorial';
+import {ownershipChanges} from './estate-rules';
 import VietnamEstateBoard,{EstateInspector} from './VietnamEstateBoard';
 import {isVietnam,VN_CELLS,SIDE_NAMES,cash} from './estate-data';
 import type {DiceRoll} from './three/dice-motion.ts';
@@ -68,7 +70,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     displayPosRef.current=positions;
     setDisplayPos(positions);
   };
-  const [purchaseFx,setPurchaseFx]=useState<{lot:number;side:string;price:number;source:'buy'|'auction';key:number}|null>(null);
+  const [purchaseFx,setPurchaseFx]=useState<{lot:number;lots:number[];side:string;fromSide?:string;houses?:number;price:number;source:'buy'|'auction'|'buyout'|'transfer';key:number}|null>(null);
   const [featuredQueue,setFeaturedQueue]=useState<EstateEvent[]>([]);
   const [eventToasts,setEventToasts]=useState<EstateEvent[]>([]);
   const [tileFx,setTileFx]=useState<{lot:number;type:string;amount:number;key:number}|null>(null);
@@ -114,7 +116,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     setFeaturedQueue([]);
     setEventToasts([]);
     setTileFx(null);
-  },[gameKey]);
+  },[gameKey,Boolean(state.started)]);
 
   // Keep 2D display positions synced when idle or not animating (never overwrite during a pending roll!)
   useEffect(()=>{
@@ -183,7 +185,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     let playedCard=false,playedJail=false,playedLoss=false,playedSalary=false;
 
     for(const ev of fresh){
-      if(ev.type==='card'){
+      if(ev.type==='card'||ev.type==='market'){
         newFeatured.push(ev);
         lastTile=ev;
         if(!playedCard){playCardFlipSound(ev.amount>=0&&ev.card!==5);playedCard=true;}
@@ -225,24 +227,23 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
 
   // Defer purchase confirmation FX until dice & movement land!
   useEffect(()=>{
-    if(!animate||kind!=='monopoly'){prevPropRef.current=[...state.property];return;}
+    if(!animate||kind!=='monopoly'){prevPropRef.current=[...state.property];setPurchaseFx(null);return;}
     if(isBoardBusy)return;
-    const prev=prevPropRef.current;
+    const changes=ownershipChanges(prevPropRef.current,state.property,state.lastPurchase);
     prevPropRef.current=[...state.property];
-    for(let i=0;i<state.property.length;i++){
-      if(!prev[i]&&state.property[i]){
-        const side=state.property[i]!;
-        const lp=state.lastPurchase?.lot===i?state.lastPurchase:null;
-        const price=lp?.price??VN_CELLS[i]?.price??0;
-        const source=lp?.source??'buy';
-        const key=++fxSeqRef.current;
-        setPurchaseFx({lot:i,side,price,source,key});
-        playPurchaseSound(source==='auction');
-        const timer=setTimeout(()=>setPurchaseFx(cur=>cur?.key===key?null:cur),2800);
-        return()=>clearTimeout(timer);
-      }
-    }
+    if(!changes.length)return;
+    const primary=changes.find(change=>change.side===mySide)||changes[0];
+    setPurchaseFx({...primary,lots:changes.map(change=>change.lot),key:++fxSeqRef.current});
   },[state.property.join(','),animate,kind,isBoardBusy]);
+
+  // Keep the lifetime independent of dice/turn updates so the glow always expires.
+  useEffect(()=>{
+    if(!purchaseFx)return;
+    playPurchaseSound(purchaseFx.source==='auction'||purchaseFx.source==='buyout');
+    const key=purchaseFx.key;
+    const timer=setTimeout(()=>setPurchaseFx(cur=>cur?.key===key?null:cur),2400);
+    return()=>clearTimeout(timer);
+  },[purchaseFx?.key]);
 
   useEffect(()=>{
     const bid=state.auction?.bid||0;
@@ -348,19 +349,21 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
   const visual2DState:PartyState=view==='2d'&&kind==='monopoly'&&isBoardBusy
     ?{...state,players:state.players.map(p=>({...p,position:displayPos[p.side]??p.position}))}
     :state;
-  const flat=()=>vietnam?<VietnamEstateBoard state={visual2DState} mySide={mySide} selected={inspect} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx}/>:<FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)}/>;
+  const flat=()=>vietnam?<VietnamEstateBoard state={visual2DState} mySide={mySide} selected={inspect} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx}/>:<FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)}/>;
   const choose=(v:'3d'|'2d')=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setAnimPhase('idle');onAnimatingChange?.(false);setView(v);localStorage.setItem('sc-party-view',v);};
   const fallback=()=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setAnimPhase('idle');onAnimatingChange?.(false);setFailed(true);setView('2d');};
   const buyerName=purchaseFx?(playerNames?.[purchaseFx.side]||SIDE_NAMES[purchaseFx.side]||purchaseFx.side):'';
+  const sellerName=purchaseFx?.fromSide?(playerNames?.[purchaseFx.fromSide]||SIDE_NAMES[purchaseFx.fromSide]||purchaseFx.fromSide):'';
   const boughtCell=purchaseFx?VN_CELLS[purchaseFx.lot]:null;
 
   return <div data-board-theme={boardTheme} className={`party-board party-table party-table-${view}`}>
+    {vietnam&&<EstateTutorial state={state} mySide={mySide} turn={turn} busy={isBoardBusy} live={animate}/>}
     <div className="party-table-toolbar"><span className="party-material-label">{kind==='ludo'?'CÁ NGỰA':'TỶ PHÚ'}<small>{kind==='monopoly'?'Bấm vào ô bất kỳ để xem thông tin':view==='3d'?'Bộ cờ Sân Cờ':'Mặt bàn'}</small></span><div className="board-view-options"><BoardAppearance/><div role="group" aria-label="Kiểu bộ cờ"><button className={view==='3d'?'selected':''} disabled={failed} aria-pressed={view==='3d'} onClick={()=>choose('3d')}><Box size={15}/>3D</button><button className={view==='2d'?'selected':''} aria-pressed={view==='2d'} onClick={()=>choose('2d')}><Layers size={15}/>2D</button></div></div></div>
     <div className="party-stage-wrap" ref={stageRef}>
-      {view==='3d'?<Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m=>onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx} grabRef={grabRef} onCellSelect={i=>setSelectedCell(prev=>prev===i?null:i)} onHoldChange={setHolding} onPhaseChange={phase=>{setAnimPhase(phase);onAnimatingChange?.(phase!=='idle');}}/></Suspense></Board3DBoundary>:flat()}
+      {view==='3d'?<Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m=>onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx} grabRef={grabRef} onCellSelect={i=>setSelectedCell(prev=>prev===i?null:i)} onHoldChange={setHolding} onPhaseChange={phase=>{setAnimPhase(phase);onAnimatingChange?.(phase!=='idle');}}/></Suspense></Board3DBoundary>:flat()}
       {vietnam&&!isBoardBusy&&purchaseFx&&boughtCell&&<div key={purchaseFx.key} className="estate-purchase-banner" role="status" aria-live="polite" style={{'--owner-color':COLORS[purchaseFx.side]||'#d7a431'} as React.CSSProperties}>
         <span className="estate-purchase-icon">{purchaseFx.source==='auction'?<Gavel size={15}/>:<Trophy size={15}/>}</span>
-        <span><strong>{buyerName}</strong> {purchaseFx.source==='auction'?'thắng đấu giá':'đã mua'} <strong>{boughtCell.name}</strong> · <em>{cash(purchaseFx.price)}</em></span>
+        <span><strong>{buyerName}</strong> {purchaseFx.source==='auction'?'thắng đấu giá':purchaseFx.source==='buyout'?'đã mua lại':purchaseFx.source==='transfer'?'nhận chuyển nhượng':'đã mua'} <strong>{boughtCell.name}</strong>{purchaseFx.source==='buyout'&&sellerName?` từ ${sellerName}`:''}{purchaseFx.lots.length>1&&` và ${purchaseFx.lots.length-1} ô khác`}{purchaseFx.price>0&&<> · <em>{cash(purchaseFx.price)}</em></>}</span>
       </div>}
       {vietnam&&<EstateEventOverlay featured={activeFeatured} toasts={eventToasts} playerNames={playerNames} onDismissFeatured={()=>setFeaturedQueue(q=>q.slice(1))} onDismissToast={id=>setEventToasts(cur=>cur.filter(e=>e.id!==id))}/>}
       {vietnam&&onMove&&<EstateAuctionModal state={state} mySide={mySide} turn={turn} playerNames={playerNames} legal={legal} enabled={enabled} busy={isBoardBusy} onMove={m=>onMove(moveRequest(m))}/>}

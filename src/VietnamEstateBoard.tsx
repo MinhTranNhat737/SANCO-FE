@@ -2,7 +2,9 @@ import type {PartyState,PracticeMove} from './practice-types';
 import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash,estateRent,ownable} from './estate-data';
 import {estateCell,PARTY_COLORS,CITIES,GROUP_COLORS,groupOf} from './three/party-layout.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from './vietnam-landmarks';
+import {useId} from 'react';
 import './estate.css';
+import {estateBuildCost,estateSalary} from './estate-rules';
 
 const TYPE_LABELS:Record<string,string>={
   property:'Tỉnh / Thành phố',
@@ -77,7 +79,7 @@ export function EstateInspector({
   const actionLabels:Record<string,string>={
     buy:`Mua ${c.name} (${cash(c.price)})`,
     auction:'Mở đấu giá',
-    build:`Xây dựng (${cash(c.buildCost)})`,
+    build:`Xây dựng (${cash(estateBuildCost(state,c.buildCost))})`,
     mortgage:`Thế chấp (+${cash(Math.floor(c.price/2))})`,
     redeem:`Chuộc đất (${cash(Math.ceil(c.price*.55))})`,
     sell_building:'Bán 1 công trình',
@@ -103,8 +105,8 @@ export function EstateInspector({
       {ownable(c)?<>
         <div className="estate-fact-grid">
           <span>Giá mua<strong>{cash(c.price)}</strong></span>
-          <span>Thuê hiện tại<strong>{mortgaged?'0 (Thế chấp)':c.type==='utility'?`${estateRent(state,selected)||'5–12'}× xúc xắc`:cash(estateRent(state,selected)||c.rent[0]||50)}</strong></span>
-          {c.buildCost>0&&<span>Giá xây dựng<strong>{cash(c.buildCost)} / cấp</strong></span>}
+          <span>Thuê hiện tại<strong>{mortgaged?'0 (Thế chấp)':owner?cash(estateRent(state,selected)):'Chưa có chủ'}</strong></span>
+          {c.buildCost>0&&<span>Giá xây dựng<strong>{cash(estateBuildCost(state,c.buildCost))} / cấp</strong></span>}
           <span>Thế chấp / Chuộc<strong>{cash(Math.floor(c.price/2))} / {cash(Math.ceil(c.price*.55))}</strong></span>
         </div>
         {c.type==='property'&&c.rent.length>=6&&<div className="estate-rent-tiers">
@@ -115,9 +117,10 @@ export function EstateInspector({
           <span>4 nhà: <b>{cash(c.rent[4])}</b></span>
           <span>Khách sạn: <b>{cash(c.rent[5])}</b></span>
         </div>}
-        {c.type==='station'&&<p className="estate-special-note">Tiền thuê theo số bến/ga cùng chủ: 1 ga 50 tr · 2 ga 100 tr · 3 ga 200 tr · 4 ga 400 tr.</p>}
+        {state.market&&<p className="estate-special-note">Thị trường: {state.market.description}. Tiền thuê hiện tại đã áp dụng hệ số; bảng cấp nhà là giá cơ bản.</p>}
+        {c.type==='station'&&<p className="estate-special-note">Tiền thuê cơ bản theo số bến/ga cùng chủ: 1 ga 50 tr · 2 ga 100 tr · 3 ga 200 tr · 4 ga 400 tr.</p>}
         {c.type==='utility'&&<p className="estate-special-note">Sở hữu 1 tiện ích: thuê = 5× tổng 2 xúc xắc · Sở hữu đủ 2 tiện ích: thuê = 12× tổng 2 xúc xắc.</p>}
-      </>:<p className="estate-special-note">{c.type==='start'?'Đi qua hoặc dừng tại Xuất phát nhận +400 triệu.':c.type==='tax'?`Nộp ngân sách nhà nước ${cash(c.amount||0)}.`:c.type==='gotojail'?'Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.':c.type==='jail'?'Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).':c.type==='rest'?'Bến dừng chân tự do, không phải nộp phí.':'Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.'}</p>}
+      </>:<p className="estate-special-note">{c.type==='start'?`Đi qua hoặc dừng tại Xuất phát nhận +${estateSalary(state)} triệu.`:c.type==='tax'?`Nộp ngân sách nhà nước ${cash(c.amount||0)}.`:c.type==='gotojail'?'Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.':c.type==='jail'?'Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).':c.type==='rest'?'Bến dừng chân tự do, không phải nộp phí.':'Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.'}</p>}
     </div>
     {enabled&&cellMoves.length>0&&<div className="estate-card-actions">
       {cellMoves.map(m=>{const act=m.action||m.command||'';return <button key={act+':'+m.to} type="button" className="button button-small" onClick={()=>onAction?.(m)}>{actionLabels[act]||act}</button>;})}
@@ -328,15 +331,18 @@ function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false}:{cx
   </g>;
 }
 
-export default function VietnamEstateBoard({state,mySide,selected,onSelect,justPurchasedLot=null,justPurchasedKey=0,auctionLot=null,tileFx=null}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void;justPurchasedLot?:number|null;justPurchasedKey?:number;auctionLot?:number|null;tileFx?:{lot:number;type:string;amount:number;key:number}|null}){
+export default function VietnamEstateBoard({state,mySide,selected,onSelect,justPurchasedLot=null,justPurchasedKey=0,justPurchasedLots,auctionLot=null,tileFx=null}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void;justPurchasedLot?:number|null;justPurchasedKey?:number;justPurchasedLots?:number[];auctionLot?:number|null;tileFx?:{lot:number;type:string;amount:number;key:number}|null}){
   const activePlayers=state.players.filter(v=>v.active);
   const turnSide=state.players.find(p=>p.active&&p.side===(state as {turn?:string}).turn)?.side;
+  const glowId=useId().replaceAll(':','');
+  const glowLots=justPurchasedLots??(justPurchasedLot!=null?[justPurchasedLot]:[]);
   const burstCell=justPurchasedLot!=null?VN_CELLS[justPurchasedLot]:null;
   const burstCoords=burstCell?estateCell(burstCell.index,13):null;
   const burstOwner=burstCell?state.property[burstCell.index]:null;
   const burstColor=burstOwner?TOKEN_STYLES[burstOwner]?.fill||PARTY_COLORS[burstOwner]||'#f59e0b':'#f59e0b';
   const fxCoords=tileFx&&tileFx.lot>=0&&tileFx.lot<48?estateCell(tileFx.lot,13):null;
   return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
+    <defs><filter id={glowId} x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4"/></filter></defs>
     <rect className="board-svg-base" width="780" height="780" rx="6" fill="#ffffff" stroke="#111111" strokeWidth="4"/>
     <rect className="board-svg-center" x="60" y="60" width="660" height="660" fill="#fbfaf6" stroke="#111111" strokeWidth="2.8"/>
 
@@ -399,7 +405,7 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
           fontWeight="900"
           fill={isCorner||c.type==='tax'||c.type==='chance'?'#dc2626':'#111111'}
         >
-          {ownable(c)?`${c.price} đ`:c.type==='start'?'+400 đ':c.type==='chance'?'CƠ HỘI':c.type==='community'?'KHÍ VẬN':c.type==='tax'?`−${c.amount} đ`:c.type==='gotojail'?'VÔ TÙ':c.type==='jail'?'THĂM TÙ':'SÂN BAY'}
+          {ownable(c)?`${c.price} đ`:c.type==='start'?`+${estateSalary(state)} đ`:c.type==='chance'?'CƠ HỘI':c.type==='community'?'KHÍ VẬN':c.type==='tax'?`−${c.amount} đ`:c.type==='gotojail'?'VÔ TÙ':c.type==='jail'?'THĂM TÙ':'SÂN BAY'}
         </text>}
 
         {lvl>0&&<FlatBuilding x={x} y={y} level={lvl} color={ownerColor||groupColor}/>}
@@ -436,12 +442,16 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
       />;
     })}
 
-    {/* Simple, subtle purchase confirmation pill on the bought tile */}
+    {glowLots.filter(lot=>lot>=0&&lot<48).map(lot=>{const [row,col]=estateCell(lot,13),side=state.property[lot];return <g key={justPurchasedKey+':'+lot} className="vn-ownership-glow" data-glow-lot={lot} aria-hidden="true">
+      <rect x={col*60+4} y={row*60+4} width="52" height="52" rx="4" fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="9" filter={`url(#${glowId})`}/>
+      <rect x={col*60+3} y={row*60+3} width="54" height="54" rx="4" fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="3"/>
+    </g>;})}
+    {/* Ownership confirmation follows a completed purchase or transfer. */}
     {burstCoords&&<g key={justPurchasedKey} className="vn-buy-burst" aria-hidden="true">
       <rect className="vn-buy-flash" x={burstCoords[1]*60+1} y={burstCoords[0]*60+1} width="58" height="58" rx="3" fill="none" stroke={burstColor} strokeWidth="3.5"/>
       <g className="vn-fx-float">
         <rect x={burstCoords[1]*60+4} y={burstCoords[0]*60+20} width="52" height="18" rx="9" fill={burstColor} stroke="#ffffff" strokeWidth="1.4"/>
-        <text x={burstCoords[1]*60+30} y={burstCoords[0]*60+31.8} textAnchor="middle" fontSize="8.8" fontWeight="800" fill="#ffffff">Đã mua</text>
+        <text x={burstCoords[1]*60+30} y={burstCoords[0]*60+31.8} textAnchor="middle" fontSize="8.2" fontWeight="800" fill="#ffffff">Đã sở hữu</text>
       </g>
     </g>}
 

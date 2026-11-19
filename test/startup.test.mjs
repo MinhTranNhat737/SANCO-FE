@@ -400,7 +400,7 @@ test('Phone portrait blocks Monopoly, rotation unlocks it, and optional orientat
   await render('caro');await settle();assert.equal(document.getElementById('root').inert,false);
 });
 
-test('Creating a Monopoly room defaults to casual mode, supports 8 players, and renders right-side avatars',async()=>{
+test('Creating a Monopoly room defaults to casual creative mode, supports 8 seats and keeps waiting players unique',async()=>{
   const fallback=globalThis.fetch;let createdBody=null;
   globalThis.fetch=async(url,options={})=>{
     const pathname=new URL(String(url),window.location.href).pathname;
@@ -420,9 +420,9 @@ test('Creating a Monopoly room defaults to casual mode, supports 8 players, and 
   assert.equal(createdBody.ranked,false);
   assert.equal(createdBody.side,'random');
   assert.equal(createdBody.capacity,8);
+  assert.equal(createdBody.estateMode,'auto');
   assert.match(document.querySelector('.rank-room-label').textContent,/Chế độ giải trí/);
-  assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-player-card').length,8);
-  assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-avatar').length,8);
+  assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-player-card').length,0);
   assert.equal(document.querySelectorAll('.party-lobby-seats .party-avatar').length,8);
 });
 
@@ -515,4 +515,44 @@ test('Monopoly hides dice result and freezes bot & human tokens until dice settl
   // After walk finishes: bot lands on cell 6
   await act(async()=>{await new Promise(resolve=>setTimeout(resolve,850));});
   assert.equal(document.querySelector('[data-token-side="G"]')?.getAttribute('data-token-cell'),'6','Bot token lands on cell 6 after walk');
+});
+
+test('Monopoly buyout modal shows land + building price breakdown and dispatches buyout or skip_buyout',async()=>{
+  const {default:EstateAuctionModal}=await vite.ssrLoadModule('/src/EstateAuctionModal.tsx');
+  const {VN_CELLS}=await vite.ssrLoadModule('/src/estate-data.ts');
+  const game=createPractice('monopoly','R','medium','buyout-modal-test');
+  const lot=VN_CELLS.find(c=>c.type==='property'&&c.index>0);
+  const state=structuredClone(game.party);
+  state.players[0].position=lot.index;
+  state.players[0].cash=2500;
+  state.property[lot.index]='G';
+  state.houses[lot.index]=2;
+  state.stage='buyout';
+  const expectedTotal=lot.price+2*lot.buildCost;
+  const sent=[];
+  await act(async()=>root.render(createElement(EstateAuctionModal,{
+    state,
+    mySide:'R',
+    turn:'R',
+    playerNames:{R:'Minh',G:'Bot Nam'},
+    legal:[{from:null,to:lot.index,action:'buyout'},{from:null,to:-1,action:'skip_buyout'}],
+    enabled:true,
+    busy:false,
+    onMove:m=>sent.push(m)
+  })));
+  await settle();
+
+  const card=document.querySelector('.estate-buyout-center');
+  assert.ok(card,'Buyout modal must render on opponent property');
+  assert.match(card.textContent,/MUA LẠI ĐẤT ĐỐI THỦ/);
+  assert.match(card.textContent,/Bot Nam/);
+  assert.match(card.textContent,new RegExp(`${expectedTotal.toLocaleString('vi-VN')} tr`));
+  assert.match(card.textContent,/Tiền 2 nhà/);
+
+  await act(async()=>{card.querySelector('.estate-buyout-primary').click();});
+  assert.equal(sent[0].command,'buyout');
+  assert.equal(sent[0].to,lot.index);
+
+  await act(async()=>{card.querySelector('.estate-pass-btn').click();});
+  assert.equal(sent[1].command,'skip_buyout');
 });

@@ -1,7 +1,7 @@
 import {useEffect,useState,type FormEvent} from 'react';
-import {Gavel,Landmark,SkipForward,Coins,Check,X,Sparkles,Eye,TrainFront,Zap} from 'lucide-react';
+import {Gavel,Landmark,SkipForward,Coins,Check,X,Sparkles,Eye,TrainFront,Zap,ArrowLeftRight} from 'lucide-react';
 import type {PartyState,PracticeMove} from './practice-types';
-import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash} from './estate-data';
+import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash,estateBuyoutPrice} from './estate-data';
 import {PARTY_COLORS} from './three/party-layout.ts';
 import {PROVINCE_LANDMARKS} from './vietnam-landmarks';
 
@@ -35,7 +35,7 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
   },[auction?.lot,auction?.bid]);
 
   useEffect(()=>{
-    if(state.stage==='buy')setMinimized(false);
+    if(state.stage==='buy'||state.stage==='buyout')setMinimized(false);
   },[state.stage,me?.position]);
 
   const cellSubtitle=(cell:typeof VN_CELLS[number])=>{
@@ -266,6 +266,83 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
             </div>
           </div>
           <p className="estate-center-footnote">Bỏ qua sẽ không mở đấu giá và chuyển lượt ngay.</p>
+        </div>
+      </section>
+    </div>;
+  }
+
+  // 3. PROPERTY BUYOUT MODAL — shown in center when YOU land on an opponent's lot and can buy it out!
+  if(state.stage==='buyout'&&enabled&&!busy&&me&&(allowed('buyout',me.position)||allowed('skip_buyout'))){
+    const cell=VN_CELLS[me.position];
+    const ownerSide=state.property[me.position];
+    if(!cell||!ownerSide||ownerSide===mySide)return null;
+    const accent=cell.group!==undefined?VN_GROUP_COLORS[cell.group]:cell.type==='station'?'#16a34a':'#d97706';
+    const {landPrice,houses,buildingPrice,totalPrice}=estateBuyoutPrice(state,me.position);
+    const canBuyout=allowed('buyout',me.position)&&me.cash>=totalPrice;
+    const ownerName=nameOf(ownerSide);
+    const houseLabel=houses===5?'1 khách sạn':houses>0?`${houses} nhà`:'Đất trống';
+
+    if(minimized){
+      return <button type="button" className="estate-center-reopen" onClick={()=>setMinimized(false)}>
+        <ArrowLeftRight size={16}/>
+        <span>Mua lại <strong>{cell.name}</strong> từ {ownerName} · {cash(totalPrice)}</span>
+      </button>;
+    }
+
+    return <div className="estate-center-overlay" role="dialog" aria-label={`Mua lại ô đất ${cell.name}`}>
+      <section className="estate-center-card estate-buy-center estate-buyout-center" style={{'--lot-accent':accent} as React.CSSProperties}>
+        <div className="estate-center-top-accent"/>
+        <div className="estate-center-banner">
+          <span className="estate-center-kicker">
+            <span className="estate-kicker-gem"><ArrowLeftRight size={13}/></span>
+            MUA LẠI ĐẤT ĐỐI THỦ
+          </span>
+          <button type="button" className="estate-center-min" onClick={()=>setMinimized(true)} title="Thu gọn để xem bàn"><Eye size={13}/>Xem bàn</button>
+        </div>
+
+        <div className="estate-center-body">
+          <div className="estate-center-title-row">
+            <div className="estate-center-heading">
+              <h3>{cell.name}</h3>
+              <span className="estate-center-subtitle">Chủ hiện tại: <strong style={{color:PARTY_COLORS[ownerSide]||'#fde047'}}>{ownerName}</strong> · {houseLabel}</span>
+            </div>
+            <div className="estate-center-listprice">
+              <small>Tổng mua lại</small>
+              <strong>{cash(totalPrice)}</strong>
+            </div>
+          </div>
+
+          <div className="estate-buy-facts">
+            <span>
+              <small>Giá đất</small>
+              <strong>{cash(landPrice)}</strong>
+            </span>
+            {houses>0?<span>
+              <small>Tiền {houses===5?'khách sạn':`${houses} nhà`}</small>
+              <strong>+{cash(buildingPrice)}</strong>
+            </span>:<span>
+              <small>Ví sau khi mua</small>
+              <strong>{cash(Math.max(0,me.cash-totalPrice))}</strong>
+            </span>}
+            <span>
+              <small>Ví hiện có</small>
+              <strong>{cash(me.cash)}</strong>
+            </span>
+          </div>
+
+          <div className="estate-buy-actions">
+            <button type="button" className="estate-lux-btn estate-lux-gold estate-buy-primary estate-buyout-primary" disabled={!canBuyout} onClick={()=>send('buyout',me.position)}>
+              <Check size={17}/>{canBuyout?`Mua lại ngay · ${cash(totalPrice)}`:`Không đủ tiền (${cash(totalPrice)})`}
+            </button>
+            <button type="button" className="estate-lux-btn estate-lux-skip estate-pass-btn" disabled={!allowed('skip_buyout')} onClick={()=>send('skip_buyout')}>
+              <SkipForward size={15}/>Không mua · Bỏ qua lượt
+            </button>
+          </div>
+          <p className="estate-center-footnote">
+            {houses>0
+              ?`Đã cộng giá đất (${cash(landPrice)}) + ${houses===5?'khách sạn':`${houses} nhà`} (${cash(buildingPrice)}). Công trình giữ nguyên khi sang tên.`
+              :`Chuyển ${cash(totalPrice)} cho ${ownerName} và sang tên quyền sở hữu ngay.`}
+          </p>
         </div>
       </section>
     </div>;
