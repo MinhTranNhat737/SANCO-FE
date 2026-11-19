@@ -167,15 +167,16 @@ export function estateToken(side:string,index:number){
     eye.castShadow=false;
   }
 
-  // Distinct Royal Headgear & Held Accessory per Character (0..3)
-  if(index===0){
+  // Distinct Royal Headgear & Held Accessory per Character (cycles 4 styles across up to 8 players)
+  const style=index%4;
+  if(style===0){
     // Character 1: Tỷ Phú Hoàng Gia — Top Hat + Golden Diamond Scepter
     cylinder(root,dark,.16,.16,.024,.535);
     cylinder(root,coat,.105,.115,.15,.62);
     cylinder(root,accent,.112,.116,.028,.565);
     mesh(new T.CylinderGeometry(.014,.014,.32,10),accent,root,.18,.24,.07);
     mesh(new T.OctahedronGeometry(.045,0),accent,root,.18,.41,.07);
-  }else if(index===1){
+  }else if(style===1){
     // Character 2: Quân Vương Đại Gia — 5-Point Golden Royal Crown + Cape + Orb
     cylinder(root,accent,.115,.105,.055,.55);
     for(let k=0;k<6;k++){
@@ -184,7 +185,7 @@ export function estateToken(side:string,index:number){
       spike.castShadow=false;
     }
     mesh(new T.SphereGeometry(.045,14,12),accent,root,-.18,.21,.06);
-  }else if(index===2){
+  }else if(style===2){
     // Character 3: Kỵ Sĩ Rồng Vàng — Golden Crest Helmet + Shield
     mesh(new T.SphereGeometry(.132,20,14,0,Math.PI*2,0,Math.PI*.55),accent,root,0,.45,0);
     const plume=mesh(new T.BoxGeometry(.035,.11,.16),coat,root,0,.60,-.01);

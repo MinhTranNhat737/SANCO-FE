@@ -1,5 +1,6 @@
 export const PARTY_SIDES=['R','G','Y','B'];
-export const PARTY_COLORS:Record<string,string>={R:'#c74b42',G:'#398868',Y:'#d7a431',B:'#457cb4'};
+export const MONOPOLY_SIDES=['R','G','Y','B','P','O','C','K'];
+export const PARTY_COLORS:Record<string,string>={R:'#c74b42',G:'#398868',Y:'#d7a431',B:'#457cb4',P:'#8b5cf6',O:'#ea580c',C:'#0891b2',K:'#db2777'};
 export const CITIES=['Xuất phát','Sen','Trúc','Cơ hội','Mai','Thuế','Đào','Lan','Cơ hội','Cúc','Thăm tù','Sông','Núi','Cơ hội','Biển','Nghỉ chân','Mây','Gió','Cơ hội','Trăng'];
 export const PROPERTY_SPACES=[1,2,4,6,7,9,11,12,14,16,17,19];
 export const GROUP_COLORS=['#bd8d76','#a9b979','#82aba6','#c9b576','#a08dbd','#7fabc4'];
@@ -20,6 +21,6 @@ export function ludoRoute(side:string,token:number,from:number,to:number){
   if(from>=0&&to>from)return Array.from({length:to-from},(_,i)=>worldPoint(ludoCell(side,token,from+i+1)));
   return [worldPoint(ludoCell(side,token,to))];
 }
-export function estatePoint(position:number,seat=0,size=6){const [r,c]=estateCell(position,size),step=600/size;return worldPoint([c*step+step*(.27+(seat%2)*.44),r*step+step*(.43+Math.floor(seat/2)*.38)]);}
+export function estatePoint(position:number,seat=0,size=6){const [r,c]=estateCell(position,size),step=600/size;if(seat>=4){const sub=seat-4;return worldPoint([c*step+step*(.18+(sub%2)*.64),r*step+step*(.22+Math.floor(sub/2)*.34)]);}return worldPoint([c*step+step*(.27+(seat%2)*.44),r*step+step*(.43+Math.floor(seat/2)*.38)]);}
 export function estateIndexAt(x:number,z:number,size=6){const col=Math.floor((x*60+300)/(600/size)),row=Math.floor((z*60+300)/(600/size));if(row<0||col<0||row>=size||col>=size)return null;for(let i=0;i<4*(size-1);i++){const[r,c]=estateCell(i,size);if(r===row&&c===col)return i;}return null;}
 export function partyRoll(moves:{action?:string;die?:number;dice?:number[];at?:number;side?:string}[],count=moves.length){const rolls=[];for(let i=0;i<Math.min(count,moves.length);i++){const m=moves[i];if(m.action==='roll'&&m.die)rolls.push({key:`${i}:${m.at||0}`,value:m.die,...(m.dice?{faces:m.dice}:{}),side:m.side});}const last=rolls.at(-1);return {lastDie:last?.value??null,rollKey:last?.key??'',rolls};}

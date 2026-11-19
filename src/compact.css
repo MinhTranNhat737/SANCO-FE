@@ -746,6 +746,11 @@
     align-items: stretch
 }
 
+.board-focus-shell .practice-monopoly .practice-layout,
+.board-focus-shell .board-unified-play.practice-monopoly .practice-layout {
+    grid-template-columns: minmax(0, 1fr) 316px
+}
+
 .board-focus-shell .practice-table {
     padding: 8px 10px;
     display: flex;
@@ -808,17 +813,24 @@
     gap: 8px
 }
 
+.board-focus-shell .party-roster.party-roster-vertical {
+    margin: 0 0 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
 .board-focus-shell .party-roster>article {
     padding: 8px 11px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px
+    gap: 10px
 }
 
 .board-focus-shell .party-roster .party-clock {
     margin-top: 0;
-    font-size: 16px
+    font-size: 14px
 }
 
 .board-focus-shell .practice-view-tools {
@@ -1177,7 +1189,8 @@
         gap: 16px
     }
 
-    .board-focus-shell .practice-layout {
+    .board-focus-shell .practice-layout,
+    .board-focus-shell .practice-monopoly .practice-layout {
         grid-template-columns: 1fr
     }
 

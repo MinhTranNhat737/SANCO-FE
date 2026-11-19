@@ -16,7 +16,7 @@ let vite,cache,dom,root,App,Boundary,createRoot,previewBoard,user;
 let CommanderBoard,MobileOrientation;
 const socketModule=`export function io(){return {connected:false,on(){return this},off(){return this},emit(){return this},timeout(){return this},emitWithAck(){return Promise.resolve({})},disconnect(){}}}`;
 const json=data=>new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
-const roomFor=kind=>{const owner={id:user.id,name:user.name,mark:boardSide(kind),ready:false,rematch:false},party=['ludo','monopoly'].includes(kind);return publicRoom({id:'ABCD1234',kind,version:0,duration:300000,createdAt:Date.now(),owner,guest:null,...(party?{players:[owner],capacity:4}:{}),game:newGame(300000,'round-one',kind,party?4:2)},user.id,Date.now());};
+const roomFor=(kind,capacity,ranked=false)=>{const owner={id:user.id,name:user.name,mark:boardSide(kind),ready:false,rematch:false},party=['ludo','monopoly'].includes(kind),cap=party?(capacity||4):2;return publicRoom({id:'ABCD1234',kind,ranked,version:0,duration:300000,createdAt:Date.now(),owner,guest:null,...(party?{players:[owner],capacity:cap}:{}),game:newGame(300000,'round-one',kind,cap)},user.id,Date.now());};
 before(async()=>{
   cache=await mkdtemp(path.join(os.tmpdir(),'sanco-ui-'));
   vite=await createServer({configFile:false,root:process.cwd(),cacheDir:cache,plugins:[react(),{name:'test-socket',enforce:'pre',resolveId(id){if(id==='socket.io-client')return '\0sanco-test-socket';},load(id){if(id==='\0sanco-test-socket')return socketModule;}}],server:{middlewareMode:true},appType:'custom'});
@@ -33,7 +33,7 @@ beforeEach(async()=>{
   globalThis.fetch=async(url,options={})=>{
     const pathname=new URL(String(url),window.location.href).pathname,body=options.body?JSON.parse(options.body):null;
     if(pathname==='/api/me')return json({user,providers:{google:true,facebook:true}});
-    if(pathname==='/api/rooms'&&body)return json({room:roomFor(body.kind),token:'test-invitation'});
+    if(pathname==='/api/rooms'&&body)return json({room:roomFor(body.kind,body.capacity,body.ranked),token:'test-invitation'});
     if(pathname==='/api/rooms')return json({rooms:[]});if(pathname==='/api/history')return json({matches:[]});
     if(pathname==='/api/practice'&&body)return json({game:practiceView(createPractice(body.kind,boardSide(body.kind),'medium','00000000-0000-4000-8000-000000000001'))});
     if(pathname==='/api/practice')return json({games:[]});
@@ -398,4 +398,28 @@ test('Phone portrait blocks Monopoly, rotation unlocks it, and optional orientat
   localStorage.setItem('sc-landscape-chess','on');await render('caro');await settle();assert.equal(document.querySelector('.orientation-guard'),null);
   await render('chess');await settle();assert.ok(document.querySelector('.orientation-guard'));
   await render('caro');await settle();assert.equal(document.getElementById('root').inert,false);
+});
+
+test('Creating a Monopoly room defaults to casual mode, supports 8 players, and renders right-side avatars',async()=>{
+  const fallback=globalThis.fetch;let createdBody=null;
+  globalThis.fetch=async(url,options={})=>{
+    const pathname=new URL(String(url),window.location.href).pathname;
+    if(pathname==='/api/rooms'&&options.body){createdBody=JSON.parse(options.body);return json({room:roomFor(createdBody.kind,createdBody.capacity,createdBody.ranked),token:'test-invitation'});}
+    return fallback(url,options);
+  };
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click(document.querySelector('.collection-monopoly'));
+  await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Chơi với bạn')));
+  assert.match(document.querySelector('.casual-room-badge').textContent,/Chế độ giải trí/);
+  assert.equal(document.querySelector('.rank-room-toggle'),null);
+  const capButtons=[...document.querySelectorAll('.capacity-grid-8 button')];
+  assert.equal(capButtons.length,7);
+  await click(capButtons.find(b=>b.textContent==='8 người'));
+  await act(async()=>document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
+  assert.equal(createdBody.ranked,false);
+  assert.equal(createdBody.capacity,8);
+  assert.match(document.querySelector('.rank-room-label').textContent,/Chế độ giải trí/);
+  assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-player-card').length,8);
+  assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-avatar').length,8);
+  assert.equal(document.querySelectorAll('.party-lobby-seats .party-avatar').length,8);
 });

@@ -64,3 +64,38 @@
 }
 
 @media(max-width:650px){.party-model{height:clamp(320px,100vw,480px)}.party-table-toolbar{padding:11px 12px}.party-camera-bar{padding:8px 9px;gap:4px}.party-camera-bar>span{font-size:9px;max-width:135px;line-height:1.6}.party-camera-bar button{padding:7px 8px;font-size:10px}.party-table>.party-board,.party-stage-wrap>.party-board{border-width:7px;margin:16px auto}.party-board-dice-hud{inset:auto 8px 8px 8px}.party-dice-pickup,.party-rolled-banner{padding:7px 10px}.pip-die{width:30px;height:30px;padding:4px}}
+
+/* Right-Side Monopoly Player Roster with Avatars (up to 8 players) */
+.party-roster.party-roster-vertical{display:flex;flex-direction:column;gap:8px;margin:0 0 10px;max-height:420px;overflow-y:auto;padding-right:2px}
+.party-roster .party-player-card{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;border:1px solid var(--border-strong,#516b49);background:var(--panel-2);min-width:0;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
+.party-roster .party-player-card.active-turn{border-color:#e8d084;background:var(--panel-hover);box-shadow:0 0 0 1px #e8d08444}
+.party-roster .party-player-card.out{opacity:.52}
+.party-player-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.party-player-name{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#f3f5e4;line-height:1.3;margin:0}
+.party-player-name>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.party-me-tag{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:1px 6px;border-radius:999px;background:#e8c7662e;border:1px solid #e8c76688;color:#f7df8f;flex-shrink:0}
+.party-player-sub{display:flex;align-items:center;gap:5px;font-size:11px;color:#c2d2af;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+.party-player-sub .party-side-dot{margin-right:0;flex-shrink:0;width:8px;height:8px}
+.party-roster.party-roster-vertical .party-clock{margin-top:0;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:#f1eed6;background:#00000033;border:1px solid var(--border,#496342);border-radius:7px;padding:4px 7px;flex-shrink:0}
+
+.party-avatar{position:relative;display:inline-grid;place-items:center;border-radius:50%;border:2px solid var(--border-strong,#6b825d);color:#dce6cc;flex-shrink:0;box-shadow:0 3px 8px #0005;overflow:visible}
+.party-avatar-md{width:38px;height:38px}
+.party-avatar-sm{width:30px;height:30px}
+.party-avatar.is-empty{background:var(--bg-soft,#18241d);border-style:dashed;border-color:#687d5888;color:#8fa182;box-shadow:none}
+.party-avatar.is-turn{box-shadow:0 0 0 2px #fde04766,0 4px 12px #0006}
+.party-avatar.is-out{filter:grayscale(.75)}
+.party-avatar-svg{width:100%;height:100%;display:block;border-radius:50%;overflow:hidden}
+.party-avatar-badge{position:absolute;right:-3px;bottom:-3px;width:16px;height:16px;border-radius:50%;border:1.5px solid #16221b;color:#fff;font-size:9px;font-weight:800;display:grid;place-items:center;line-height:1;box-shadow:0 1px 3px #0006}
+.party-avatar-sm .party-avatar-badge{width:14px;height:14px;font-size:8px;right:-2px;bottom:-2px}
+.party-avatar-online{position:absolute;top:-1px;right:-1px;width:9px;height:9px;border-radius:50%;background:#22c55e;border:1.5px solid #16221b}
+
+.party-lobby-seats{max-height:310px;overflow-y:auto;padding-right:2px}
+.party-lobby-seats>div{padding:7px 0;gap:10px}
+.party-lobby-seats strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
+.party-lobby-seats small.seat-ready{color:#86efac;font-weight:700}
+
+.casual-room-badge{display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:14px;border-radius:10px;background:var(--amber-soft,#d4a9481a);border:1px solid #d4a94866;color:#f3dfaa;font-size:12px;line-height:1.45}
+.casual-room-badge svg{flex-shrink:0;color:#f4cb66}
+.casual-room-badge strong{color:#fff3cc}
+.time-options.capacity-grid-8{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.time-options.capacity-grid-8 button{min-width:0;padding:9px 6px;font-size:12px}

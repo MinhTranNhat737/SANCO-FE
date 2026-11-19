@@ -143,10 +143,14 @@ const TOKEN_STYLES:Record<string,{fill:string;dark:string;label:string}>={
   R:{fill:'#ef233c',dark:'#9b0a1e',label:'ĐỎ'},
   G:{fill:'#10b981',dark:'#065f46',label:'XANH'},
   Y:{fill:'#f59e0b',dark:'#92400e',label:'VÀNG'},
-  B:{fill:'#2563eb',dark:'#1e3a8a',label:'LAM'}
+  B:{fill:'#2563eb',dark:'#1e3a8a',label:'LAM'},
+  P:{fill:'#9333ea',dark:'#581c87',label:'TÍM'},
+  O:{fill:'#f97316',dark:'#9a3412',label:'CAM'},
+  C:{fill:'#06b6d4',dark:'#155e75',label:'NGỌC'},
+  K:{fill:'#ec4899',dark:'#9d174d',label:'HỒNG'}
 };
 
-const OWNER_BG:Record<string,string>={R:'#ffe3e6',G:'#d8f8eb',Y:'#fef3c7',B:'#dbeafe'};
+const OWNER_BG:Record<string,string>={R:'#ffe3e6',G:'#d8f8eb',Y:'#fef3c7',B:'#dbeafe',P:'#f3e8ff',O:'#ffedd5',C:'#cffafe',K:'#fce7f3'};
 const lines=(name:string)=>{const words=name.split(' ');if(name.length<=8||words.length===1)return [name];const split=Math.ceil(words.length/2);return [words.slice(0,split).join(' '),words.slice(split).join(' ')];};
 const titleSize=(rows:string[])=>{const maxLen=Math.max(...rows.map(r=>r.length));return maxLen>11?6.2:maxLen>9?6.9:rows.length>1?7.3:8.0;};
 
@@ -302,9 +306,10 @@ function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:st
   </g>;
 }
 
-function FlatPlayerToken({cx,cy,side,index,isMine,isTurn}:{cx:number;cy:number;side:string;index:number;isMine:boolean;isTurn:boolean}){
+function FlatPlayerToken({cx,cy,side,index,isMine,isTurn,compact=false}:{cx:number;cy:number;side:string;index:number;isMine:boolean;isTurn:boolean;compact?:boolean}){
   const style=TOKEN_STYLES[side]||{fill:PARTY_COLORS[side]||'#ef233c',dark:'#7f1d1d',label:`P${index+1}`};
-  return <g className="flat-player-token" aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
+  const scale=compact?0.74:1;
+  return <g className="flat-player-token" transform={compact?`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`:undefined} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
     {isTurn&&<circle cx={cx} cy={cy} r="17.5" fill="none" stroke="#111111" strokeWidth="2.2" strokeDasharray="3 2"/>}
     {isMine&&<circle cx={cx} cy={cy} r="15.5" fill="none" stroke="#facc15" strokeWidth="2.8"/>}
     {/* Drop shadow */}
@@ -404,7 +409,9 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect}:{sta
           ?[[18,31],[42,31]]
           :total===3
             ?[[17,22],[43,22],[30,42]]
-            :[[17,20],[43,20],[17,42],[43,42]];
+            :total===4
+              ?[[17,20],[43,20],[17,42],[43,42]]
+              :[[12,18],[24,18],[36,18],[48,18],[12,42],[24,42],[36,42],[48,42]];
       const [ox,oy]=offsets[slot]||[30,31];
       return <FlatPlayerToken
         key={p.side}
@@ -414,6 +421,7 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect}:{sta
         index={i}
         isMine={p.side===mySide}
         isTurn={p.side===turnSide}
+        compact={total>4}
       />;
     })}
   </svg></div>;

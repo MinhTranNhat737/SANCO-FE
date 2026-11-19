@@ -6,7 +6,7 @@ import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {BoardGesture} from './three/board-gesture.ts';
-import {PARTY_SIDES,ludoCell,worldPoint,ludoRoute,estatePoint,estateCell,estateIndexAt} from './three/party-layout.ts';
+import {PARTY_SIDES,MONOPOLY_SIDES,ludoCell,worldPoint,ludoRoute,estatePoint,estateCell,estateIndexAt} from './three/party-layout.ts';
 import {SURFACE,table,horse,estateToken,estateAssets,dice,diceRotation,tabletopProps,dispose} from './three/party-models.ts';
 import {DiceRollQueue,sampleDiceThrow,THROW_DURATION,type DiceRoll} from './three/dice-motion.ts';
 import type {PartyState,PracticeMove} from './practice-types';
@@ -75,7 +75,9 @@ export default function ScenePartyBoard(props:Props){
     }
     let assetRoot=new T.Group();scene.add(assetRoot);let assetKey='';
     const pieces=new Map<string,Piece>(),reduced=false;
-    const endpoint=(side:string,token:number,pos:number)=>props.kind==='ludo'?worldPoint(ludoCell(side,token,pos)):estatePoint(pos,PARTY_SIDES.indexOf(side),estateSize);
+    const sidePool=props.kind==='monopoly'?MONOPOLY_SIDES:PARTY_SIDES;
+    const seatOf=(side:string)=>Math.max(0,sidePool.indexOf(side));
+    const endpoint=(side:string,token:number,pos:number)=>props.kind==='ludo'?worldPoint(ludoCell(side,token,pos)):estatePoint(pos,seatOf(side),estateSize);
     function sync(){
       const p=live.current,keep=new Set<string>(),now=performance.now();
       const baseline=!p.animate||!wasAnimate||reduced;
@@ -91,7 +93,7 @@ export default function ScenePartyBoard(props:Props){
         cellHighlight.visible=false;
       }
       const rollWait=activeThrow?Math.max(0,THROW_DURATION-(now-activeThrow.started))+pendingRolls.length*THROW_DURATION:0;
-      for(const player of p.state.players){if(!player.active)continue;const seat=PARTY_SIDES.indexOf(player.side),tokens=props.kind==='ludo'?player.tokens:[player.position];
+      for(const player of p.state.players){if(!player.active)continue;const seat=seatOf(player.side),tokens=props.kind==='ludo'?player.tokens:[player.position];
         tokens.forEach((position,token)=>{
           const id=`${player.side}:${token}`;keep.add(id);let piece=pieces.get(id);const target=endpoint(player.side,token,position);
           if(!piece){const node=props.kind==='ludo'?horse(player.side,token+1):estateToken(player.side,seat);node.position.set(target.x,SURFACE,target.z);node.rotation.y=props.kind==='ludo'?seat*Math.PI/2:0;scene.add(node);

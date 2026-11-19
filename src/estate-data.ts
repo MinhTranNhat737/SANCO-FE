@@ -10,6 +10,6 @@ export const VN_CELLS:EstateCell[]=Array.from({length:48},(_,index)=>{
 export const VN_GROUP_COLORS=config.groupColors;
 export const isVietnam=(state:PartyState)=>state.edition===config.edition;
 export const ownable=(cell:EstateCell)=>['property','station','utility'].includes(cell.type);
-export const SIDE_NAMES:Record<string,string>={R:'Đỏ',G:'Xanh lá',Y:'Vàng',B:'Xanh dương'};
+export const SIDE_NAMES:Record<string,string>={R:'Đỏ',G:'Xanh lá',Y:'Vàng',B:'Xanh dương',P:'Tím',O:'Cam',C:'Ngọc lam',K:'Hồng'};
 export const cash=(amount:number)=>`${amount.toLocaleString('vi-VN')} tr`;
 export function estateRent(state:PartyState,index:number){const c=VN_CELLS[index],owner=state.property[index];if(!owner||state.mortgaged?.[index])return 0;if(c.type==='station')return 50*2**(VN_CELLS.filter(v=>v.type==='station'&&state.property[v.index]===owner).length-1);if(c.type==='utility')return VN_CELLS.filter(v=>v.type==='utility'&&state.property[v.index]===owner).length===2?12:5;const group=VN_CELLS.filter(v=>v.type==='property'&&v.group===c.group);return c.rent[state.houses[index]]*(state.houses[index]===0&&group.every(v=>state.property[v.index]===owner)?2:1);}
