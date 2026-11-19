@@ -1,6 +1,6 @@
 import {BOARD_PALETTES,type BoardTheme} from '../board-palette.ts';
 import * as T from 'three';
-import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,estateBounds,estateCenterBounds,estateDirection,estateTitleLines,groupOf} from './party-layout.ts';
+import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,estateBounds,estateCenterBounds,estateTitleLines,groupOf} from './party-layout.ts';
 import {VN_CELLS,VN_GROUP_COLORS,ownable} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 
@@ -221,8 +221,6 @@ function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme){
     const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:'#64748b';
     round(ctx,x+.4,y+.4,w-.8,h-.8,0,corner?palette.special:palette.lot,'#34483b',1);
     if(c.type==='property')round(ctx,x+1,y+1,w-2,4.4,0,bandColor);
-    round(ctx,w-15,1,14,5.5,0,'#fff');
-    text(ctx,(c.index+1)+estateDirection(c.index),w-8,4,4.3,'#172d24',UI_FONT,'800');
     const rows=estateTitleLines(c.name,true),fs=7.3;
     const tx=x+w/2,ty=y+(rows.length>1?10.5:14);
     rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.3),fs,palette.lotInk,UI_FONT,'850',w-5));

@@ -3,14 +3,15 @@ import assert from 'node:assert/strict';
 import {estateGridCell,estateBounds,estateCenterBounds,estatePixelRatio,estatePoint,estateIndexAt,partyRoll} from '../src/three/party-layout.ts';
 import {VN_CELLS} from '../src/estate-data.ts';
 
-test('48 large square lots form a continuous two-row loop and all eight players select the correct cell',()=>{
+test('48 square lots stay on one perimeter with the original four corners and correct eight-player picking',()=>{
   const cells=Array.from({length:48},(_,i)=>estateGridCell(i,13));assert.equal(new Set(cells.map(c=>c.join(','))).size,48);
   for(let i=0;i<48;i++){
     const [r,c]=cells[i],[nr,nc]=cells[(i+1)%48];
-    assert.ok(r<2||r>5||c<2||c>5,'Lots must leave the central four by four court empty');
+    assert.ok(r===0||r===12||c===0||c===12,'Every lot must stay on the single outer ring');
     assert.equal(Math.abs(nr-r)+Math.abs(nc-c),1,'Every move, including the lap boundary, visits an adjacent lot');
     for(let seat=0;seat<8;seat++){const p=estatePoint(i,seat,13);assert.equal(estateIndexAt(p.x,p.z,13),i);}
   }
+  assert.deepEqual([cells[0],cells[12],cells[24],cells[36]],[[12,12],[12,0],[0,0],[0,12]]);
   assert.equal(estateIndexAt(0,0,13),null);assert.equal(estateIndexAt(8,0,13),null);
   assert.equal(VN_CELLS.filter(c=>c.type==='property').length,34);assert.equal(VN_CELLS.length,48);
 });
@@ -32,10 +33,7 @@ test('Square lots cover the perimeter without overlap and every part of a lot re
     }
     const usedArea=bounds.reduce((sum,b)=>sum+b.width*b.height,0),center=estateCenterBounds(size);
     assert.ok(Math.abs(usedArea+center.width*center.height-600*600)<1e-7,'Lots and center must cover the whole board');
-    if(size===13){
-      assert.equal(center.width*center.height/(600*600),.25,'Only a quarter of the board is empty center');
-      for(const b of bounds)assert.ok(b.width*b.height>2.6*(600/13)**2,'Every lot has over 2.6 times its former area');
-    }
+    assert.equal(center.width,600-1200/size,'The middle retains the single-ring layout');
   }
 });
 

@@ -1,6 +1,6 @@
 import type {PartyState,PracticeMove} from './practice-types';
 import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash,estateRent,ownable} from './estate-data';
-import {estateBounds,estateCenterBounds,estateDirection,estateTitleLines,PARTY_COLORS,CITIES,GROUP_COLORS,groupOf} from './three/party-layout.ts';
+import {estateBounds,estateCenterBounds,estateTitleLines,PARTY_COLORS,CITIES,GROUP_COLORS,groupOf} from './three/party-layout.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from './vietnam-landmarks';
 import {useId} from 'react';
 import './estate.css';
@@ -330,8 +330,6 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
       return <g key={c.index} data-cell-index={c.index} transform={`translate(${cell.x} ${cell.y}) scale(${cell.width/60})`} data-owned={Boolean(owned)||selectedHere} role="button" tabIndex={0} aria-label={'Xem '+c.name} aria-pressed={selectedHere} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
         <rect className={auction?'board-svg-lot vn-auction-lot-pulse':selectedHere?'board-svg-selected':'board-svg-lot'} x={x} y={y} width={w} height={h} fill={auction||selectedHere?'#fef08a':owned?OWNER_BG[owned]||'#fff':corner?'#fff3da':'#fff'} stroke={auction?'#d97706':selectedHere?'#dc2626':color} strokeWidth={selectedHere||owned||auction?3:1.6}/>
         {c.type==='property'&&<rect x={x+1} y={y+1} width={w-2} height="6" fill={accent}/>}
-        <rect x="40" y="1" width="19" height="7" fill="#fff"/>
-        <text x="49.5" y="6.4" textAnchor="middle" fontSize="5.6" fontWeight="800" fill="#172d24" aria-hidden="true">{c.index+1}{estateDirection(c.index)}</text>
         {rows.map((line,i)=><text key={i} x={tx} y={ty+i*(fs+2)} textAnchor="middle" fontSize={fs} fontWeight="850" fill="#111827" textLength={line.length>9?w-8:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
         {!occupied&&(lvl>0?<g transform={'translate('+artX+' '+artY+') scale(.48) translate(-30 -38)'}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={'translate('+artX+' '+artY+') scale(1.05)'}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={'translate('+artX+' '+artY+') scale(.65)'}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>)}
         {price&&<text x={tx} y={y+56} textAnchor="middle" fontSize={8.5} fontWeight="850" fill={ownable(c)?'#172d24':'#b91c1c'}>{price}</text>}

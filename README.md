@@ -38,9 +38,9 @@ Chọn **Luyện tập với máy** hoặc một thẻ môn cờ. Cả 10 môn c
 
 ## Bàn Tỷ phú Việt Nam
 
-Bàn 48 ô dùng hai hàng ô vuông trên lưới 8×8. Phần giữa chiếm 25% diện tích; mỗi ô rộng hơn 62,5% so với lưới 13×13 trước đây. Đi theo số và mũi tên trên ô: đường đi nối hai hàng thành một vòng liên tục, giữ nguyên thứ tự 48 ô và luật trên máy chủ. Bàn 2D, quân 3D, vùng bấm, công trình và hiệu ứng dùng chung tọa độ.
+Bàn 48 ô giữ một vòng ô vuông trên lưới 13×13, với Xuất phát, Thăm tù, Nghỉ chân và Vào tù tại bốn góc ban đầu. Bàn mở ở kích thước 1.560 px để ô và chữ lớn hơn; cuộn để xem các phía. Các nút Phóng to, Thu nhỏ, Toàn bàn và Quân của bạn điều chỉnh góc xem, không đổi cách xếp ô. Bàn tự đưa quân của bạn vào vùng nhìn sau khi hoàn tất di chuyển. Bàn 2D, quân 3D, vùng bấm, công trình và hiệu ứng dùng chung tọa độ.
 
-Trên máy tính, bàn mở rộng đến 1.000 px và mặc định nhìn từ trên để giữ hình vuông rõ ràng. Chế độ 3D dùng bề mặt chữ 4.096×4.096 và nhắm độ phân giải dựng hình 2.048 px ở cạnh ngắn, trong giới hạn GPU. Bàn 2D là SVG, giữ độ nét khi phóng lớn.
+Bàn 3D mặc định nhìn từ trên để giữ hình vuông rõ ràng, dùng bề mặt chữ 4.096×4.096 và nhắm độ phân giải dựng hình 2.048 px ở cạnh ngắn, trong giới hạn GPU. Bàn 2D là SVG, giữ độ nét khi phóng lớn.
 
 ## Các môn mới và giới hạn luật
 

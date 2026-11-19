@@ -8,24 +8,14 @@ export const LUDO_PATH=[[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1
 export const LUDO_SAFE=[0,8,13,21,26,34,39,47];
 export const groupOf=(i:number)=>Math.floor(PROPERTY_SPACES.indexOf(i)/2);
 export function estateCell(index:number,size=6){const edge=size-1;return index<=edge?[edge,edge-index]:index<=edge*2?[edge*2-index,0]:index<=edge*3?[0,index-edge*2]:[index-edge*3,edge];}
-// Join the outer 8×8 ring and inner 6×6 ring into one continuous 48-space loop.
-// Each square is 13/8 times wider than the former single-row layout.
-const outerEstateRing=Array.from({length:28},(_,i)=>estateCell(i,8));
-const innerEstateRing=Array.from({length:20},(_,i)=>estateCell((20-i)%20,6).map(n=>n+1));
-export const VN_ESTATE_GRID_SIZE=8;
-export const VN_ESTATE_ROUTE=[...outerEstateRing.slice(0,2),...innerEstateRing,...outerEstateRing.slice(2)];
-export function estateGridCell(index:number,size=6){return size===13?VN_ESTATE_ROUTE[index]:estateCell(index,size);}
-export function estateDirection(index:number){
-  const [r,c]=VN_ESTATE_ROUTE[index],[nr,nc]=VN_ESTATE_ROUTE[(index+1)%48];
-  return nc>c?'→':nc<c?'←':nr>r?'↓':'↑';
-}
+export function estateGridCell(index:number,size=6){return estateCell(index,size);}
 // Both renderers, hit testing, pieces and effects share equal square lots.
 export function estateBounds(index:number,size=6,extent=600){
-  const [row,col]=estateGridCell(index,size),step=extent/(size===13?VN_ESTATE_GRID_SIZE:size);
+  const [row,col]=estateGridCell(index,size),step=extent/size;
   return {x:col*step,y:row*step,width:step,height:step};
 }
 export function estateCenterBounds(size=6,extent=600){
-  const inset=size===13?extent*2/VN_ESTATE_GRID_SIZE:extent/size;
+  const inset=extent/size;
   return {x:inset,y:inset,width:extent-inset*2,height:extent-inset*2};
 }
 // Render the board's shorter side at 2K, within the GPU's drawing-buffer limit.

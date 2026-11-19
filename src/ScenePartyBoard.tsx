@@ -55,7 +55,7 @@ export default function ScenePartyBoard(props:Props){
     const diceRing=new T.Mesh(new T.RingGeometry(vietnam?.76:.52,vietnam?.92:.66,48),new T.MeshBasicMaterial({color:'#f6df98',side:T.DoubleSide,transparent:true,opacity:.85}));
     diceRing.rotation.x=-Math.PI/2;diceRing.position.copy(diceCenter);diceRing.visible=false;scene.add(diceRing);
 
-    const tileSpan=10/(vietnam?8:estateSize);
+    const tileSpan=10/estateSize;
     const cellHighlight=new T.Mesh(
       new T.PlaneGeometry(tileSpan*.96,tileSpan*.96),
       new T.MeshBasicMaterial({color:'#f9e28c',transparent:true,opacity:.38,side:T.DoubleSide,depthWrite:false})

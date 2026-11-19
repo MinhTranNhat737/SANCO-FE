@@ -112,9 +112,9 @@ export function table(kind:string,textures={wood:woodTexture,board:boardTexture,
       if(!lm)return;
       const [r,col]=estateGridCell(c.index,13),b=estateBounds(c.index,13),pt=worldPoint([b.x+b.width/2,b.y+b.height*.67]);
       const mon=landmarkMonument(lm.kind,lm.accent);
-      mon.scale.setScalar(1.4);
+      mon.scale.setScalar(1.08);
       mon.position.set(pt.x,SURFACE+.005,pt.z);
-      const edgeIdx=r>=6?0:col===0?1:r===0?2:3;
+      const edgeIdx=r===12?0:col===0?1:r===0?2:3;
       mon.rotation.y=-edgeIdx*Math.PI/2;
       root.add(mon);
     });
@@ -299,7 +299,7 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     // 1. Full-cell buyer color overlay & raised 3D border frame
     const cellGroup=new T.Group();
     cellGroup.position.set(center.x,SURFACE+.005,center.z);
-    const edgeIdx=r===(vietnam?7:edgeCount)?0:c===0?1:r===0?2:3;
+    const edgeIdx=r===edgeCount?0:c===0?1:r===0?2:3;
     cellGroup.rotation.y=vietnam?0:-edgeIdx*Math.PI/2;
 
     const tint=new T.Mesh(
@@ -326,7 +326,7 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     const lvl=state.houses[i]||0;
     if(lvl>0){
       const b=house(lvl,side);
-      const baseScale=vietnam?.9:1.25;
+      const baseScale=vietnam?.65:1.25;
       b.scale.setScalar(baseScale);
       const buildPt=worldPoint(vietnam?[bounds.x+bounds.width/2,bounds.y+bounds.height*.67]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2]);
       b.position.set(buildPt.x,SURFACE+.01,buildPt.z);
