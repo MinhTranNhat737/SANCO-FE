@@ -57,6 +57,27 @@ test('Ownership batches cover purchases and transfers, ignore releases and repea
   assert.deepEqual(rules.ownershipChanges(next,next,null),[]);assert.deepEqual(rules.ownershipChanges(next,prev,null),[{lot:3,side:'G',fromSide:'R',houses:undefined,price:0,source:'transfer'}]);
 });
 
+test('Trade selections drop lost land and the previous recipient assets after that recipient leaves',async()=>{
+  const g=game(3),p=g.party;p.property.fill(null);p.property[1]='R';p.property[2]='G';p.property[3]='Y';const sent=[];
+  const props={mySide:'R',enabled:true,legal:[{action:'offer',to:-1}],onMove:request=>sent.push(request)};
+  await render(Controls,{...props,state:p});
+  for(const input of document.querySelectorAll('.estate-lot-check input'))await click(input);
+  const changed=structuredClone(p);changed.players[1].active=false;changed.property[1]='Y';changed.property[2]=null;
+  await render(Controls,{...props,state:changed});
+  await act(async()=>document.querySelector('select[aria-label="Đối tác giao dịch"]').closest('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+  await click(button('Xác nhận'));assert.equal(sent.length,1);assert.equal(sent[0].details.partner,'Y');assert.deepEqual(sent[0].details.give,[]);assert.deepEqual(sent[0].details.take,[]);
+  vietnamMove({...g,party:changed},{...sent[0],action:sent[0].command},()=>1);
+});
+
+test('Trading an undeveloped owned lot is allowed when a different owner has buildings in its group',async()=>{
+  const g=game(3),p=g.party;p.property.fill(null);p.property[1]='R';p.property[2]='G';p.houses[2]=2;p.bank.houses-=2;
+  const sent=[];await render(Controls,{state:p,mySide:'R',enabled:true,legal:[{action:'offer',to:-1}],onMove:request=>sent.push(request)});
+  const checkbox=[...document.querySelectorAll('.estate-lot-check')].find(label=>label.textContent.includes(VN_CELLS[1].name))?.querySelector('input');
+  assert.ok(checkbox,'Server permits this lot to be traded');await click(checkbox);
+  await act(async()=>document.querySelector('select[aria-label="Đối tác giao dịch"]').closest('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+  await click(button('Xác nhận'));assert.deepEqual(sent[0].details.give,[1]);vietnamMove(g,{...sent[0],action:sent[0].command},()=>1);
+});
+
 test('Tutorial walks seven steps, persists completion, reopens and tracks authoritative stages',async()=>{
   const g=game(),props={state:g.party,mySide:'R',turn:'R',busy:false,live:true};
   await render(Tutorial,props);assert.match(document.querySelector('.estate-tutorial-lesson h3').textContent,/1\./);assert.equal(button('Trước').disabled,true);

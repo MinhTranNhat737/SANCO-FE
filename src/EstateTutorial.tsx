@@ -13,6 +13,7 @@ const LESSONS=[
 ];
 
 export function estateTurnHint(state:PartyState,mySide:string,turn?:string,busy=false,live=true){
+  if(state.stage==='finished')return 'Ván đã kết thúc. Bạn có thể xem kết quả, xem lại lượt chơi hoặc mời đấu lại.';
   if(state.started===false)return 'Chờ mọi người sẵn sàng; chủ phòng có thể bắt đầu từ 2 người.';
   if(!live)return 'Đang xem bàn: hướng dẫn chỉ giải thích luật, không thực hiện thao tác.';
   if(busy)return 'Chờ xúc xắc dừng và quân đến nơi; các quyết định sẽ mở sau đó.';
