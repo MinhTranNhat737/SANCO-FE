@@ -32,7 +32,7 @@ export const META = {
   connect4: { name:'Nối bốn',subtitle:'Bốn quân nối tiếp, chiến thắng bất ngờ.',rows:6,cols:7,first:'R',second:'Y',firstName:'Quân Đỏ',secondName:'Quân Vàng',tagline:'NHỎ GỌN, NHANH VÀ ĐẦY BẤT NGỜ',short:'7 × 6 · Chọn cột, nối 4 quân' },
   go:{name:'Cờ vây',subtitle:'Vây đất, giữ khí.',rows:9,cols:9,first:'B',second:'W',firstName:'Quân Đen',secondName:'Quân Trắng',tagline:'',short:'9 × 9 · Luật diện tích · Komi 6,5'},
   ludo:{name:'Cá ngựa',subtitle:'Gieo xúc xắc, đưa quân về đích.',rows:15,cols:15,first:'R',second:'G',firstName:'Đỏ',secondName:'Xanh lá',tagline:'',short:'2–4 người · Luật Ludo'},
-  monopoly:{name:'Tỷ phú Việt Nam',subtitle:'Đi qua Việt Nam, xây cơ nghiệp.',rows:13,cols:13,first:'R',second:'G',firstName:'Đỏ',secondName:'Xanh lá',tagline:'',short:'2–8 người · 48 ô · 34 tỉnh thành'},
+  monopoly:{name:'Tỷ phú Việt Nam',subtitle:'Đi qua Việt Nam, xây cơ nghiệp.',rows:13,cols:13,first:'R',second:'G',firstName:'Đỏ',secondName:'Xanh lá',tagline:'',short:'2–8 người · Tối đa 30s/lượt · 48 ô'},
   checkers:{name:'Cờ đam',subtitle:'Ăn quân, phong Vua.',rows:8,cols:8,first:'B',second:'W',firstName:'Quân Đen',secondName:'Quân Trắng',tagline:'',short:'8 × 8 · Đam Anh'},
   tictactoe:{name:'Cờ ba quân',subtitle:'Ba quân thẳng hàng.',rows:3,cols:3,first:'X',second:'O',firstName:'Quân X',secondName:'Quân O',tagline:'',short:'3 × 3 · Nối 3 quân'},
   coganh:{name:'Cờ gánh',subtitle:'Gánh đôi, vây kín, đổi phe.',rows:5,cols:5,first:'B',second:'W',firstName:'Quân Đen',secondName:'Quân Trắng',tagline:'',short:'5 × 5 · Gánh, vây và mở'},

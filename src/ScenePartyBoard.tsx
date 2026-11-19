@@ -82,26 +82,15 @@ export default function ScenePartyBoard(props:Props){
     const bursts:BurstFx[]=[];
     let seenPurchaseKey=props.justPurchasedKey||0;
     let seenTileFxKey=props.tileFx?.key||0;
-    function spawnTileBurst(lot:number,primaryColor:string,secondaryColor:string,now:number){
+    function spawnTileBurst(lot:number,primaryColor:string,_secondaryColor:string,now:number){
       const [r,c]=estateCell(lot,estateSize),step=600/estateSize,pt=worldPoint([c*step+step*.5,r*step+step*.5]);
-      const group=new T.Group();group.position.set(pt.x,SURFACE+.03,pt.z);
-      const ringMat=new T.MeshBasicMaterial({color:primaryColor,side:T.DoubleSide,transparent:true,opacity:.95,depthWrite:false});
-      const ring=new T.Mesh(new T.RingGeometry(tileSpan*.24,tileSpan*.38,32),ringMat);
+      const group=new T.Group();group.position.set(pt.x,SURFACE+.022,pt.z);
+      const ringMat=new T.MeshBasicMaterial({color:primaryColor,side:T.DoubleSide,transparent:true,opacity:.75,depthWrite:false});
+      const ring=new T.Mesh(new T.RingGeometry(tileSpan*.28,tileSpan*.38,28),ringMat);
       ring.rotation.x=-Math.PI/2;
       group.add(ring);
-      const particles:BurstFx['particles']=[];
-      for(let i=0;i<12;i++){
-        const angle=(i/12)*Math.PI*2+(i%2)*.18;
-        const speed=.85+(i%3)*.32;
-        const col=i%2===0?secondaryColor:primaryColor;
-        const mat=new T.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.65,roughness:.22,metalness:.55,transparent:true,opacity:1});
-        const m=new T.Mesh(new T.OctahedronGeometry(.068,0),mat);
-        m.position.set(0,.05,0);
-        group.add(m);
-        particles.push({mesh:m,vx:Math.cos(angle)*speed,vy:1.65+(i%3)*.45,vz:Math.sin(angle)*speed});
-      }
       scene.add(group);
-      bursts.push({group,ring,particles,started:now,duration:1250});
+      bursts.push({group,ring,particles:[],started:now,duration:750});
     }
     function spawnPurchaseBurst(lot:number,side:string,now:number){
       spawnTileBurst(lot,PARTY_COLORS[side]||'#f59e0b','#facc15',now);

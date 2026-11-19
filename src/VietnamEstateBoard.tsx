@@ -368,9 +368,8 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
           height="60"
           fill={isAuction?'#fef08a':isSelected?'#fef08a':owned?OWNER_BG[owned]||'#ffffff':isCorner?'#fff7ed':'#ffffff'}
           stroke={isAuction?'#d97706':isSelected?'#dc2626':owned?ownerColor:'#111111'}
-          strokeWidth={isAuction?3.8:isSelected?3.4:owned?2.8:1.6}
+          strokeWidth={isAuction?3.2:isSelected?3.2:owned?2.6:1.6}
         />
-        {owned&&<rect x={x+2.4} y={y+2.4} width="55.2" height="55.2" fill="none" stroke="#facc15" strokeWidth="1.2" opacity=".85"/>}
         {!isCorner&&c.type==='property'&&<>
           {sideEdge==='top'&&<rect x={x+1} y={y+1} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
           {sideEdge==='bottom'&&<rect x={x+1} y={y+48} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
@@ -378,12 +377,8 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
           {sideEdge==='right'&&<rect x={x+48} y={y+1} width="11" height="58" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
         </>}
         {owned&&<>
-          {/* Corner ownership pennant */}
-          <path d={`M${x+45} ${y+1} L${x+59} ${y+1} L${x+59} ${y+15} Z`} fill={ownerColor} stroke="#ffffff" strokeWidth=".9"/>
-          <circle cx={x+54.6} cy={y+5.4} r="2" fill="#fde047"/>
-          {/* Owner crest banner */}
-          <rect x={x+3} y={sideEdge==='bottom'?y+2:y+48.5} width="54" height="9.5" rx="2.5" fill={ownerColor} stroke="#111111" strokeWidth=".9"/>
-          <text x={x+30} y={sideEdge==='bottom'?y+9.2:y+55.6} textAnchor="middle" fontSize="6.7" fontWeight="900" fill="#ffffff" letterSpacing=".3">{`★ ${ownerStyle?.label||owned}`}</text>
+          <rect x={x+4} y={sideEdge==='bottom'?y+2:y+49.5} width="52" height="8" rx="2.5" fill={ownerColor}/>
+          <text x={x+30} y={sideEdge==='bottom'?y+8.4:y+55.8} textAnchor="middle" fontSize="6.4" fontWeight="800" fill="#ffffff">{ownerStyle?.label||owned}</text>
         </>}
 
         {rows.map((line,i)=>{
@@ -440,42 +435,26 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
       />;
     })}
 
-    {/* Live Purchase Celebration Burst Effect on the newly bought tile */}
-    {burstCoords&&<g key={justPurchasedKey} className="vn-buy-burst" style={{transformOrigin:`${burstCoords[1]*60+30}px ${burstCoords[0]*60+30}px`}} aria-hidden="true">
-      <rect className="vn-buy-flash" x={burstCoords[1]*60} y={burstCoords[0]*60} width="60" height="60" rx="4" fill="#fde047"/>
-      <circle className="vn-buy-ring" cx={burstCoords[1]*60+30} cy={burstCoords[0]*60+30} r="14" fill="none" stroke={burstColor} strokeWidth="5"/>
-      <circle className="vn-buy-ring-2" cx={burstCoords[1]*60+30} cy={burstCoords[0]*60+30} r="10" fill="none" stroke="#facc15" strokeWidth="3.5"/>
-      {[0,45,90,135,180,225,270,315].map(deg=>{
-        const rad=deg*Math.PI/180,cx=burstCoords[1]*60+30,cy=burstCoords[0]*60+30;
-        return <polygon
-          key={deg}
-          className="vn-buy-spark"
-          style={{'--sx':`${Math.cos(rad)*36}px`,'--sy':`${Math.sin(rad)*36}px`} as React.CSSProperties}
-          points={`${cx},${cy-4} ${cx+3},${cy} ${cx},${cy+4} ${cx-3},${cy}`}
-          fill={deg%90===0?'#facc15':burstColor}
-          stroke="#111111"
-          strokeWidth=".7"
-        />;
-      })}
-      <g className="vn-buy-stamp" style={{transformOrigin:`${burstCoords[1]*60+30}px ${burstCoords[0]*60+30}px`}}>
-        <rect x={burstCoords[1]*60+2} y={burstCoords[0]*60+19} width="56" height="20" rx="5" fill={burstColor} stroke="#fef08a" strokeWidth="2.2"/>
-        <text x={burstCoords[1]*60+30} y={burstCoords[0]*60+32.2} textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#ffffff" letterSpacing=".6">ĐÃ MUA!</text>
+    {/* Simple, subtle purchase confirmation pill on the bought tile */}
+    {burstCoords&&<g key={justPurchasedKey} className="vn-buy-burst" aria-hidden="true">
+      <rect className="vn-buy-flash" x={burstCoords[1]*60+1} y={burstCoords[0]*60+1} width="58" height="58" rx="3" fill="none" stroke={burstColor} strokeWidth="3.5"/>
+      <g className="vn-fx-float">
+        <rect x={burstCoords[1]*60+4} y={burstCoords[0]*60+20} width="52" height="18" rx="9" fill={burstColor} stroke="#ffffff" strokeWidth="1.4"/>
+        <text x={burstCoords[1]*60+30} y={burstCoords[0]*60+31.8} textAnchor="middle" fontSize="8.8" fontWeight="800" fill="#ffffff">Đã mua</text>
       </g>
     </g>}
 
-    {/* Live Tile Event Effect (Tax, Cash Loss, Jail, Card, Salary) directly on the target tile */}
+    {/* Simple floating delta badge on target tile */}
     {tileFx&&fxCoords&&(()=>{
       const fxX=fxCoords[1]*60,fxY=fxCoords[0]*60,cx=fxX+30,cy=fxY+30;
-      const isGain=tileFx.amount>0,isJail=tileFx.type==='jail',isCard=tileFx.type==='card';
-      const fxColor=isJail?'#dc2626':isGain?'#10b981':isCard?'#f59e0b':'#ef4444';
-      const label=isJail?'VÀO TÙ!':tileFx.amount!==0?`${isGain?'+':'−'}${Math.abs(tileFx.amount)} tr`:isCard?'THẺ!':'';
+      const isGain=tileFx.amount>0,isJail=tileFx.type==='jail';
+      const label=isJail?'Vào tù':tileFx.amount!==0?`${isGain?'+':'−'}${Math.abs(tileFx.amount)} tr`:'';
+      if(!label)return null;
       return <g key={tileFx.key} className="vn-tile-fx" aria-hidden="true">
-        <rect className="vn-buy-flash" x={fxX} y={fxY} width="60" height="60" rx="4" fill={fxColor}/>
-        <circle className="vn-buy-ring" cx={cx} cy={cy} r="14" fill="none" stroke={fxColor} strokeWidth="4.5"/>
-        {label&&<g className="vn-fx-float">
-          <rect x={cx-32} y={cy-13} width="64" height="22" rx="11" fill={isGain?'#065f46':'#7f1d1d'} stroke={isGain?'#6ee7b7':'#fca5a5'} strokeWidth="2"/>
-          <text x={cx} y={cy+1.5} textAnchor="middle" fontSize="10.5" fontWeight="900" fill="#ffffff">{label}</text>
-        </g>}
+        <g className="vn-fx-float">
+          <rect x={cx-30} y={cy-11} width="60" height="20" rx="10" fill={isGain?'#14532d':'#7f1d1d'} stroke={isGain?'#86efac':'#fca5a5'} strokeWidth="1.5"/>
+          <text x={cx} y={cy+2} textAnchor="middle" fontSize="9.5" fontWeight="800" fill="#ffffff">{label}</text>
+        </g>
       </g>;
     })()}
   </svg></div>;
