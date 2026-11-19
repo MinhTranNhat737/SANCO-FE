@@ -6,6 +6,9 @@ import './xiangqi.css';
 import './abstract.css';
 import CommanderPiece from './CommanderPiece';
 
+// Solid chess glyphs take their side color from CSS; the white Unicode glyphs are hollow.
+const chessSilhouette=(piece:string)=>`${CHESS_LABELS[`b${piece[1]}`]}\uFE0E`;
+
 export default function FlatBoard({kind,board,selected,targets,last,checkSquare,winning=[],flipped,enabled,onSquare}:{kind:GameKind;board:(string|null)[];selected:number|null;targets:number[];last:PracticeMove|null;checkSquare:number|null;winning?:number[];flipped:boolean;enabled:boolean;onSquare:(index:number)=>void}){
   const [boardTheme]=useBoardTheme();
   const meta=META[kind],ref=useRef<HTMLDivElement>(null),[focus,setFocus]=useState(0);
@@ -52,7 +55,7 @@ export default function FlatBoard({kind,board,selected,targets,last,checkSquare,
       return <button key={index} role="gridcell" tabIndex={focus===index?0:-1} data-square={index} aria-label={`${squareName(kind,index)}: ${pieceName(kind,piece)}`} aria-selected={selected===index} aria-disabled={!enabled||piece==='#'} className={`flat-cell ${piece==='#'?'blocked-square':''} ${(row+col)%2?'dark-square':''} ${selected===index?'chosen':''} ${targets.includes(index)?'legal':''} ${last?.to===index||last?.from===index?'last':''} ${checkSquare===index?'in-check':''} ${winning.includes(index)?'winning-cell':''}`} onFocus={()=>setFocus(index)} onClick={()=>onSquare(index)} onKeyDown={event=>{
         const sign=flipped?-1:1,delta:Record<string,number>={ArrowLeft:-sign,ArrowRight:sign,ArrowUp:-meta.cols*sign,ArrowDown:meta.cols*sign};
         if(!(event.key in delta))return;event.preventDefault();const next=Math.max(0,Math.min(board.length-1,index+delta[event.key]));setFocus(next);ref.current?.querySelector<HTMLButtonElement>(`[data-square="${next}"]`)?.focus();
-      }}>{piece==='#'?<span className="blocked-mark"/>:piece?kind==='commander'?<CommanderPiece cell={piece}/>:kind==='caro'||kind==='tictactoe'?<span className={`flat-piece piece-${piece}`}>{piece==='X'?'×':'○'}</span>:kind==='chess'?<span className={`flat-piece piece-${piece[0]}`}>{CHESS_LABELS[piece]}</span>:kind==='xiangqi'?<span className={`flat-piece piece-${piece[0]}`}>{X_LABELS[piece]}</span>:<span className={`flat-disc disc-${piece[0]}`}>{kind==='checkers'&&piece[1]==='K'&&<span className="disc-crown">♛</span>}</span>:targets.includes(index)?<i className="legal-dot"/>:null}{sr===meta.rows-1&&<small className="flat-file">{kind==='commander'?col:(kind==='go'?'ABCDEFGHJ':'ABCDEFGHIJKLMNO')[col]}</small>}{sc===0&&<small className="flat-rank">{kind==='commander'?11-row:kind==='caro'?row+1:meta.rows-row}</small>}</button>;
+      }}>{piece==='#'?<span className="blocked-mark"/>:piece?kind==='commander'?<CommanderPiece cell={piece}/>:kind==='caro'||kind==='tictactoe'?<span className={`flat-piece piece-${piece}`}>{piece==='X'?'×':'○'}</span>:kind==='chess'?<span className={`flat-piece piece-${piece[0]}`}>{chessSilhouette(piece)}</span>:kind==='xiangqi'?<span className={`flat-piece piece-${piece[0]}`}>{X_LABELS[piece]}</span>:<span className={`flat-disc disc-${piece[0]}`}>{kind==='checkers'&&piece[1]==='K'&&<span className="disc-crown">♛</span>}</span>:targets.includes(index)?<i className="legal-dot"/>:null}{sr===meta.rows-1&&<small className="flat-file">{kind==='commander'?col:(kind==='go'?'ABCDEFGHJ':'ABCDEFGHIJKLMNO')[col]}</small>}{sc===0&&<small className="flat-rank">{kind==='commander'?11-row:kind==='caro'?row+1:meta.rows-row}</small>}</button>;
     })}</div>)}
   </div>;
 }
