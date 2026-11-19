@@ -1,6 +1,6 @@
 import {BOARD_PALETTES,type BoardTheme} from '../board-palette.ts';
 import * as T from 'three';
-import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,estateBounds,estateTitleLines,groupOf} from './party-layout.ts';
+import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,estateBounds,estateCenterBounds,estateDirection,estateTitleLines,groupOf} from './party-layout.ts';
 import {VN_CELLS,VN_GROUP_COLORS,ownable} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 
@@ -211,15 +211,18 @@ function drawSpecialIcon(ctx:CanvasRenderingContext2D,type:string,cx:number,cy:n
 
 function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme){
   const palette=BOARD_PALETTES[theme];
-  const inner=600/13,innerSpan=600-inner*2;
+  const center=estateCenterBounds(13),inner=center.x,innerSpan=center.width;
   round(ctx,inner,inner,innerSpan,innerSpan,0,palette.center,'#546658',1.4);
   text(ctx,'TỶ PHÚ',300,268,33,palette.centerInk,UI_FONT,'900');
   text(ctx,'VIỆT NAM',300,303,19,palette.centerInk,UI_FONT,'800');
   VN_CELLS.forEach(c=>{
-    const {x,y,width:w,height:h}=estateBounds(c.index,13),corner=c.index%12===0;
+    const b=estateBounds(c.index,13),x=0,y=0,w=600/13,h=w,corner=c.index%12===0;
+    ctx.save();ctx.translate(b.x,b.y);ctx.scale(b.width/w,b.height/h);
     const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:'#64748b';
     round(ctx,x+.4,y+.4,w-.8,h-.8,0,corner?palette.special:palette.lot,'#34483b',1);
     if(c.type==='property')round(ctx,x+1,y+1,w-2,4.4,0,bandColor);
+    round(ctx,w-15,1,14,5.5,0,'#fff');
+    text(ctx,(c.index+1)+estateDirection(c.index),w-8,4,4.3,'#172d24',UI_FONT,'800');
     const rows=estateTitleLines(c.name,true),fs=7.3;
     const tx=x+w/2,ty=y+(rows.length>1?10.5:14);
     rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.3),fs,palette.lotInk,UI_FONT,'850',w-5));
@@ -229,15 +232,16 @@ function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme){
     }
     const price=own?c.price+' tr':c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount+' tr':'';
     if(price)text(ctx,price,tx,y+h*.91,6.5,palette.lotInk,UI_FONT,'850',w-5);
+    ctx.restore();
   });
 }
 
 export function boardTexture(kind:string,edition='legacy',theme:BoardTheme='dark'){
   const palette=BOARD_PALETTES[theme];
-  const {el,ctx}=canvas();
+  const {el,ctx}=canvas(kind==='monopoly'&&edition==='vn-v2'?4096:2400);
   const paint=()=>{
     ctx.setTransform(1,0,0,1,0,0);
-    ctx.scale(4,4);
+    ctx.scale(el.width/600,el.height/600);
     ctx.fillStyle=palette.board;ctx.fillRect(0,0,600,600);
     if(kind==='monopoly'&&edition==='vn-v2')vietnamPrint(ctx,theme);
     else if(kind==='ludo'){

@@ -36,6 +36,12 @@ Chọn **Luyện tập với máy** hoặc một thẻ môn cờ. Cả 10 môn c
 - Chọn quân sẽ nhấc nhẹ quân tại chỗ. Chỉ nước được máy chủ xác nhận mới có chuyển động nhấc → di chuyển → đặt xuống. Mã đi theo đường chữ L; nhập thành chuyển cả Vua và Xe; bắt tốt qua đường bỏ đúng Tốt bị ăn; phong cấp đổi model sau khi đặt Tốt xuống.
 - Nước bot đến sớm được xếp sau animation đang chạy. Đồng bộ lại cùng thế cờ không phát lại nước cũ; thao tác được khóa cho đến khi chuỗi chuyển động hoàn tất.
 
+## Bàn Tỷ phú Việt Nam
+
+Bàn 48 ô dùng hai hàng ô vuông trên lưới 8×8. Phần giữa chiếm 25% diện tích; mỗi ô rộng hơn 62,5% so với lưới 13×13 trước đây. Đi theo số và mũi tên trên ô: đường đi nối hai hàng thành một vòng liên tục, giữ nguyên thứ tự 48 ô và luật trên máy chủ. Bàn 2D, quân 3D, vùng bấm, công trình và hiệu ứng dùng chung tọa độ.
+
+Trên máy tính, bàn mở rộng đến 1.000 px và mặc định nhìn từ trên để giữ hình vuông rõ ràng. Chế độ 3D dùng bề mặt chữ 4.096×4.096 và nhắm độ phân giải dựng hình 2.048 px ở cạnh ngắn, trong giới hạn GPU. Bàn 2D là SVG, giữ độ nét khi phóng lớn.
+
 ## Các môn mới và giới hạn luật
 
 - Cờ vây 9×9: bắt quân, khí, cấm tự sát và superko; hai lượt bỏ kết thúc, diện tích + komi 6,5. Chưa đánh dấu quân chết/thỏa thuận điểm; cần dọn quân chết trước khi bỏ lượt.

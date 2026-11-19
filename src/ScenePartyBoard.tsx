@@ -6,7 +6,7 @@ import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {BoardGesture} from './three/board-gesture.ts';
-import {PARTY_SIDES,MONOPOLY_SIDES,PARTY_COLORS,ludoCell,worldPoint,ludoRoute,estatePoint,estateBounds,estateIndexAt} from './three/party-layout.ts';
+import {PARTY_SIDES,MONOPOLY_SIDES,PARTY_COLORS,ludoCell,worldPoint,ludoRoute,estatePoint,estateBounds,estatePixelRatio,estateIndexAt} from './three/party-layout.ts';
 import {SURFACE,table,horse,estateToken,estateAssets,dice,diceRotation,tabletopProps,dispose} from './three/party-models.ts';
 import {DiceRollQueue,sampleDiceThrow,randomThrowVariant,THROW_DURATION,type DiceRoll,type DiceThrowVariant} from './three/dice-motion.ts';
 import type {PartyState,PracticeMove} from './practice-types';
@@ -48,14 +48,14 @@ export default function ScenePartyBoard(props:Props){
     const vietnam=props.kind==='monopoly'&&props.state.edition==='vn-v2',estateSize=vietnam?13:6,trackLength=vietnam?48:20;
     const staticItems=new T.Group();const gameTable=table(props.kind,{wood:woodTexture,board:(kind,edition)=>boardTexture(kind,edition,boardTheme),label:labelTexture},props.state.edition);staticItems.add(gameTable);scene.add(staticItems);
     const felt=new T.Mesh(new T.CircleGeometry(14,80),new T.MeshStandardMaterial({color:'#112b21',roughness:1}));felt.rotation.x=-Math.PI/2;felt.position.y=-.33;felt.receiveShadow=true;staticItems.add(felt);
-    if(props.kind==='monopoly')staticItems.add(tabletopProps());
+    if(props.kind==='monopoly'){const propsRoot=tabletopProps();if(vietnam)propsRoot.scale.set(.62,1,.62);staticItems.add(propsRoot);}
     const die=dice(),rest=new T.Vector3(vietnam?-.36:0,SURFACE+.36,props.kind==='ludo'?0:1.3);die.position.copy(rest);scene.add(die);
     const secondDie=vietnam?dice():null;if(secondDie){secondDie.position.copy(rest).add(new T.Vector3(.72,0,0));scene.add(secondDie);}
     const diceCenter=new T.Vector3(0,SURFACE+.015,props.kind==='ludo'?0:1.3);
     const diceRing=new T.Mesh(new T.RingGeometry(vietnam?.76:.52,vietnam?.92:.66,48),new T.MeshBasicMaterial({color:'#f6df98',side:T.DoubleSide,transparent:true,opacity:.85}));
     diceRing.rotation.x=-Math.PI/2;diceRing.position.copy(diceCenter);diceRing.visible=false;scene.add(diceRing);
 
-    const tileSpan=10/estateSize;
+    const tileSpan=10/(vietnam?8:estateSize);
     const cellHighlight=new T.Mesh(
       new T.PlaneGeometry(tileSpan*.96,tileSpan*.96),
       new T.MeshBasicMaterial({color:'#f9e28c',transparent:true,opacity:.38,side:T.DoubleSide,depthWrite:false})
@@ -181,7 +181,7 @@ export default function ScenePartyBoard(props:Props){
       emitPhase(anyDice?'dice':anyWalking?'walk':'idle');
       dirty=true;
     }
-    function fit(){const w=Math.max(1,mount.clientWidth),h=Math.max(1,mount.clientHeight),aspect=w/h,size=Math.max(11.1,11.1/aspect);camera.left=-size*aspect/2;camera.right=size*aspect/2;camera.top=size/2;camera.bottom=-size/2;camera.updateProjectionMatrix();renderer.setSize(w,h,false);dirty=true;}
+    function fit(){const w=Math.max(1,mount.clientWidth),h=Math.max(1,mount.clientHeight),aspect=w/h,size=Math.max(11.1,11.1/aspect);if(vietnam){const gl=renderer.getContext(),limit=Math.min(renderer.capabilities.maxTextureSize,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));renderer.setPixelRatio(estatePixelRatio(w,h,window.devicePixelRatio||1,limit));}camera.left=-size*aspect/2;camera.right=size*aspect/2;camera.top=size/2;camera.bottom=-size/2;camera.updateProjectionMatrix();renderer.setSize(w,h,false);dirty=true;}
     function resetCamera(){camera.zoom=1;camera.up.set(0,1,0);camera.position.set(0,live.current.topView?22:17,live.current.topView?.001:10);controls.target.set(0,SURFACE,0);camera.lookAt(controls.target);fit();controls.update();dirty=true;}
     controller.current={sync,camera:resetCamera,appearance:(theme)=>{const face=gameTable.getObjectByName('table-playing-surface') as T.Mesh<T.PlaneGeometry,T.MeshBasicMaterial>;const previous=face.material.map;face.material.map=boardTexture(props.kind,props.state.edition,theme);face.material.needsUpdate=true;previous?.dispose();(felt.material as T.MeshStandardMaterial).color.set(theme==='light'?'#d8dfce':'#112b21');dirty=true;}};resetCamera();sync();
     const resize=new ResizeObserver(fit);resize.observe(mount);
@@ -294,7 +294,7 @@ export default function ScenePartyBoard(props:Props){
         const fx=bursts[i],dt=(time-fx.started)/fx.duration;
         if(dt>=1){scene.remove(fx.group);dispose(fx.group);bursts.splice(i,1);continue;}
         moving=true;
-        const s=fx.glow?tileSpan*(1+Math.sin(dt*Math.PI*3)*.025):1+dt*2.4;
+        const s=fx.glow?1+Math.sin(dt*Math.PI*3)*.025:1+dt*2.4;
         fx.ring.scale.setScalar(s);
         fx.ring.position.y=fx.glow?0:dt*.28;
         (fx.ring.material as T.MeshBasicMaterial).opacity=Math.max(0,(1-dt)*.95);

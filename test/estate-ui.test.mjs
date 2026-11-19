@@ -30,6 +30,21 @@ const click=async(element)=>{assert.ok(element);await act(async()=>element.dispa
 const button=text=>[...document.querySelectorAll('button')].find(button=>button.textContent.trim()===text);
 const game=(count=2)=>{const g={phase:'playing',kind:'monopoly',turn:'R',party:newVietnam(count,'auto')};startVietnam(g,()=>0);return g;};
 
+test('Large square board shows all 48 lots, a smaller court and working inspection on the inner row',async()=>{
+  localStorage.setItem('sc-party-view','2d');localStorage.setItem('sc-estate-tutorial-v3','done');
+  const g=game(8);
+  await render(PartyBoard,{kind:'monopoly',state:g.party,mySide:'R',turn:'R',legal:[],enabled:false,animate:false});
+  const lots=[...document.querySelectorAll('[data-cell-index]')];assert.equal(lots.length,48);
+  for(const lot of lots){
+    const rect=lot.querySelector('rect');assert.equal(rect.getAttribute('width'),rect.getAttribute('height'));
+    assert.match(lot.getAttribute('transform'),/scale\(1\.625\)/);
+  }
+  const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.equal(court.getAttribute('width'),'390');
+  await click(lots[3]);
+  assert.match(document.querySelector('.estate-inspector').textContent,new RegExp(VN_CELLS[3].name));
+  assert.equal(document.querySelector('[data-cell-index="3"]').getAttribute('aria-pressed'),'true');
+});
+
 test('Lobby has one row per color and never repeats a player in an empty seat',()=>{
   const owner={mark:'K',name:'Owner'},guest={mark:'Y',name:'Guest'};
   const seats=rules.lobbySeats([owner,guest],['R','G','Y','B','P','O','C','K'],8);
