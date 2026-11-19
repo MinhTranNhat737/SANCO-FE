@@ -462,3 +462,25 @@ test('Monopoly event overlay renders Chance/Community 3D card flip, Jail slam an
   assert.ok(document.querySelector('.estate-jail-card'),'Jail bars slam must render');
   assert.match(document.querySelector('.estate-jail-card').textContent,/VÀO TRẠI GIAM.*Gieo 3 đôi liên tiếp/);
 });
+
+test('Monopoly hides dice result and buy form until dice settles and piece lands on destination cell',async()=>{
+  localStorage.setItem('sc-party-view','2d');
+  const {PartyBoard}=await vite.ssrLoadModule('/src/PartyBoard.tsx');
+  const game=createPractice('monopoly','R','medium','seq-choreo-test');
+  const initial=structuredClone(game.party);
+  await act(async()=>root.render(createElement(PartyBoard,{kind:'monopoly',state:initial,mySide:'R',turn:'R',legal:[{from:null,to:-1,action:'roll'}],enabled:true,onMove:()=>{},gameKey:'seq-choreo-test',animate:true,lastDie:null,rollKey:'',rolls:[]})));
+  await settle();
+
+  // Simulate roll result: 1 + 2 = 3 steps -> lands on cell 3 (stage = 'buy')
+  const rolled=structuredClone(initial);
+  rolled.players[0].position=3;rolled.stage='buy';rolled.dice=3;rolled.diceValues=[1,2];
+  await act(async()=>root.render(createElement(PartyBoard,{kind:'monopoly',state:rolled,mySide:'R',turn:'R',legal:[{from:null,to:3,action:'buy'},{from:null,to:-1,action:'auction'},{from:null,to:-1,action:'skip_buy'}],enabled:true,onMove:()=>{},gameKey:'seq-choreo-test',animate:true,lastDie:1,rollKey:'0:100',rolls:[{key:'0:100',value:1,faces:[1,2],side:'R'}]})));
+  // Immediately after roll starts: dice is rolling -> no rolled banner spoiler, no buy modal yet!
+  assert.equal(document.querySelector('.party-rolled-banner'),null,'Dice result must stay hidden while rolling');
+  assert.equal(document.querySelector('.estate-buy-center'),null,'Buy modal must stay hidden while rolling');
+
+  // Wait for 820ms dice roll + 3 steps * 120ms walk (~1350ms total)
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,1450));});
+  assert.ok(document.querySelector('.party-rolled-banner'),'Dice result appears after dice settles');
+  assert.ok(document.querySelector('.estate-buy-center'),'Buy modal appears once piece lands on destination cell');
+});

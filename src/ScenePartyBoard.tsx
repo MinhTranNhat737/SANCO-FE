@@ -20,7 +20,7 @@ type Props={
   justPurchasedKey?:number;
   auctionLot?:number|null;
   tileFx?:{lot:number;type:string;amount:number;key:number}|null;
-  onAnimatingChange?:(busy:boolean)=>void;onHoldChange?:(holding:boolean)=>void;onCellSelect?:(index:number)=>void;
+  onAnimatingChange?:(busy:boolean)=>void;onPhaseChange?:(phase:'idle'|'dice'|'walk')=>void;onHoldChange?:(holding:boolean)=>void;onCellSelect?:(index:number)=>void;
   grabRef?:React.MutableRefObject<((e:PointerEvent)=>void)|null>;
 };
 type Piece={node:T.Group;position:number;side:string;token:number;route:{x:number;z:number}[];from:T.Vector3;started:number;ring:T.Mesh};
@@ -68,14 +68,21 @@ export default function ScenePartyBoard(props:Props){
     let activeThrow:{roll:DiceRoll;started:number;previous:T.Quaternion;secondPrevious?:T.Quaternion;releaseOrigin?:T.Vector3}|null=null,wasAnimate=props.animate;
     let pendingDrop:{origin:T.Vector3;started:number}|null=null;
     let heldDice:{active:boolean;point:T.Vector3;started:number;moved:boolean;downX:number;downY:number}={active:false,point:rest.clone(),started:0,moved:false,downX:0,downY:0};
+    let animPhase:'idle'|'dice'|'walk'='idle';
+    const emitPhase=(next:'idle'|'dice'|'walk')=>{
+      if(next===animPhase)return;
+      animPhase=next;
+      live.current.onPhaseChange?.(next);
+      live.current.onAnimatingChange?.(next!=='idle');
+    };
 
-    const canRollNow=()=>{const p=live.current;return p.enabled&&!activeThrow&&!pendingDrop&&p.legal.some(m=>(m.action||m.command)==='roll');};
+    const canRollNow=()=>{const p=live.current;return p.enabled&&!activeThrow&&!pendingDrop&&animPhase==='idle'&&p.legal.some(m=>(m.action||m.command)==='roll');};
     function startThrow(now:number){
       const roll=pendingRolls.shift();if(!roll)return;
       const drop=pendingDrop;pendingDrop=null;
       const started=drop?now-THROW_DURATION*.48:now;
       activeThrow={roll,started,previous:die.quaternion.clone(),secondPrevious:secondDie?.quaternion.clone(),releaseOrigin:drop?.origin};
-      live.current.onAnimatingChange?.(true);
+      emitPhase('dice');
     }
     let assetRoot=new T.Group();scene.add(assetRoot);let assetKey='';
     type BurstFx={group:T.Group;ring:T.Mesh;particles:{mesh:T.Mesh;vx:number;vy:number;vz:number}[];started:number;duration:number};
@@ -102,7 +109,7 @@ export default function ScenePartyBoard(props:Props){
     function sync(){
       const p=live.current,keep=new Set<string>(),now=performance.now();
       const baseline=!p.animate||!wasAnimate||reduced;
-      if(baseline){rollQueue.reset(p.rolls);pendingRolls.length=0;activeThrow=null;pendingDrop=null;heldDice.active=false;die.position.copy(rest);secondDie?.position.copy(rest).add(new T.Vector3(.72,0,0));p.onAnimatingChange?.(false);p.onHoldChange?.(false);}
+      if(baseline){rollQueue.reset(p.rolls);pendingRolls.length=0;activeThrow=null;pendingDrop=null;heldDice.active=false;die.position.copy(rest);secondDie?.position.copy(rest).add(new T.Vector3(.72,0,0));emitPhase('idle');p.onHoldChange?.(false);}
       else{pendingRolls.push(...rollQueue.accept(p.rolls));if(!activeThrow)startThrow(now);}
       wasAnimate=p.animate;
       diceRing.visible=canRollNow()&&!heldDice.active;
@@ -150,6 +157,9 @@ export default function ScenePartyBoard(props:Props){
       for(const [id,piece]of pieces)if(!keep.has(id)){scene.remove(piece.node);dispose(piece.node);pieces.delete(id);}
       if(props.kind==='monopoly'){const key=JSON.stringify([p.state.property,p.state.houses,p.state.mortgaged]);if(key!==assetKey){scene.remove(assetRoot);dispose(assetRoot);assetRoot=estateAssets(p.state);scene.add(assetRoot);assetKey=key;}}
       if(!activeThrow&&!heldDice.active&&!pendingDrop){die.quaternion.setFromEuler(diceRotation(p.lastDie||p.state.diceValues?.[0]||p.state.dice||1));secondDie?.quaternion.setFromEuler(diceRotation(p.rolls.at(-1)?.faces?.[1]||p.state.diceValues?.[1]||1));}
+      const anyDice=Boolean(activeThrow||pendingDrop||pendingRolls.length>0);
+      const anyWalking=[...pieces.values()].some(pc=>pc.route.length>0);
+      emitPhase(anyDice?'dice':anyWalking?'walk':'idle');
       dirty=true;
     }
     function fit(){const w=Math.max(1,mount.clientWidth),h=Math.max(1,mount.clientHeight),aspect=w/h,size=Math.max(11.1,11.1/aspect);camera.left=-size*aspect/2;camera.right=size*aspect/2;camera.top=size/2;camera.bottom=-size/2;camera.updateProjectionMatrix();renderer.setSize(w,h,false);dirty=true;}
@@ -305,8 +315,18 @@ export default function ScenePartyBoard(props:Props){
         die.position.copy(pose.position);die.quaternion.copy(pose.rotation);
         if(secondDie){const second=sampleDiceThrow(time-activeThrow.started,activeThrow.roll.faces?.[1]||1,rest,activeThrow.secondPrevious,activeThrow.releaseOrigin);secondDie.position.copy(second.position).add(new T.Vector3(.72,0,0));secondDie.quaternion.copy(second.rotation);}
         moving=true;
-        if(pose.done){activeThrow=null;startThrow(time);if(!activeThrow){diceRing.visible=canRollNow();live.current.onAnimatingChange?.(false);}}
+        if(pose.done){
+          activeThrow=null;
+          startThrow(time);
+          if(!activeThrow){
+            for(const pc of pieces.values())if(pc.route.length){pc.from.copy(pc.node.position);pc.started=time;}
+          }
+        }
       }
+      const anyDice=Boolean(activeThrow||pendingDrop||pendingRolls.length>0);
+      const anyWalking=[...pieces.values()].some(pc=>pc.route.length>0);
+      emitPhase(anyDice?'dice':anyWalking?'walk':'idle');
+      diceRing.visible=canRollNow()&&!heldDice.active;
       if(dirty||moving){renderer.render(scene,camera);dirty=false;}
     }
     frame=requestAnimationFrame(render);

@@ -46,8 +46,8 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
     return 'Bất động sản đặc biệt';
   };
 
-  // 1. LIVE AUCTION CENTER MODAL — visible to EVERY player in the room!
-  if(state.stage==='auction'&&auction){
+  // 1. LIVE AUCTION CENTER MODAL — visible to EVERY player in the room once dice & movement land!
+  if(state.stage==='auction'&&auction&&!busy){
     const cell=VN_CELLS[auction.lot];
     if(!cell)return null;
     const accent=cell.group!==undefined?VN_GROUP_COLORS[cell.group]:cell.type==='station'?'#16a34a':'#d97706';
