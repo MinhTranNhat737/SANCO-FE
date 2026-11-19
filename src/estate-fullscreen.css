@@ -1,0 +1,79 @@
+.party-table.estate-immersive {
+  position:fixed;inset:0;z-index:1000;width:100vw!important;height:100dvh!important;
+  min-width:0;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:#112b21;box-shadow:none;overflow:hidden;
+}
+.estate-immersive>.party-stage-wrap {position:absolute;inset:0;width:100%;height:100%;border:0;overflow:hidden}
+.estate-immersive .estate-board-viewport {width:100%;height:100dvh;max-height:none;border:0;padding:0;scrollbar-width:none;scrollbar-gutter:auto;background:#112b21}
+.estate-immersive .estate-board-viewport::-webkit-scrollbar {display:none}
+.estate-immersive .estate-board-viewport.is-fit>.estate-board-surface {width:min(100%,100dvh)}
+.estate-immersive .estate-board-surface>.vn-estate-flat {border:0!important;border-radius:0!important;box-shadow:none;filter:none}
+.estate-immersive .party-board-dice-hud {display:none!important}
+.estate-game-hud {position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:45;width:224px;max-width:calc(100vw - 24px);border:1px solid #aa8b5266;border-radius:10px;background:#201a13f0;color:#f5ead8;box-shadow:0 6px 24px #0005;backdrop-filter:blur(10px);text-align:left}
+.estate-game-hud>header {display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px}
+.estate-game-hud>header>strong {font-size:22px;font-weight:800;color:#f3d78e;font-variant-numeric:tabular-nums}
+.estate-game-hud>header>button {display:grid;place-items:center;width:30px;height:30px;padding:0;background:#ffffff0a;color:#e8dbc5;border:1px solid #b2945750;border-radius:6px}
+.estate-game-hud-body {padding:0 11px 10px;max-height:calc(100dvh - 86px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.estate-game-hud-body[hidden] {display:none!important}
+.estate-game-hud .estate-hud-status {font-size:13px;line-height:1.45;margin:0 0 9px;color:#e2d7c1}
+.estate-game-hud .panel {padding:0!important;margin:0 0 8px!important;background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+.estate-game-hud .estate-controls {font-size:13px}
+.estate-game-hud :is(.estate-mode-wallet,.estate-wallet,.estate-dice) {display:none!important}
+.estate-game-hud .estate-primary-actions {gap:7px;margin:0}
+.estate-game-hud .estate-primary-actions .button,
+.estate-game-hud .estate-action-row .button {min-height:42px!important;font-size:14px!important;padding:9px 10px;line-height:1.35}
+.estate-game-hud .estate-panel {margin-top:8px;padding-top:5px}
+.estate-game-hud .estate-panel>summary {font-size:13px!important;min-height:36px!important}
+.estate-game-hud .estate-panel summary>span {font-size:12px}
+.estate-game-hud :is(.estate-controls label,.estate-controls p,.estate-controls legend,.estate-controls .button-small) {font-size:12px}
+.estate-game-hud :is(input,select) {min-width:0;max-width:100%;box-sizing:border-box}
+.estate-game-hud .estate-controls input[type=number],.estate-game-hud .estate-controls select {min-height:40px;font-size:14px}
+.estate-game-hud .estate-hud-menu {border-top:1px solid #b2945740;margin-top:9px;padding-top:5px}
+.estate-game-hud .estate-hud-menu>summary {min-height:34px;display:flex;align-items:center;cursor:pointer;font-size:13px;font-weight:700}
+.estate-game-hud .estate-hud-menu>summary:after {content:'⌄';margin-left:auto}
+.estate-game-hud .estate-hud-menu[open]>summary {margin-bottom:8px}
+.estate-game-hud :is(.party-table-toolbar,.party-camera-bar,.estate-zoom-tools) {position:static;display:flex;flex-wrap:wrap;gap:6px;padding:0 0 9px;margin:0 0 9px;border:0;border-bottom:1px solid #b2945730;min-height:0;background:none}
+.estate-game-hud :is(.party-material-label,.party-camera-bar>span,.estate-zoom-tools>span) {display:none}
+.estate-game-hud .board-view-options {justify-content:flex-start;gap:6px;flex-wrap:wrap}
+.estate-game-hud :is(.board-appearance,.board-view-options>[role=group]) {border:0;padding:0;gap:4px;background:none}
+.estate-game-hud :is(.party-table-toolbar button,.party-camera-bar button,.estate-zoom-tools button) {min-width:36px;min-height:36px;font-size:12px;padding:7px 8px;border-radius:5px}
+.estate-game-hud .estate-zoom-tools button {flex:1 1 80px}
+.estate-game-hud .estate-tutorial {margin:0 0 9px;font-size:12px}
+.estate-game-hud .estate-tutorial-header {display:block;padding:7px}
+.estate-game-hud .estate-tutorial-header p {font-size:12px;margin-bottom:5px}
+.estate-game-hud .estate-tutorial button {min-height:34px;font-size:12px;padding:6px 8px}
+.estate-game-hud .estate-tutorial-lesson {font-size:12px;padding:8px}
+.estate-game-hud .estate-tutorial-lesson h3 {font-size:14px}
+.estate-game-hud .estate-inspector {border:0;background:none;padding:8px 0;font-size:12px;gap:8px}
+.estate-game-hud .estate-inspector .estate-card-header strong {font-size:18px}
+.estate-game-hud .estate-card-header {gap:6px}
+.estate-game-hud .estate-card-close {width:30px;height:30px;font-size:22px}
+.estate-game-hud :is(.estate-card-kicker,.estate-landmark-tag,.estate-inspector small,.estate-fact-grid>span,.estate-rent-tiers,.estate-special-note) {font-size:11px}
+.estate-game-hud .estate-fact-grid>span {padding:7px}
+.estate-game-hud .estate-fact-grid>span>strong {font-size:14px}
+.estate-game-hud .estate-card-actions .button {min-height:40px;font-size:13px;padding:8px}
+.estate-game-hud .estate-center-overlay {position:static;inset:auto;display:block;padding:0;background:none;backdrop-filter:none;animation:none}
+.estate-game-hud .estate-center-card {width:100%;max-height:none;box-sizing:border-box;border-radius:7px;box-shadow:none}
+.estate-game-hud :is(.estate-center-banner,.estate-center-body) {padding:9px;gap:8px;flex-wrap:wrap}
+.estate-game-hud .estate-center-title-row {flex-wrap:wrap;gap:8px}
+.estate-game-hud .estate-center-title-row h3 {font-size:20px}
+.estate-game-hud :is(.estate-center-kicker,.estate-center-subtitle,.estate-buy-facts>span>small,.estate-center-listprice small) {font-size:12px}
+.estate-game-hud .estate-center-min {min-height:32px;font-size:12px;padding:5px 8px}
+.estate-game-hud :is(.estate-buy-facts,.estate-buy-secondary-row,.estate-auction-hero) {grid-template-columns:1fr}
+.estate-game-hud .estate-bid-steps {grid-template-columns:repeat(2,minmax(0,1fr))}
+.estate-game-hud :is(.estate-lux-btn,.estate-step-btn,.estate-buy-primary) {min-height:40px;font-size:13px;padding:8px}
+.estate-game-hud .estate-center-reopen {position:static;transform:none;width:100%;box-sizing:border-box;white-space:normal;font-size:12px;margin:0 0 8px}
+.estate-game-hud .button.full {min-height:38px;font-size:13px;margin:5px 0;padding:8px 10px}
+.estate-game-hud .party-roster {display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}
+.estate-game-hud .party-roster>article {padding:7px!important;border:0;border-radius:5px;background:#ffffff08}
+.estate-game-hud .party-roster strong {font-size:12px}
+.estate-game-hud .party-roster small {font-size:11px}
+.estate-game-hud .party-clock {font-size:14px}
+.estate-game-hud :is(.practice-session h2,.result-panel h2) {font-size:16px}
+.estate-game-hud .estate-replay-tools {display:grid;gap:7px}
+body:has(.estate-immersive) .modal-backdrop {z-index:2000}
+body:has(.estate-immersive) #root :is(.sidebar,.topbar,.footer) {visibility:hidden}
+@media(max-height:600px) {
+  .estate-game-hud {top:8px;right:8px;width:208px}
+  .estate-game-hud-body {max-height:calc(100dvh - 70px)}
+}

@@ -9,4 +9,5 @@ import './rankings.css';
 import './mobile-board.css';
 import './lobby.css';
 import './estate-readability.css';
+import './estate-fullscreen.css';
 createRoot(document.getElementById('root')!).render(<AppErrorBoundary><App /></AppErrorBoundary>);

@@ -104,10 +104,10 @@ test('Commander 3D can be selected and safely falls back to the same playable bo
 });
 async function verifyBoardThemes(){
   const workspace=document.querySelector('.practice-workspace');
-  const board=workspace.querySelector('[role="grid"],.party-table');
+  const board=document.querySelector('.estate-immersive')||workspace.querySelector('[role="grid"],.party-table');
   const labels=()=>[...board.querySelectorAll('[data-square]')].map(cell=>cell.getAttribute('aria-label'));
   const before=labels();
-  const controls=workspace.querySelector('.party-table-toolbar .board-appearance')||workspace.querySelector('.board-appearance');
+  const controls=board.querySelector('.board-appearance')||workspace.querySelector('.board-appearance');
   assert.ok(controls,'Every game needs a theme selector');
   for(const [index,theme]of [[0,'light'],[1,'dark']]){
     await click(controls.querySelectorAll('button')[index]);
@@ -115,7 +115,7 @@ async function verifyBoardThemes(){
     assert.equal(board.dataset.boardTheme,theme);
     assert.equal(controls.querySelectorAll('button')[index].getAttribute('aria-pressed'),'true');
     assert.equal(localStorage.getItem('sc-board-theme'),theme);
-    assert.equal(workspace.querySelector('[role="grid"],.party-table'),board,'Theme must preserve the mounted game');
+    assert.equal(document.querySelector('.estate-immersive')||workspace.querySelector('[role="grid"],.party-table'),board,'Theme must preserve the mounted game');
     assert.deepEqual(labels(),before,'Theme must preserve every piece and square');
   }
 }
@@ -184,12 +184,25 @@ for(const kind of KINDS){
     await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
     await click(document.querySelector(`.collection-${kind}`));
     await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Chơi với máy')));
+    for(let retry=0;retry<80&&!document.querySelector('.practice-start');retry++)await settle();
     if(['chess','xiangqi'].includes(kind)){
       assert.equal(document.querySelector('.difficulty-options button[aria-pressed="true"]').textContent,'Khó');
       assert.match(document.querySelector('.practice-setup').textContent,/3 giây/);
     }
     await click(document.querySelector('.practice-start'));
     assert.ok(document.querySelector('.practice-session'));assert.ok(document.querySelector('[role="grid"],.party-board'));
+    if(kind==='monopoly'){
+      assert.ok(document.querySelector('.estate-immersive'),'A running estate game fills the viewport');
+      assert.ok(document.querySelector('.practice-workspace').hasAttribute('inert'),'The covered workspace cannot receive input');
+      assert.equal(document.querySelectorAll('.estate-game-hud').length,1);
+      assert.equal(document.querySelector('.practice-aside'),null);
+      assert.ok(document.querySelector('.estate-primary-actions').closest('.estate-game-hud'));
+      await click(document.querySelector('.estate-hud-menu>summary'));
+      await click(document.querySelector('.estate-game-hud .practice-secondary-actions .resign-link'));
+      const confirmation=document.querySelector('.practice-dialog');assert.ok(confirmation);
+      assert.equal(confirmation.closest('.modal-backdrop').parentElement,document.body,'Confirmations remain interactive above the inert workspace');
+      await click([...confirmation.querySelectorAll('button')].find(button=>button.textContent==='Chơi tiếp'));
+    }
     await verifyBoardThemes();
     if(['ludo','monopoly'].includes(kind))assert.ok([...document.querySelectorAll('button')].some(b=>b.textContent.includes('Gieo')));
     assert.equal(document.querySelector('.startup-message'),null);

@@ -56,6 +56,25 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   assert.equal(document.querySelector('[data-cell-index="3"]').getAttribute('aria-pressed'),'true');
 });
 
+test('Fullscreen estate game keeps actions, settings and lot inspection in one collapsible HUD and restores page scrolling',async()=>{
+  localStorage.setItem('sc-party-view','2d');localStorage.setItem('sc-estate-tutorial-v3','done');document.body.style.overflow='scroll';
+  const g=game(),sent=[],legal=[{from:null,to:-1,action:'roll'}],move=m=>sent.push(m);
+  const props={kind:'monopoly',state:g.party,mySide:'R',turn:'R',legal,enabled:true,animate:false,immersive:true,onMove:move,hudActions:createElement(Controls,{state:g.party,mySide:'R',legal,enabled:true,onMove:move})};
+  await render(PartyBoard,props);
+  const hud=document.querySelector('.estate-game-hud'),shell=document.querySelector('.estate-immersive');
+  assert.equal(shell.parentElement,document.body);assert.equal(document.body.style.overflow,'hidden');
+  assert.equal(document.querySelectorAll('.estate-game-hud').length,1);
+  assert.ok(document.querySelector('.party-table-toolbar').closest('.estate-game-hud'));
+  assert.ok(document.querySelector('.estate-zoom-tools').closest('.estate-game-hud'));
+  assert.ok(document.querySelector('.estate-primary-actions').closest('.estate-game-hud'));
+  await click(document.querySelector('.estate-primary-actions button'));assert.equal(sent[0].command,'roll');
+  await click(document.querySelector('[aria-label="Thu gọn HUD"]'));assert.equal(document.querySelector('.estate-game-hud-body').hidden,true);
+  await click(document.querySelector('[data-cell-index="3"]'));
+  assert.equal(document.querySelector('.estate-game-hud-body').hidden,false);assert.ok(document.querySelector('.estate-inspector').closest('.estate-game-hud'));
+  assert.equal(document.querySelector('.party-cell-popup-wrap'),null);
+  await render(PartyBoard,{...props,immersive:false});assert.equal(document.querySelector('.estate-game-hud'),null);assert.equal(document.body.style.overflow,'scroll');
+});
+
 test('Lobby has one row per color and never repeats a player in an empty seat',()=>{
   const owner={mark:'K',name:'Owner'},guest={mark:'Y',name:'Guest'};
   const seats=rules.lobbySeats([owner,guest],['R','G','Y','B','P','O','C','K'],8);
@@ -138,6 +157,11 @@ test('Waiting room renders owner once, seven empty seats and a host start button
   assert.equal([...document.querySelectorAll('.party-lobby-seats strong')].filter(node=>node.textContent==='Unique Owner').length,1);
   assert.equal([...document.querySelectorAll('.party-lobby-seats strong')].filter(node=>node.textContent==='Ghế trống').length,7);assert.equal(button('Bắt đầu với 1 người').disabled,true);
   raw.players.push(guest);await render(PartyRoom,{...props,room:publicRoom(raw,'one',Date.now())});assert.equal(button('Bắt đầu với 2 người').disabled,false);await click(button('Bắt đầu với 2 người'));assert.deepEqual(actions,['start']);
+  raw.game.phase='playing';startVietnam(raw.game,()=>0);
+  await render(PartyRoom,{...props,room:publicRoom(raw,'one',Date.now())});
+  assert.ok(document.querySelector('.estate-immersive'));assert.ok(document.querySelector('.party-room-workspace').hasAttribute('inert'));
+  assert.equal(document.querySelectorAll('.estate-game-hud').length,1);assert.equal(document.querySelector('.practice-aside'),null);
+  assert.ok(document.querySelector('.party-roster').closest('.estate-game-hud'));
 });
 
 test('Purchase glows every changed tile, stays across unrelated snapshots and expires without replay',async()=>{

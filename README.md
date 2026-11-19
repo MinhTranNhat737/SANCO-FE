@@ -42,6 +42,8 @@ Bàn 48 ô giữ một vòng ô vuông trên lưới 13×13, với Xuất phát,
 
 Bàn 3D mặc định nhìn từ trên để giữ hình vuông rõ ràng, dùng bề mặt chữ 4.096×4.096 và nhắm độ phân giải dựng hình 2.048 px ở cạnh ngắn, trong giới hạn GPU. Bàn 2D là SVG, giữ độ nét khi phóng lớn.
 
+Khi vào ván Việt Nam, bàn phủ toàn bộ cửa sổ và chỉ giữ một HUD rộng 224 px ở góc phải. Tiền, lượt chơi và hành động chính luôn ở HUD; thông tin ô, mua đất và đấu giá cũng mở tại đây. Menu trong HUD chứa đổi 2D/3D, màu bàn, phóng to, hướng dẫn, danh sách người chơi, lịch sử và thoát về sảnh. HUD có thể thu gọn; màn hình thiết lập và phòng chờ vẫn dùng bố cục thông thường. Khung giao diện phía dưới không nhận bàn phím khi bàn toàn màn hình đang mở; thoát ván khôi phục cuộn trang.
+
 ## Các môn mới và giới hạn luật
 
 - Cờ vây 9×9: bắt quân, khí, cấm tự sát và superko; hai lượt bỏ kết thúc, diện tích + komi 6,5. Chưa đánh dấu quân chết/thỏa thuận điểm; cần dọn quân chết trước khi bỏ lượt.
