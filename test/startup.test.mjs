@@ -412,11 +412,13 @@ test('Creating a Monopoly room defaults to casual mode, supports 8 players, and 
   await click([...document.querySelectorAll('.mode-choices button')].find(b=>b.textContent.includes('Chơi với bạn')));
   assert.match(document.querySelector('.casual-room-badge').textContent,/Chế độ giải trí/);
   assert.equal(document.querySelector('.rank-room-toggle'),null);
+  assert.equal(document.querySelector('.room-side-options'),null);
   const capButtons=[...document.querySelectorAll('.capacity-grid-8 button')];
   assert.equal(capButtons.length,7);
   await click(capButtons.find(b=>b.textContent==='8 người'));
   await act(async()=>document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
   assert.equal(createdBody.ranked,false);
+  assert.equal(createdBody.side,'random');
   assert.equal(createdBody.capacity,8);
   assert.match(document.querySelector('.rank-room-label').textContent,/Chế độ giải trí/);
   assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-player-card').length,8);
