@@ -1,6 +1,6 @@
 import type {PartyState,PracticeMove} from './practice-types';
 import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash,estateRent,ownable} from './estate-data';
-import {estateCell,PARTY_COLORS,CITIES,GROUP_COLORS,groupOf} from './three/party-layout.ts';
+import {estateBounds,estateTitleLines,PARTY_COLORS,CITIES,GROUP_COLORS,groupOf} from './three/party-layout.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from './vietnam-landmarks';
 import {useId} from 'react';
 import './estate.css';
@@ -79,10 +79,10 @@ export function EstateInspector({
   const actionLabels:Record<string,string>={
     buy:`Mua ${c.name} (${cash(c.price)})`,
     auction:'Mở đấu giá',
-    build:`Xây dựng (${cash(estateBuildCost(state,c.buildCost))})`,
+    build:`Xây nhà (${cash(estateBuildCost(state,c.buildCost))})`,
     mortgage:`Thế chấp (+${cash(Math.floor(c.price/2))})`,
     redeem:`Chuộc đất (${cash(Math.ceil(c.price*.55))})`,
-    sell_building:'Bán 1 công trình',
+    sell_building:'Bán nhà',
     sell:`Bán đất (+${cash(Math.floor(c.price/2))})`
   };
 
@@ -154,8 +154,6 @@ const TOKEN_STYLES:Record<string,{fill:string;dark:string;label:string}>={
 };
 
 const OWNER_BG:Record<string,string>={R:'#ffe3e6',G:'#d8f8eb',Y:'#fef3c7',B:'#dbeafe',P:'#f3e8ff',O:'#ffedd5',C:'#cffafe',K:'#fce7f3'};
-const lines=(name:string)=>{const words=name.split(' ');if(name.length<=8||words.length===1)return [name];const split=Math.ceil(words.length/2);return [words.slice(0,split).join(' '),words.slice(split).join(' ')];};
-const titleSize=(rows:string[])=>{const maxLen=Math.max(...rows.map(r=>r.length));return maxLen>11?6.2:maxLen>9?6.9:rows.length>1?7.3:8.0;};
 
 function SvgLandmark({cx,cy,kind,accent}:{cx:number;cy:number;kind:LandmarkKind;accent:string}){
   return <g aria-hidden="true" transform={`translate(${cx} ${cy}) scale(1.08) translate(${-cx} ${-cy})`}>
@@ -273,32 +271,6 @@ function SpecialCellArt({type,name,cx,cy}:{type:string;name:string;cx:number;cy:
   return null;
 }
 
-function CenterMascotCard({x,y,rotate,bg,title}:{x:number;y:number;rotate:number;bg:string;title:string}){
-  return <g transform={`translate(${x} ${y}) rotate(${rotate})`} aria-hidden="true">
-    <rect x="-78" y="-52" width="156" height="104" rx="4" fill={bg} stroke="#111111" strokeWidth="2.6"/>
-    <rect x="-72" y="-46" width="144" height="92" rx="2" fill="none" stroke="#11111155" strokeWidth="1" strokeDasharray="4 3"/>
-    {/* Classic Top-Hat Tycoon Mascot */}
-    <g transform="translate(0 -6)">
-      <path d="M-28 24 Q0 4 28 24 L20 34 L-20 34 Z" fill="#111111"/>
-      <path d="M-7 16 L0 28 L7 16 Z" fill="#ffffff"/>
-      <path d="M-2 18 L0 27 L2 18 Z" fill="#e63946"/>
-      <circle cx="0" cy="4" r="14" fill="#fffbeb" stroke="#111111" strokeWidth="2.2"/>
-      {/* Mustache & eyes */}
-      <circle cx="-5" cy="2" r="1.8" fill="#111111"/>
-      <circle cx="5" cy="2" r="1.8" fill="#111111"/>
-      <path d="M-11 9 Q-5 5 0 9 Q5 5 11 9 Q6 13 0 10 Q-6 13 -11 9 Z" fill="#ffffff" stroke="#111111" strokeWidth="1.4"/>
-      {/* Top hat */}
-      <rect x="-18" y="-11" width="36" height="4.5" rx="2" fill="#111111"/>
-      <rect x="-12" y="-28" width="24" height="18" rx="2" fill="#111111"/>
-      <rect x="-12" y="-15" width="24" height="3.5" fill="#e63946"/>
-      {/* Cane */}
-      <line x1="-34" y1="22" x2="34" y2="8" stroke="#111111" strokeWidth="3.2" strokeLinecap="round"/>
-      <path d="M34 8 Q41 6 39 13" fill="none" stroke="#111111" strokeWidth="3" strokeLinecap="round"/>
-    </g>
-    <text x="0" y="42" textAnchor="middle" fontSize="18" fontWeight="900" fill="#111111" letterSpacing="1.5">{title}</text>
-  </g>;
-}
-
 function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:string}){
   const lvl=Math.max(1,Math.min(5,level));
   const w=14+lvl*5,h=8+lvl*3.2,bx=x+30-w/2,by=y+49-h;
@@ -309,10 +281,10 @@ function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:st
   </g>;
 }
 
-function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false}:{cx:number;cy:number;side:string;cell:number;index:number;isMine:boolean;isTurn:boolean;compact?:boolean}){
+function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false,crowded=false}:{cx:number;cy:number;side:string;cell:number;index:number;isMine:boolean;isTurn:boolean;compact?:boolean;crowded?:boolean}){
   const style=TOKEN_STYLES[side]||{fill:PARTY_COLORS[side]||'#ef233c',dark:'#7f1d1d',label:`P${index+1}`};
-  const scale=compact?0.74:1;
-  return <g className="flat-player-token" data-token-side={side} data-token-cell={cell} transform={compact?`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`:undefined} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
+  const scale=crowded?.3:compact?.5:1;
+  return <g className="flat-player-token" data-token-side={side} data-token-cell={cell} transform={compact||crowded?`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`:undefined} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
     {isTurn&&<circle cx={cx} cy={cy} r="17.5" fill="none" stroke="#111111" strokeWidth="2.2" strokeDasharray="3 2"/>}
     {isMine&&<circle cx={cx} cy={cy} r="15.5" fill="none" stroke="#facc15" strokeWidth="2.8"/>}
     {/* Drop shadow */}
@@ -333,140 +305,52 @@ function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false}:{cx
 
 export default function VietnamEstateBoard({state,mySide,selected,onSelect,justPurchasedLot=null,justPurchasedKey=0,justPurchasedLots,auctionLot=null,tileFx=null}:{state:PartyState;mySide:string;selected:number;onSelect:(index:number)=>void;justPurchasedLot?:number|null;justPurchasedKey?:number;justPurchasedLots?:number[];auctionLot?:number|null;tileFx?:{lot:number;type:string;amount:number;key:number}|null}){
   const activePlayers=state.players.filter(v=>v.active);
-  const turnSide=state.players.find(p=>p.active&&p.side===(state as {turn?:string}).turn)?.side;
+  const turnSide=(state as {turn?:string}).turn;
   const glowId=useId().replaceAll(':','');
   const glowLots=justPurchasedLots??(justPurchasedLot!=null?[justPurchasedLot]:[]);
-  const burstCell=justPurchasedLot!=null?VN_CELLS[justPurchasedLot]:null;
-  const burstCoords=burstCell?estateCell(burstCell.index,13):null;
-  const burstOwner=burstCell?state.property[burstCell.index]:null;
-  const burstColor=burstOwner?TOKEN_STYLES[burstOwner]?.fill||PARTY_COLORS[burstOwner]||'#f59e0b':'#f59e0b';
-  const fxCoords=tileFx&&tileFx.lot>=0&&tileFx.lot<48?estateCell(tileFx.lot,13):null;
-  return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
+  const bounds=(index:number)=>estateBounds(index,13,900);
+  return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 900 900" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
     <defs><filter id={glowId} x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4"/></filter></defs>
-    <rect className="board-svg-base" width="780" height="780" rx="6" fill="#ffffff" stroke="#111111" strokeWidth="4"/>
-    <rect className="board-svg-center" x="60" y="60" width="660" height="660" fill="#fbfaf6" stroke="#111111" strokeWidth="2.8"/>
-
-    {/* Classic Center Court Graphics: Cơ hội (top-left), Diagonal CỜ TỶ PHÚ, Khí vận (bottom-right) */}
-    <CenterMascotCard x={225} y={230} rotate={-42} bg="#f9a8d4" title="CƠ HỘI"/>
-    <CenterMascotCard x={555} y={550} rotate={-42} bg="#fef08a" title="KHÍ VẬN"/>
-
-    <g transform="translate(390 390) rotate(-42)" aria-hidden="true">
-      <text x="3" y="-6" textAnchor="middle" fill="#0000001f" fontSize="68" fontWeight="900" letterSpacing="4">CỜ TỶ PHÚ</text>
-      <text className="board-svg-label" x="0" y="-9" textAnchor="middle" fill="#111111" fontSize="68" fontWeight="900" letterSpacing="4">CỜ TỶ PHÚ</text>
-      <text x="0" y="24" textAnchor="middle" fill="#dc2626" fontSize="18" fontWeight="900" letterSpacing="3">VIỆT NAM · 34 TỈNH THÀNH · VÒNG {state.round}</text>
+    <rect className="board-svg-base" width="900" height="900" fill="#fff" stroke="#111827" strokeWidth="3"/>
+    <rect className="board-svg-center" x="162" y="162" width="576" height="576" fill="#f5f3eb" stroke="#111827" strokeWidth="2"/>
+    <g aria-hidden="true">
+      <text className="board-svg-label" x="450" y="427" textAnchor="middle" fill="#172d24" fontSize="52" fontWeight="900">TỶ PHÚ</text>
+      <text x="450" y="465" textAnchor="middle" fill="#475b50" fontSize="23" fontWeight="800">VIỆT NAM</text>
+      <text x="450" y="506" textAnchor="middle" fill="#475b50" fontSize="19" fontWeight="700">Vòng {state.round}</text>
     </g>
-
     {VN_CELLS.map(c=>{
-      const[r,col]=estateCell(c.index,13),x=col*60,y=r*60,owned=state.property[c.index],lvl=state.houses[c.index]||0,ownerColor=owned?TOKEN_STYLES[owned]?.fill||PARTY_COLORS[owned]:'',isCorner=c.index%12===0;
-      const isSelected=selected===c.index;
-      const isAuction=auctionLot===c.index;
-      const ownerStyle=owned?TOKEN_STYLES[owned]:null;
-      const groupColor=c.group!==undefined?CLASSIC_GROUP_COLORS[c.group]||VN_GROUP_COLORS[c.group]:isCorner?'#dc2626':c.type==='station'?'#16a34a':c.type==='utility'?'#eab308':'#0284c7';
-      const rows=lines(c.name),fs=titleSize(rows),landmark=PROVINCE_LANDMARKS[c.name];
-      // Place color header strip facing the center of the board, like classic Monopoly
-      const sideEdge=!isCorner&&(r===12?'top':col===0?'right':r===0?'bottom':'left');
-      return <g key={c.index} data-owned={Boolean(owned)||isSelected} role="button" tabIndex={0} aria-label={`Xem ${c.name}`} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
-        <rect
-          className={isAuction?'board-svg-lot vn-auction-lot-pulse':isSelected?'board-svg-selected':'board-svg-lot'}
-          x={x}
-          y={y}
-          width="60"
-          height="60"
-          fill={isAuction?'#fef08a':isSelected?'#fef08a':owned?OWNER_BG[owned]||'#ffffff':isCorner?'#fff7ed':'#ffffff'}
-          stroke={isAuction?'#d97706':isSelected?'#dc2626':owned?ownerColor:'#111111'}
-          strokeWidth={isAuction?3.2:isSelected?3.2:owned?2.6:1.6}
-        />
-        {!isCorner&&c.type==='property'&&<>
-          {sideEdge==='top'&&<rect x={x+1} y={y+1} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
-          {sideEdge==='bottom'&&<rect x={x+1} y={y+48} width="58" height="11" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
-          {sideEdge==='left'&&<rect x={x+1} y={y+1} width="11" height="58" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
-          {sideEdge==='right'&&<rect x={x+48} y={y+1} width="11" height="58" fill={groupColor} stroke="#111111" strokeWidth="1.1"/>}
-        </>}
-        {owned&&<>
-          <rect x={x+4} y={sideEdge==='bottom'?y+2:y+49.5} width="52" height="8" rx="2.5" fill={ownerColor}/>
-          <text x={x+30} y={sideEdge==='bottom'?y+8.4:y+55.8} textAnchor="middle" fontSize="6.4" fontWeight="800" fill="#ffffff">{ownerStyle?.label||owned}</text>
-        </>}
-
-        {rows.map((line,i)=>{
-          const baseY=sideEdge==='top'?22:13.5;
-          return <text key={i} x={x+30} y={y+(rows.length===1?baseY+3:baseY+i*7.6)} textAnchor="middle" fontSize={fs} fontWeight="900" fill="#111111" textLength={line.length>10?46:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>;
-        })}
-
-        {!lvl&&(c.type==='property'&&landmark
-          ?<SvgLandmark cx={x+30} cy={y+(sideEdge==='top'?36.5:29.5)} kind={landmark.kind} accent={groupColor}/>
-          :<SpecialCellArt type={c.type} name={c.name} cx={x+30} cy={y+(isCorner?31:31)}/>
-        )}
-
-        {!lvl&&!owned&&<text
-          x={x+30}
-          y={y+(sideEdge==='bottom'?45:55.5)}
-          textAnchor="middle"
-          fontSize="7.8"
-          fontWeight="900"
-          fill={isCorner||c.type==='tax'||c.type==='chance'?'#dc2626':'#111111'}
-        >
-          {ownable(c)?`${c.price} đ`:c.type==='start'?`+${estateSalary(state)} đ`:c.type==='chance'?'CƠ HỘI':c.type==='community'?'KHÍ VẬN':c.type==='tax'?`−${c.amount} đ`:c.type==='gotojail'?'VÔ TÙ':c.type==='jail'?'THĂM TÙ':'SÂN BAY'}
-        </text>}
-
-        {lvl>0&&<FlatBuilding x={x} y={y} level={lvl} color={ownerColor||groupColor}/>}
-        {state.mortgaged?.[c.index]&&<path d={`M${x+5} ${y+52}L${x+55} ${y+8}`} stroke="#dc2626" strokeWidth="3" opacity=".85"/>}
+      const {x,y,width:w,height:h}=bounds(c.index),owned=state.property[c.index],lvl=state.houses[c.index]||0;
+      const wide=w>h,corner=c.index%12===0,rows=estateTitleLines(c.name,!wide&&!corner);
+      const color=owned?TOKEN_STYLES[owned]?.fill||PARTY_COLORS[owned]:'#111827';
+      const accent=c.group!==undefined?CLASSIC_GROUP_COLORS[c.group]||VN_GROUP_COLORS[c.group]:'#64748b';
+      const selectedHere=selected===c.index,auction=auctionLot===c.index,landmark=PROVINCE_LANDMARKS[c.name];
+      const tx=wide?x+w*.44:x+w/2,ty=y+(wide?19:corner?30:24),fs=wide?13:corner?17:12;
+      const artX=x+(wide?19:w/2),artY=y+(wide?h/2:corner?75:84);
+      const price=ownable(c)?c.price+' tr':c.type==='start'?'+'+estateSalary(state)+' tr':c.type==='tax'?'−'+c.amount+' tr':'';
+      return <g key={c.index} data-cell-index={c.index} data-owned={Boolean(owned)||selectedHere} role="button" tabIndex={0} aria-label={'Xem '+c.name} aria-pressed={selectedHere} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
+        <rect className={auction?'board-svg-lot vn-auction-lot-pulse':selectedHere?'board-svg-selected':'board-svg-lot'} x={x} y={y} width={w} height={h} fill={auction||selectedHere?'#fef08a':owned?OWNER_BG[owned]||'#fff':corner?'#fff3da':'#fff'} stroke={auction?'#d97706':selectedHere?'#dc2626':color} strokeWidth={selectedHere||owned||auction?3:1.6}/>
+        {c.type==='property'&&<rect x={x+1} y={y+1} width={w-2} height="7" fill={accent}/>}
+        {rows.map((line,i)=><text key={i} x={tx} y={ty+i*(fs+2)} textAnchor="middle" fontSize={fs} fontWeight="850" fill="#111827" textLength={line.length>(wide?12:corner?18:6)?(wide?w*.47:corner?w-16:w-6):undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
+        {lvl>0?<g transform={'translate('+artX+' '+artY+') scale(.85) translate(-30 -30)'}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={'translate('+artX+' '+artY+') scale(1.65)'}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={'translate('+artX+' '+artY+') scale('+(corner?1.6:1)+')'}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>}
+        {price&&<text x={tx} y={y+(wide?43:corner?107:111)} textAnchor="middle" fontSize={corner?17:12} fontWeight="850" fill={ownable(c)?'#172d24':'#b91c1c'}>{price}</text>}
+        {owned&&<rect x={x+1} y={y+h-6} width={w-2} height="5" fill={color}/>}
+        {state.mortgaged?.[c.index]&&<path d={'M'+(x+5)+' '+(y+h-8)+'L'+(x+w-5)+' '+(y+10)} stroke="#dc2626" strokeWidth="3" opacity=".85"/>}
       </g>;
     })}
-
-    {/* Render player character tokens on top with smart per-cell grouping so they never overlap or hide */}
     {activePlayers.map((p,i)=>{
-      const[r,c]=estateCell(p.position,13);
-      const cellmates=activePlayers.filter(other=>other.position===p.position);
-      const slot=cellmates.findIndex(other=>other.side===p.side);
-      const total=cellmates.length;
-      const offsets=total===1
-        ?[[30,31]]
-        :total===2
-          ?[[18,31],[42,31]]
-          :total===3
-            ?[[17,22],[43,22],[30,42]]
-            :total===4
-              ?[[17,20],[43,20],[17,42],[43,42]]
-              :[[12,18],[24,18],[36,18],[48,18],[12,42],[24,42],[36,42],[48,42]];
-      const [ox,oy]=offsets[slot]||[30,31];
-      return <FlatPlayerToken
-        key={p.side}
-        cx={c*60+ox}
-        cy={r*60+oy}
-        side={p.side}
-        cell={p.position}
-        index={i}
-        isMine={p.side===mySide}
-        isTurn={p.side===turnSide}
-        compact={total>4}
-      />;
+      const b=bounds(p.position),wide=b.width>b.height,cellmates=activePlayers.filter(other=>other.position===p.position),slot=cellmates.findIndex(other=>other.side===p.side),many=cellmates.length>4;
+      // Reserve the inner end of each deep lot for pieces, away from its name and price.
+      const ox=wide?b.width*(.76+Math.floor(slot/(many?4:2))*.14):b.width*(cellmates.length===1?.5:.28+(slot%2)*.44);
+      const oy=wide?b.height*(cellmates.length===1?.5:many?.17+(slot%4)*.22:.28+(slot%2)*.44):b.height*(cellmates.length===1?.85:many?.75+Math.floor(slot/2)*.065:.79+Math.floor(slot/2)*.13);
+      return <FlatPlayerToken key={p.side} cx={b.x+ox} cy={b.y+oy} side={p.side} cell={p.position} index={i} isMine={p.side===mySide} isTurn={p.side===turnSide} compact={cellmates.length>1} crowded={many}/>;
     })}
-
-    {glowLots.filter(lot=>lot>=0&&lot<48).map(lot=>{const [row,col]=estateCell(lot,13),side=state.property[lot];return <g key={justPurchasedKey+':'+lot} className="vn-ownership-glow" data-glow-lot={lot} aria-hidden="true">
-      <rect x={col*60+4} y={row*60+4} width="52" height="52" rx="4" fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="9" filter={`url(#${glowId})`}/>
-      <rect x={col*60+3} y={row*60+3} width="54" height="54" rx="4" fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="3"/>
+    {glowLots.filter(lot=>lot>=0&&lot<48).map(lot=>{const b=bounds(lot),side=state.property[lot];return <g key={justPurchasedKey+':'+lot} className="vn-ownership-glow" data-glow-lot={lot} aria-hidden="true">
+      <rect x={b.x+4} y={b.y+4} width={b.width-8} height={b.height-8} fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="8" filter={'url(#'+glowId+')'}/>
+      <rect x={b.x+3} y={b.y+3} width={b.width-6} height={b.height-6} fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="3"/>
     </g>;})}
-    {/* Ownership confirmation follows a completed purchase or transfer. */}
-    {burstCoords&&<g key={justPurchasedKey} className="vn-buy-burst" aria-hidden="true">
-      <rect className="vn-buy-flash" x={burstCoords[1]*60+1} y={burstCoords[0]*60+1} width="58" height="58" rx="3" fill="none" stroke={burstColor} strokeWidth="3.5"/>
-      <g className="vn-fx-float">
-        <rect x={burstCoords[1]*60+4} y={burstCoords[0]*60+20} width="52" height="18" rx="9" fill={burstColor} stroke="#ffffff" strokeWidth="1.4"/>
-        <text x={burstCoords[1]*60+30} y={burstCoords[0]*60+31.8} textAnchor="middle" fontSize="8.2" fontWeight="800" fill="#ffffff">Đã sở hữu</text>
-      </g>
-    </g>}
-
-    {/* Simple floating delta badge on target tile */}
-    {tileFx&&fxCoords&&(()=>{
-      const fxX=fxCoords[1]*60,fxY=fxCoords[0]*60,cx=fxX+30,cy=fxY+30;
-      const isGain=tileFx.amount>0,isJail=tileFx.type==='jail';
-      const label=isJail?'Vào tù':tileFx.amount!==0?`${isGain?'+':'−'}${Math.abs(tileFx.amount)} tr`:'';
-      if(!label)return null;
-      return <g key={tileFx.key} className="vn-tile-fx" aria-hidden="true">
-        <g className="vn-fx-float">
-          <rect x={cx-30} y={cy-11} width="60" height="20" rx="10" fill={isGain?'#14532d':'#7f1d1d'} stroke={isGain?'#86efac':'#fca5a5'} strokeWidth="1.5"/>
-          <text x={cx} y={cy+2} textAnchor="middle" fontSize="9.5" fontWeight="800" fill="#ffffff">{label}</text>
-        </g>
-      </g>;
+    {tileFx&&tileFx.lot>=0&&tileFx.lot<48&&(()=>{
+      const b=bounds(tileFx.lot),cx=b.x+b.width/2,cy=b.y+b.height/2,isGain=tileFx.amount>0,label=tileFx.type==='jail'?'Vào tù':tileFx.amount?(isGain?'+':'−')+Math.abs(tileFx.amount)+' tr':'';
+      return label&&<g key={tileFx.key} className="vn-tile-fx" aria-hidden="true"><g className="vn-fx-float"><rect x={cx-31} y={cy-12} width="62" height="24" rx="12" fill={isGain?'#14532d':'#7f1d1d'} stroke="#fff" strokeWidth="1.5"/><text x={cx} y={cy+4} textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff">{label}</text></g></g>;
     })()}
   </svg></div>;
 }

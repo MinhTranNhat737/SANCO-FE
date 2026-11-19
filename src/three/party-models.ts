@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {labelTexture,boardTexture,woodTexture} from './party-art.ts';
-import {PARTY_COLORS,estateCell,worldPoint} from './party-layout.ts';
+import {PARTY_COLORS,estateCell,estateBounds,worldPoint} from './party-layout.ts';
 import {VN_CELLS} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 export {diceFaceRotation as diceRotation} from './dice-motion.ts';
@@ -107,11 +107,10 @@ export function table(kind:string,textures={wood:woodTexture,board:boardTexture,
   for(const x of[-5.24,5.24])for(const z of[-5.24,5.24]){const pin=mesh(new T.CylinderGeometry(.055,.055,.012,20),brass,root,x,.232,z);pin.castShadow=false;}
   const plate=mesh(new T.PlaneGeometry(1.15,.23),new T.MeshStandardMaterial({map:textures.label('SÂN CỜ','#c7a45a','#3e3522'),roughness:.3,metalness:.4}),root,0,-.12,5.483);plate.castShadow=false;
   if(kind==='monopoly'&&edition==='vn-v2'){
-    const step=600/13;
     VN_CELLS.forEach(c=>{
       const lm=PROVINCE_LANDMARKS[c.name];
       if(!lm)return;
-      const [r,col]=estateCell(c.index,13),pt=worldPoint([col*step+step*.5,r*step+step*.58]);
+      const [r,col]=estateCell(c.index,13),b=estateBounds(c.index,13),wide=b.width>b.height,pt=worldPoint([b.x+(wide?12.7:b.width/2),b.y+(wide?b.height/2:56)]);
       const mon=landmarkMonument(lm.kind,lm.accent);
       mon.scale.setScalar(1.08);
       mon.position.set(pt.x,SURFACE+.005,pt.z);
@@ -291,20 +290,20 @@ export function house(level=1,side='R'){
 }
 const BoxGeometry=T.BoxGeometry;
 export function estateAssets(state:{property:(string|null)[];houses:number[];edition?:string;mortgaged?:boolean[]}){
-  const root=new T.Group(),vietnam=state.edition==='vn-v2',size=vietnam?13:6,step=600/size,tileSpan=10/size,edgeCount=size-1;
+  const root=new T.Group(),vietnam=state.edition==='vn-v2',size=vietnam?13:6,edgeCount=size-1;
   state.property.forEach((side,i)=>{
     if(!side)return;
-    const [r,c]=estateCell(i,size),center=worldPoint([c*step+step*.5,r*step+step*.5]);
+    const [r,c]=estateCell(i,size),bounds=estateBounds(i,size),center=worldPoint([bounds.x+bounds.width/2,bounds.y+bounds.height/2]),tileW=bounds.width/60,tileH=bounds.height/60,tileSpan=Math.min(tileW,tileH);
     const isMortgaged=Boolean(state.mortgaged?.[i]),ownerColor=PARTY_COLORS[side]||'#c74b42';
 
     // 1. Full-cell buyer color overlay & raised 3D border frame
     const cellGroup=new T.Group();
     cellGroup.position.set(center.x,SURFACE+.005,center.z);
     const edgeIdx=r===edgeCount?0:c===0?1:r===0?2:3;
-    cellGroup.rotation.y=-edgeIdx*Math.PI/2;
+    cellGroup.rotation.y=vietnam?0:-edgeIdx*Math.PI/2;
 
     const tint=new T.Mesh(
-      new T.PlaneGeometry(tileSpan*.95,tileSpan*.95),
+      new T.PlaneGeometry(tileW*.95,tileH*.95),
       new T.MeshBasicMaterial({color:isMortgaged?'#6e4d47':ownerColor,transparent:true,opacity:isMortgaged?.26:.42,depthWrite:false,toneMapped:false})
     );
     tint.rotation.x=-Math.PI/2;
@@ -312,14 +311,14 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     cellGroup.add(tint);
 
     const frameMat=new T.MeshStandardMaterial({color:isMortgaged?'#8c584c':ownerColor,roughness:.32,metalness:.18,emissive:ownerColor,emissiveIntensity:isMortgaged?.04:.16});
-    const bThick=tileSpan*.072,bHeight=.026,half=tileSpan*.455;
+    const bThick=tileSpan*.072,bHeight=.026;
     for(const s of[-1,1]){
-      const barX=mesh(new T.BoxGeometry(tileSpan*.96,bHeight,bThick),frameMat,cellGroup,0,bHeight/2,s*half);
-      const barZ=mesh(new T.BoxGeometry(bThick,bHeight,tileSpan*.96),frameMat,cellGroup,s*half,bHeight/2,0);
+      const barX=mesh(new T.BoxGeometry(tileW*.96,bHeight,bThick),frameMat,cellGroup,0,bHeight/2,s*tileH*.455);
+      const barZ=mesh(new T.BoxGeometry(bThick,bHeight,tileH*.96),frameMat,cellGroup,s*tileW*.455,bHeight/2,0);
       barX.castShadow=false;barZ.castShadow=false;
       barX.raycast=()=>{};barZ.raycast=()=>{};
     }
-    const crest=mesh(new T.BoxGeometry(tileSpan*.96,.038,tileSpan*.18),frameMat,cellGroup,0,.019,-tileSpan*.38);
+    const crest=mesh(new T.BoxGeometry(tileW*.96,.038,tileSpan*.1),frameMat,cellGroup,0,.019,-tileH*.46);
     crest.castShadow=false;crest.raycast=()=>{};
     root.add(cellGroup);
 
@@ -327,9 +326,10 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     const lvl=state.houses[i]||0;
     if(lvl>0){
       const b=house(lvl,side);
-      const baseScale=vietnam?.82:1.25;
+      const baseScale=vietnam?.65:1.25;
       b.scale.setScalar(baseScale);
-      const buildPt=worldPoint([c*step+step*.5,r*step+step*.5]);
+      const wide=bounds.width>bounds.height;
+      const buildPt=worldPoint(vietnam?[bounds.x+(wide?12.7:bounds.width/2),bounds.y+(wide?bounds.height/2:56)]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2]);
       b.position.set(buildPt.x,SURFACE+.01,buildPt.z);
       b.rotation.y=-edgeIdx*Math.PI/2;
       b.traverse(node=>{node.raycast=()=>{};});

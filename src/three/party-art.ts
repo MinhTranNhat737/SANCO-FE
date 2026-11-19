@@ -1,6 +1,6 @@
 import {BOARD_PALETTES,type BoardTheme} from '../board-palette.ts';
 import * as T from 'three';
-import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,groupOf} from './party-layout.ts';
+import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,estateBounds,estateTitleLines,groupOf} from './party-layout.ts';
 import {VN_CELLS,VN_GROUP_COLORS,ownable} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 
@@ -18,37 +18,6 @@ function round(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
 function text(ctx:CanvasRenderingContext2D,label:string,x:number,y:number,size:number,color:string,font=UI_FONT,weight='700',maxWidth?:number){
   ctx.fillStyle=color;ctx.font=`${weight} ${size}px ${font}`;ctx.textAlign='center';ctx.textBaseline='middle';
   if(maxWidth)ctx.fillText(label,x,y,maxWidth);else ctx.fillText(label,x,y);
-}
-function fitCellTitle(ctx:CanvasRenderingContext2D,label:string,cx:number,topY:number,maxW:number,color:string){
-  const words=label.split(' ');
-  const trySingleSize=6.4;
-  ctx.font=`800 ${trySingleSize}px ${UI_FONT}`;
-  if(ctx.measureText(label).width<=maxW){
-    text(ctx,label,cx,topY+5.5,trySingleSize,color,UI_FONT,'800',maxW);
-    return;
-  }
-  let lines=[label];
-  if(words.length>=2){
-    let bestSplit=1,bestDiff=Infinity;
-    for(let i=1;i<words.length;i++){
-      const a=words.slice(0,i).join(' '),b=words.slice(i).join(' ');
-      const diff=Math.abs(a.length-b.length);
-      if(diff<bestDiff){bestDiff=diff;bestSplit=i;}
-    }
-    lines=[words.slice(0,bestSplit).join(' '),words.slice(bestSplit).join(' ')];
-  }
-  let sz=lines.length===1?6.2:6.0;
-  while(sz>4.4){
-    ctx.font=`800 ${sz}px ${UI_FONT}`;
-    if(lines.every(l=>ctx.measureText(l).width<=maxW))break;
-    sz-=.25;
-  }
-  if(lines.length===1){
-    text(ctx,lines[0],cx,topY+5.5,sz,color,UI_FONT,'800',maxW);
-  }else{
-    text(ctx,lines[0],cx,topY+2.6,sz,color,UI_FONT,'800',maxW);
-    text(ctx,lines[1],cx,topY+9.0,sz,color,UI_FONT,'800',maxW);
-  }
 }
 function star(ctx:CanvasRenderingContext2D,x:number,y:number,r:number,color:string,points=5){
   ctx.beginPath();
@@ -242,89 +211,24 @@ function drawSpecialIcon(ctx:CanvasRenderingContext2D,type:string,cx:number,cy:n
 
 function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme){
   const palette=BOARD_PALETTES[theme];
-  const step=600/13,inner=step,innerSpan=600-step*2;
-  // 1. Magnificent emerald & gold palace center
-  const centerGrad=ctx.createRadialGradient(300,300,20,300,300,310);
-  centerGrad.addColorStop(0,theme==='light'?'#f4eedb':'#275643');
-  centerGrad.addColorStop(.58,palette.center);
-  centerGrad.addColorStop(1,theme==='light'?'#d6ddc7':'#0f261d');
-  round(ctx,inner,inner,innerSpan,innerSpan,2,centerGrad,'#d8b870',2.2);
-  round(ctx,inner+8,inner+8,innerSpan-16,innerSpan-16,2,'#0000', '#e8cf9088',1);
-  round(ctx,inner+14,inner+14,innerSpan-28,innerSpan-28,2,'#0000', '#d8b87044',.8);
-
-  // Subtle royal diamond lattice in the center
-  ctx.save();
-  ctx.beginPath();ctx.rect(inner+14,inner+14,innerSpan-28,innerSpan-28);ctx.clip();
-  ctx.strokeStyle='#dfca9216';ctx.lineWidth=.7;
-  for(let i=-16;i<32;i++){
-    ctx.beginPath();ctx.moveTo(40+i*22,40);ctx.lineTo(560+i*22,560);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(560-i*22,40);ctx.lineTo(40-i*22,560);ctx.stroke();
-  }
-  ctx.restore();
-
-  // Corner ornaments inside center court
-  for(const [cx,cy]of[[inner+24,inner+24],[600-inner-24,inner+24],[inner+24,600-inner-24],[600-inner-24,600-inner-24]]){
-    star(ctx,cx,cy,8,'#dfc27d66',8);
-    ctx.beginPath();ctx.arc(cx,cy,12,0,Math.PI*2);ctx.strokeStyle='#dfc27d55';ctx.lineWidth=.9;ctx.stroke();
-  }
-
-  // Grand Dong Son / Imperial Compass Medallion in the center
-  const medY=248;
-  ctx.save();
-  for(const [r,col,w]of[[98,'#dfc27d44',1],[91,'#dfc27d88',1.4],[84,palette.center,0],[82,'#dfc27d66',.8]] as const){
-    ctx.beginPath();ctx.arc(300,medY,r,0,Math.PI*2);
-    if(!w){ctx.fillStyle=col;ctx.fill();}else{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.stroke();}
-  }
-  star(ctx,300,medY,76,'#d8b66c22',16);
-  star(ctx,300,medY,52,'#d8b66c1c',8);
-  ctx.restore();
-
-  round(ctx,236,188,128,18,9,palette.center,'#d8b66c',1);
-  text(ctx,'★ SÂN CỜ HOÀNG GIA ★',300,197.5,8.2,palette.centerInk,UI_FONT,'700');
-  text(ctx,'TỶ PHÚ',300,234,36,palette.centerInk,DISPLAY_FONT,'700');
-  text(ctx,'VIỆT NAM',300,271,22,palette.centerInk,DISPLAY_FONT,'700');
-  round(ctx,214,292,172,19,9.5,palette.center,'#d5b66e99',.9);
-  text(ctx,'34 TỈNH THÀNH · 48 Ô CỜ',300,302,8.4,palette.centerInk,UI_FONT,'700');
-
-  // 2. Render all 48 perimeter cells with zero text overflow & prominent landmark artwork
+  const inner=108,innerSpan=384;
+  round(ctx,inner,inner,innerSpan,innerSpan,0,palette.center,'#546658',1.4);
+  text(ctx,'TỶ PHÚ',300,268,33,palette.centerInk,UI_FONT,'900');
+  text(ctx,'VIỆT NAM',300,303,19,palette.centerInk,UI_FONT,'800');
   VN_CELLS.forEach(c=>{
-    const edge=Math.floor(c.index/12),n=c.index%12,x=600-step-n*step,y=600-step;
-    const isCorner=n===0,own=ownable(c);
-    ctx.save();
-    ctx.translate(300,300);ctx.rotate(edge*Math.PI/2);ctx.translate(-300,-300);
-
-    const cellFill=isCorner?palette.special:own?palette.lot:palette.special;
-    round(ctx,x+.6,y+.6,step-1.2,step-1.2,isCorner?2:1,cellFill,isCorner?'#b89040':'#495e4c',isCorner?1.6:1);
-    round(ctx,x+2,y+2,step-4,step-4,1,'#0000',isCorner?'#8b652066':'#ffffff66',.6);
-
-    // Top color-group header band (5.8px tall)
-    const bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:isCorner?'#9e3b2e':c.type==='station'?'#295440':c.type==='utility'?'#b58428':'#7d6b42';
-    const bandH=5.8;
-    round(ctx,x+1.4,y+1.4,step-2.8,bandH,1,bandColor,'#182d2155',.5);
-    ctx.beginPath();ctx.moveTo(x+1.4,y+1.4+bandH);ctx.lineTo(x+step-1.4,y+1.4+bandH);
-    ctx.strokeStyle='#d8b66c';ctx.lineWidth=.8;ctx.stroke();
-
-    // Auto-fitted Province / Cell Title (y+8 to y+20) - NEVER overflows or overlaps icon
-    fitCellTitle(ctx,c.name,x+step/2,y+8,step-7,palette.lotInk);
-
-    // Center Emblem: Special icon only on non-province cells (province cells feature raised 3D landmarks without duplicate flat icons underneath)
-    const landmark=PROVINCE_LANDMARKS[c.name];
-    if(!landmark){
-      ctx.save();
-      ctx.translate(x+step/2,y+27.5);
-      ctx.scale(1.22,1.22);
-      drawSpecialIcon(ctx,c.type,0,0);
-      ctx.restore();
+    const {x,y,width:w,height:h}=estateBounds(c.index,13),wide=w>h,corner=c.index%12===0;
+    const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:'#64748b';
+    round(ctx,x+.4,y+.4,w-.8,h-.8,0,corner?palette.special:palette.lot,'#34483b',1);
+    if(c.type==='property')round(ctx,x+1,y+1,w-2,4.4,0,bandColor);
+    const rows=estateTitleLines(c.name,!wide&&!corner),fs=wide?8.7:corner?11.4:8;
+    const tx=x+(wide?w*.44:w/2),ty=y+(wide?10:corner?17:13);
+    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.3),fs,palette.lotInk,UI_FONT,'850',wide?w*.47:w-4));
+    const artX=x+(wide?12.7:w/2),artY=y+(wide?h/2:corner?50:56);
+    if(!PROVINCE_LANDMARKS[c.name]){
+      ctx.save();ctx.translate(artX,artY);ctx.scale(corner?1.6:1,corner?1.6:1);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
     }
-
-    // Bottom price / action pill badge
-    const footerLabel=own?`${c.price}`:c.type==='start'?'+400':c.type==='tax'?`−${c.amount}`:c.type==='chance'?'CƠ HỘI':c.type==='community'?'KHÍ VẬN':c.type==='gotojail'?'VÀO TÙ':c.type==='jail'?'THĂM TÙ':'NGHỈ';
-    const pillFill=isCorner?'#8c2f24':own?'#183528':'#3b4f3e';
-    const pillText=isCorner?'#fff3cf':own?'#f7e4ad':'#efe6c9';
-    round(ctx,x+4,y+step-10.2,step-8,8.2,3,pillFill,'#d8b66c88',.6);
-    text(ctx,footerLabel,x+step/2,y+step-6,6.8,pillText,UI_FONT,'800',step-10);
-
-    ctx.restore();
+    const price=own?c.price+' tr':c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount+' tr':'';
+    if(price)text(ctx,price,tx,y+(wide?26:corner?71:74),corner?11:8,palette.lotInk,UI_FONT,'850',wide?w*.47:w-4);
   });
 }
 

@@ -84,7 +84,7 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
         <div className="estate-center-banner">
           <span className="estate-center-kicker">
             <span className="estate-kicker-gem"><Gavel size={13}/></span>
-            PHIÊN ĐẤU GIÁ HOÀNG GIA
+            ĐẤU GIÁ
           </span>
           <button type="button" className="estate-center-min" onClick={()=>setMinimized(true)} title="Thu gọn để xem bàn"><Eye size={13}/>Xem bàn</button>
         </div>
@@ -96,7 +96,7 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
               <span className="estate-center-subtitle">{cellSubtitle(cell)}</span>
             </div>
             <div className="estate-center-listprice">
-              <small>Giá niêm yết</small>
+              <small>Giá mua</small>
               <strong>{cash(cell.price)}</strong>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
               <strong>{auction.bid>0?cash(auction.bid):'Từ 10 tr'}</strong>
             </div>
             <div className="estate-auction-leader-box">
-              <small>Người đang dẫn</small>
+              <small>Đang dẫn</small>
               {auction.leader
                 ?<span className="estate-leader-pill">
                   <i style={{background:PARTY_COLORS[auction.leader]||'#d7a431'}}/>

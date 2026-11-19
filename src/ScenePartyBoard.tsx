@@ -6,7 +6,7 @@ import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {BoardGesture} from './three/board-gesture.ts';
-import {PARTY_SIDES,MONOPOLY_SIDES,PARTY_COLORS,ludoCell,worldPoint,ludoRoute,estatePoint,estateCell,estateIndexAt} from './three/party-layout.ts';
+import {PARTY_SIDES,MONOPOLY_SIDES,PARTY_COLORS,ludoCell,worldPoint,ludoRoute,estatePoint,estateBounds,estateIndexAt} from './three/party-layout.ts';
 import {SURFACE,table,horse,estateToken,estateAssets,dice,diceRotation,tabletopProps,dispose} from './three/party-models.ts';
 import {DiceRollQueue,sampleDiceThrow,randomThrowVariant,THROW_DURATION,type DiceRoll,type DiceThrowVariant} from './three/dice-motion.ts';
 import type {PartyState,PracticeMove} from './practice-types';
@@ -91,7 +91,7 @@ export default function ScenePartyBoard(props:Props){
     let seenPurchaseKey=props.justPurchasedKey||0;
     let seenTileFxKey=props.tileFx?.key||0;
     function spawnTileBurst(lot:number,primaryColor:string,_secondaryColor:string,now:number){
-      const [r,c]=estateCell(lot,estateSize),step=600/estateSize,pt=worldPoint([c*step+step*.5,r*step+step*.5]);
+      const b=estateBounds(lot,estateSize),pt=worldPoint([b.x+b.width/2,b.y+b.height/2]);
       const group=new T.Group();group.position.set(pt.x,SURFACE+.022,pt.z);
       const ringMat=new T.MeshBasicMaterial({color:primaryColor,side:T.DoubleSide,transparent:true,opacity:.75,depthWrite:false});
       const ring=new T.Mesh(new T.RingGeometry(tileSpan*.28,tileSpan*.38,28),ringMat);
@@ -101,14 +101,14 @@ export default function ScenePartyBoard(props:Props){
       bursts.push({group,ring,particles:[],started:now,duration:750});
     }
     function spawnPurchaseBurst(lot:number,side:string,now:number){
-      const [r,c]=estateCell(lot,estateSize),step=600/estateSize,pt=worldPoint([c*step+step*.5,r*step+step*.5]);
+      const b=estateBounds(lot,estateSize),pt=worldPoint([b.x+b.width/2,b.y+b.height/2]);
       const group=new T.Group();group.position.set(pt.x,SURFACE+.035,pt.z);
       const color=PARTY_COLORS[side]||'#f59e0b';
       const shape=new T.Shape();shape.moveTo(-.46,-.46);shape.lineTo(.46,-.46);shape.lineTo(.46,.46);shape.lineTo(-.46,.46);shape.closePath();
       const hole=new T.Path();hole.moveTo(-.4,-.4);hole.lineTo(-.4,.4);hole.lineTo(.4,.4);hole.lineTo(.4,-.4);hole.closePath();shape.holes.push(hole);
       const ring=new T.Mesh(new T.ShapeGeometry(shape),new T.MeshBasicMaterial({color,side:T.DoubleSide,transparent:true,depthWrite:false}));
-      ring.rotation.x=-Math.PI/2;ring.scale.setScalar(tileSpan);
-      const glow=new T.Mesh(new T.PlaneGeometry(tileSpan*.94,tileSpan*.94),new T.MeshBasicMaterial({color,side:T.DoubleSide,transparent:true,opacity:.22,blending:T.AdditiveBlending,depthWrite:false}));
+      ring.rotation.x=-Math.PI/2;ring.geometry.scale(b.width/60,b.height/60,1);
+      const glow=new T.Mesh(new T.PlaneGeometry(b.width/60*.94,b.height/60*.94),new T.MeshBasicMaterial({color,side:T.DoubleSide,transparent:true,opacity:.22,blending:T.AdditiveBlending,depthWrite:false}));
       glow.rotation.x=-Math.PI/2;glow.position.y=.002;
       group.add(ring,glow);scene.add(group);
       bursts.push({group,ring,glow,particles:[],started:now,duration:2000});
@@ -127,7 +127,8 @@ export default function ScenePartyBoard(props:Props){
       if(props.kind==='monopoly'&&(p.auctionLot!=null||p.selectedCell!=null)){
         const focusCell=p.auctionLot!=null?p.auctionLot:p.selectedCell!;
         if(focusCell>=0){
-          const [r,c]=estateCell(focusCell,estateSize),step=600/estateSize,pt=worldPoint([c*step+step*.5,r*step+step*.5]);
+          const b=estateBounds(focusCell,estateSize),pt=worldPoint([b.x+b.width/2,b.y+b.height/2]);
+          cellHighlight.scale.set(b.width/60/tileSpan,b.height/60/tileSpan,1);
           cellHighlight.position.set(pt.x,SURFACE+.014,pt.z);
           (cellHighlight.material as T.MeshBasicMaterial).color.set(p.auctionLot!=null?'#facc15':'#f9e28c');
           cellHighlight.visible=true;

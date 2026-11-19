@@ -1,0 +1,103 @@
+/* Keep the estate controls readable even inside the compact game shell. */
+.party-table-estate .party-stage-wrap>.vn-estate-flat {
+  width:min(calc(100% - 16px),820px);
+  max-width:100%;
+  margin:8px auto;
+  border-width:3px;
+}
+.party-table-estate .party-board-dice-hud {
+  position:relative;
+  inset:auto;
+  padding:12px;
+  align-items:stretch;
+  border-top:1px solid var(--border);
+}
+.party-table-estate .party-dice-pickup {
+  flex:1;
+  justify-content:center;
+  min-height:64px;
+  padding:12px 18px;
+}
+.party-table-estate .party-pickup-copy strong {font-size:18px;line-height:1.4}
+.party-table-estate .party-pickup-copy small {font-size:13px;line-height:1.5}
+.party-table-estate .party-rolled-banner {padding:12px 16px}
+.party-table-estate .party-rolled-text strong {font-size:17px}
+.party-table-estate .party-rolled-text small {font-size:13px}
+.party-table-estate .party-table-toolbar {flex-wrap:wrap;padding:10px 12px;gap:10px}
+.party-table-estate .party-table-toolbar button,
+.party-table-estate .party-camera-bar button {min-width:48px;min-height:48px;font-size:15px;padding:10px 14px}
+.party-table-estate .party-material-label {font-size:16px;letter-spacing:.5px}
+.party-table-estate .party-material-label small {font-size:13px}
+.party-table-estate .estate-tutorial-header {flex-wrap:wrap;padding:12px;gap:8px}
+.party-table-estate .estate-tutorial-header p {font-size:15px;line-height:1.5;flex:1 1 220px}
+.party-table-estate .estate-tutorial button {min-height:48px;font-size:15px;padding:10px 14px}
+.party-table-estate .estate-tutorial-lesson {font-size:15px}
+.party-table-estate .estate-tutorial-lesson h3 {font-size:18px}
+.party-table-estate .estate-inspector {padding:16px;font-size:15px}
+.party-table-estate .estate-inspector .estate-card-header strong {font-size:24px}
+.party-table-estate .estate-inspector small,
+.party-table-estate .estate-card-kicker,
+.party-table-estate .estate-landmark-tag {font-size:13px;line-height:1.5}
+.party-table-estate .estate-fact-grid>span {font-size:14px;padding:12px}
+.party-table-estate .estate-fact-grid>span>strong {font-size:18px}
+.party-table-estate .estate-rent-tiers {grid-template-columns:repeat(2,minmax(0,1fr));font-size:13px;gap:8px}
+.party-table-estate .estate-special-note {font-size:14px}
+.party-table-estate .estate-card-close {width:48px;height:48px;font-size:26px}
+.party-table-estate .estate-card-actions .button {min-height:56px;font-size:16px;padding:12px}
+.party-table-estate .party-cell-popup-wrap {top:12px;width:min(390px,calc(100% - 28px));max-height:calc(100% - 24px);overflow-y:auto;overscroll-behavior:contain}
+.party-table-estate .estate-center-card {width:min(480px,100%)}
+.party-table-estate .estate-center-kicker {font-size:15px;letter-spacing:.5px}
+.party-table-estate .estate-center-min {min-height:48px;font-size:14px}
+.party-table-estate .estate-center-title-row h3 {font-family:inherit;font-size:28px}
+.party-table-estate .estate-center-subtitle,
+.party-table-estate .estate-buy-facts>span>small,
+.party-table-estate .estate-center-listprice small {font-size:14px}
+.party-table-estate .estate-buy-facts>span>strong,
+.party-table-estate .estate-center-listprice strong {font-size:20px}
+.party-table-estate .estate-lux-btn,
+.party-table-estate .estate-step-btn {min-height:56px;font-size:16px;padding:12px}
+.party-table-estate .estate-buy-primary {min-height:68px;font-size:20px}
+.party-table-estate .estate-custom-bid-row {flex-wrap:wrap}
+.party-table-estate .estate-custom-bid-row input {min-height:56px;font-size:18px}
+.party-table-estate .estate-center-footnote {font-size:13px;line-height:1.5}
+.practice-workspace .estate-controls {font-size:15px}
+.practice-workspace .estate-controls label,.practice-workspace .estate-controls .estate-mode-wallet,.practice-workspace .estate-controls .estate-wallet>small {font-size:14px}
+.practice-workspace .estate-controls .estate-wallet>span {font-size:14px}
+.practice-workspace .estate-controls .estate-wallet>strong {font-size:36px}
+.practice-workspace .estate-controls .estate-dice>p {font-size:14px;line-height:1.5}
+.practice-workspace .estate-controls .estate-mode-tabs button {min-height:48px;font-size:15px;white-space:normal;padding:10px 6px}
+.practice-workspace .estate-controls input[type=number],.practice-workspace .estate-controls select {min-height:52px;font-size:16px;padding:10px}
+.practice-workspace .estate-controls .estate-lot-check {min-height:44px;font-size:15px}
+.practice-workspace .estate-controls .estate-lot-check input {width:22px;height:22px;flex-shrink:0}
+.practice-workspace .estate-controls .estate-panel>summary {min-height:52px;font-size:16px}
+.practice-workspace .estate-controls .estate-panel summary>span {font-size:14px}
+.practice-workspace .estate-controls .button,.estate-review .button {min-height:56px;font-size:16px;padding:12px 16px;line-height:1.4;white-space:normal}
+.practice-workspace .estate-controls .estate-primary-actions {gap:12px}
+.practice-workspace .estate-controls .estate-primary-actions .button {min-height:64px;font-size:19px;font-weight:750}
+.practice-workspace .estate-controls .estate-action-row {flex-wrap:wrap}
+.practice-workspace .estate-controls .estate-action-row>.button {flex:1 1 120px}
+.board-focus-shell .practice-workspace.practice-monopoly .estate-primary-actions .button,
+.board-focus-shell .practice-workspace.practice-monopoly .estate-action-row .button {min-height:60px!important;font-size:18px!important;padding:12px 16px}
+.board-focus-shell .practice-workspace.practice-monopoly .estate-panel>summary {min-height:52px!important;font-size:16px}
+.board-focus-shell .practice-workspace.practice-monopoly .estate-wallet>strong {font-size:36px}
+.board-focus-shell .practice-workspace.practice-monopoly .estate-wallet>span,
+.board-focus-shell .practice-workspace.practice-monopoly .estate-wallet>small {font-size:14px}
+.board-focus-shell .practice-workspace.practice-monopoly .party-roster strong {font-size:15px}
+.board-focus-shell .practice-workspace.practice-monopoly .party-roster small {font-size:13px}
+.board-focus-shell .practice-workspace.practice-monopoly .party-roster>article {padding:12px}
+@media(min-width:1101px) {
+  .board-focus-shell .practice-workspace.practice-monopoly .party-stage-wrap>.vn-estate-flat {width:min(calc(100% - 16px),820px)!important;max-width:100%!important;margin:8px auto!important}
+}
+@media(max-width:650px) {
+  .party-table-estate .estate-buy-secondary-row {grid-template-columns:1fr}
+  .party-table-estate .estate-center-body {padding:14px;gap:12px}
+  .party-table-estate .estate-center-banner {padding:10px 14px}
+  .party-table-estate .estate-center-title-row {flex-wrap:wrap}
+  .party-table-estate .estate-center-title-row h3 {font-size:24px}
+  .party-table-estate .estate-center-overlay {padding:8px}
+  .party-table-estate .party-table-toolbar>.board-view-options {flex-wrap:wrap}
+}
+@media(orientation:landscape) and (max-height:600px) and (max-width:1100px) {
+  .board-focus-shell .practice-workspace.practice-monopoly .party-dice-pickup {min-height:60px;padding:10px 14px}
+  .board-focus-shell .practice-workspace.practice-monopoly .party-roster {grid-template-columns:1fr}
+}

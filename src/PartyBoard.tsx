@@ -356,9 +356,9 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
   const sellerName=purchaseFx?.fromSide?(playerNames?.[purchaseFx.fromSide]||SIDE_NAMES[purchaseFx.fromSide]||purchaseFx.fromSide):'';
   const boughtCell=purchaseFx?VN_CELLS[purchaseFx.lot]:null;
 
-  return <div data-board-theme={boardTheme} className={`party-board party-table party-table-${view}`}>
+  return <div data-board-theme={boardTheme} className={`party-board party-table party-table-${view}${vietnam?' party-table-estate':''}`}>
     {vietnam&&<EstateTutorial state={state} mySide={mySide} turn={turn} busy={isBoardBusy} live={animate}/>}
-    <div className="party-table-toolbar"><span className="party-material-label">{kind==='ludo'?'CÁ NGỰA':'TỶ PHÚ'}<small>{kind==='monopoly'?'Bấm vào ô bất kỳ để xem thông tin':view==='3d'?'Bộ cờ Sân Cờ':'Mặt bàn'}</small></span><div className="board-view-options"><BoardAppearance/><div role="group" aria-label="Kiểu bộ cờ"><button className={view==='3d'?'selected':''} disabled={failed} aria-pressed={view==='3d'} onClick={()=>choose('3d')}><Box size={15}/>3D</button><button className={view==='2d'?'selected':''} aria-pressed={view==='2d'} onClick={()=>choose('2d')}><Layers size={15}/>2D</button></div></div></div>
+    <div className="party-table-toolbar"><span className="party-material-label">{kind==='ludo'?'CÁ NGỰA':'TỶ PHÚ'}<small>{kind==='monopoly'?'Chạm ô để xem giá':view==='3d'?'Bộ cờ Sân Cờ':'Mặt bàn'}</small></span><div className="board-view-options"><BoardAppearance/><div role="group" aria-label="Kiểu bộ cờ"><button className={view==='3d'?'selected':''} disabled={failed} aria-pressed={view==='3d'} onClick={()=>choose('3d')}><Box size={15}/>3D</button><button className={view==='2d'?'selected':''} aria-pressed={view==='2d'} onClick={()=>choose('2d')}><Layers size={15}/>2D</button></div></div></div>
     <div className="party-stage-wrap" ref={stageRef}>
       {view==='3d'?<Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m=>onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx} grabRef={grabRef} onCellSelect={i=>setSelectedCell(prev=>prev===i?null:i)} onHoldChange={setHolding} onPhaseChange={phase=>{setAnimPhase(phase);onAnimatingChange?.(phase!=='idle');}}/></Suspense></Board3DBoundary>:flat()}
       {vietnam&&!isBoardBusy&&purchaseFx&&boughtCell&&<div key={purchaseFx.key} className="estate-purchase-banner" role="status" aria-live="polite" style={{'--owner-color':COLORS[purchaseFx.side]||'#d7a431'} as React.CSSProperties}>
@@ -386,7 +386,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
             {faces.map((v,i)=><PipDie key={i} value={v}/>)}
           </div>
           <div className="party-rolled-text">
-            <strong>{vietnam?`Ra ${faces[0]} + ${faces[1]} = ${total} nút`:`Ra số ${faces[0]}`}</strong>
+            <strong>{vietnam?`Đi ${total} ô`:`Ra số ${faces[0]}`}</strong>
             <small>{animPhase==='walk'?'Đang di chuyển…':vietnam?(faces[0]===faces[1]?`Đôi ${faces[0]} · Thêm lượt!`:`Tổng ${total} nút`):(faces[0]===6?'Số 6 · Xuất chuồng / Thêm lượt!':`Đi ${faces[0]} ô`)}</small>
           </div>
         </div>}
@@ -402,8 +402,8 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
             {vietnam&&<PipDie value={faces[1]||2}/>}
           </span>
           <span className="party-pickup-copy">
-            <strong>{holding?'Thả chuột để xúc xắc lăn!':vietnam?'Lăn 2 xúc xắc':'Lăn xúc xắc'}</strong>
-            <small>{holding?'Thả xuống mặt bàn':'Kéo thả hoặc bấm để lăn trên bàn'}</small>
+            <strong>{holding?'Thả để gieo':vietnam?'Gieo xúc xắc':'Lăn xúc xắc'}</strong>
+            <small>{holding?'Thả xuống mặt bàn':'Bấm hoặc kéo thả'}</small>
           </span>
         </button>}
       </div>
