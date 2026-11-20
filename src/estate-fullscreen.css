@@ -127,49 +127,60 @@
 .estate-game-hud :is(input,select) {min-width:0;max-width:100%;box-sizing:border-box}
 .estate-game-hud .estate-controls input[type=number],.estate-game-hud .estate-controls select {min-height:38px;font-size:13px}
 
-/* Collapsible bottom Menu — clean uniform equal-sized 2-column button grid */
-.estate-game-hud .estate-hud-menu {border-top:1px solid #c9ab6b24;margin-top:auto;padding-top:8px}
-.estate-game-hud .estate-hud-menu>summary {min-height:32px;display:flex;align-items:center;cursor:pointer;font-size:12.5px;font-weight:700;color:#cfc3ab}
-.estate-game-hud .estate-hud-menu>summary:after {content:'⌄';margin-left:auto}
-.estate-game-hud .estate-hud-menu[open]>summary {margin-bottom:8px}
-.estate-game-hud .party-table-toolbar,
-.estate-game-hud .party-camera-bar,
-.estate-game-hud .estate-zoom-tools {
-  position:static;width:100%;box-sizing:border-box;
-  padding:0;margin:0 0 6px;border:0;min-height:0;background:none;
+/* Collapsible bottom Menu — high-specificity uniform equal-sized 2-column button grid
+   (wins over lazy-loaded party.css / board-appearance.css / practice.css chunks) */
+.estate-immersive .estate-game-hud .estate-hud-menu {border-top:1px solid #c9ab6b24;margin-top:auto;padding-top:8px}
+.estate-immersive .estate-game-hud .estate-hud-menu>summary {min-height:32px;display:flex;align-items:center;cursor:pointer;font-size:12.5px;font-weight:700;color:#cfc3ab}
+.estate-immersive .estate-game-hud .estate-hud-menu>summary:after {content:'⌄';margin-left:auto}
+.estate-immersive .estate-game-hud .estate-hud-menu[open]>summary {margin-bottom:8px}
+.estate-immersive .estate-game-hud .estate-hud-menu .party-table-toolbar {
+  position:static!important;display:block!important;width:100%!important;
+  padding:0!important;margin:0 0 6px!important;border:0!important;background:none!important;min-height:0!important;
 }
-.estate-game-hud .party-table-toolbar {display:block}
-.estate-game-hud .party-camera-bar,
-.estate-game-hud .estate-zoom-tools,
-.estate-game-hud .estate-hud-footer-actions,
-.estate-game-hud .practice-secondary-actions {
-  display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;
+.estate-immersive .estate-game-hud .estate-hud-menu .party-table-toolbar .board-view-options {
+  display:grid!important;grid-template-columns:1fr!important;gap:6px!important;width:100%!important;
+  margin:0!important;padding:0!important;border:0!important;background:none!important;
 }
-.estate-game-hud .practice-secondary-actions {margin:6px 0}
-.estate-game-hud .estate-hud-footer-actions {margin-top:8px;padding-top:8px;border-top:1px solid #c9ab6b1c}
-.estate-game-hud :is(.party-material-label,.party-camera-bar>span,.estate-zoom-tools>span) {display:none}
-.estate-game-hud .board-view-options {
-  display:grid;grid-template-columns:1fr;gap:6px;width:100%;border:0!important;padding:0!important;background:none!important;
+.estate-immersive .estate-game-hud .estate-hud-menu .party-table-toolbar .board-view-options>.board-appearance,
+.estate-immersive .estate-game-hud .estate-hud-menu .party-table-toolbar .board-view-options>[role=group],
+.estate-immersive .estate-game-hud .estate-hud-menu .party-camera-bar,
+.estate-immersive .estate-game-hud .estate-hud-menu .estate-zoom-tools,
+.estate-immersive .estate-game-hud .estate-hud-menu .practice-secondary-actions,
+.estate-immersive .estate-game-hud .estate-hud-menu .estate-hud-footer-actions {
+  position:static!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:6px!important;width:100%!important;box-sizing:border-box!important;
+  padding:0!important;border:0!important;background:none!important;min-height:0!important;
+  justify-content:stretch!important;align-items:stretch!important;
 }
-.estate-game-hud :is(.board-appearance,.board-view-options>[role=group]) {
-  display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;border:0!important;padding:0!important;background:none!important;
+.estate-immersive .estate-game-hud .estate-hud-menu .party-camera-bar,
+.estate-immersive .estate-game-hud .estate-hud-menu .estate-zoom-tools,
+.estate-immersive .estate-game-hud .estate-hud-menu .practice-secondary-actions {margin:0 0 6px!important}
+.estate-immersive .estate-game-hud .estate-hud-menu .estate-hud-footer-actions {
+  margin:8px 0 0!important;padding-top:8px!important;border-top:1px solid #c9ab6b1c!important;
 }
-.estate-game-hud .estate-hud-menu :is(.party-table-toolbar button,.party-camera-bar button,.estate-zoom-tools button,.practice-secondary-actions button,.estate-hud-footer-actions button) {
-  width:100%;min-width:0;height:36px;min-height:36px;margin:0;padding:0 8px;
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  font-size:12px;font-weight:600;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  border-radius:8px;border:1px solid #c9ab6b33;background:#ffffff08;color:#e7dcc4;
-  box-sizing:border-box;transition:background .15s ease,border-color .15s ease,color .15s ease;
+.estate-immersive .estate-game-hud .estate-hud-menu :is(.party-material-label,.party-camera-bar>span,.estate-zoom-tools>span,.practice-session>h2) {display:none!important}
+.estate-immersive .estate-game-hud .estate-hud-menu :is(.party-table-toolbar button,.party-camera-bar button,.estate-zoom-tools button,.practice-secondary-actions button,.estate-hud-footer-actions button) {
+  width:100%!important;min-width:0!important;height:36px!important;min-height:36px!important;
+  margin:0!important;padding:0 8px!important;flex:none!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+  font-size:12px!important;font-weight:600!important;line-height:1!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  border-radius:8px!important;border:1px solid #c9ab6b33!important;background:#ffffff08!important;color:#e7dcc4!important;
+  box-sizing:border-box!important;box-shadow:none!important;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
 }
-.estate-game-hud .estate-hud-menu :is(.party-table-toolbar button,.party-camera-bar button,.estate-zoom-tools button,.practice-secondary-actions button,.estate-hud-footer-actions button):hover:not(:disabled) {
-  background:#ffffff14;border-color:#e4c47577;color:#fff7e0;
+.estate-immersive .estate-game-hud .estate-hud-menu :is(.party-table-toolbar button,.party-camera-bar button,.estate-zoom-tools button,.practice-secondary-actions button,.estate-hud-footer-actions button):hover:not(:disabled) {
+  background:#ffffff14!important;border-color:#e4c47577!important;color:#fff7e0!important;
 }
-.estate-game-hud .estate-hud-menu :is(button.selected,button[aria-pressed="true"]) {
+.estate-immersive .estate-game-hud .estate-hud-menu :is(button.selected,button[aria-pressed="true"]) {
   background:#d8b35a24!important;border-color:#e8c76c99!important;color:#fce7a8!important;
 }
-.estate-game-hud .estate-hud-menu .resign-link {color:#fca5a5;border-color:#dc262644;background:#dc262614}
-.estate-game-hud .estate-hud-menu .resign-link:hover:not(:disabled) {background:#dc262626;border-color:#f8717188;color:#fee2e2}
-.estate-game-hud .estate-hud-menu .practice-session>h2 {display:none}
+.estate-immersive .estate-game-hud .estate-hud-menu .resign-link {
+  color:#fca5a5!important;border-color:#dc262644!important;background:#dc262614!important;
+}
+.estate-immersive .estate-game-hud .estate-hud-menu .resign-link:hover:not(:disabled) {
+  background:#dc262626!important;border-color:#f8717188!important;color:#fee2e2!important;
+}
 
 /* Inspector & Decision inside hub */
 .estate-game-hud .estate-inspector {border:0;border-top:1px solid #c9ab6b24;background:none;padding:10px 0 4px;font-size:12px;gap:8px}
