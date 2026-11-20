@@ -69,7 +69,8 @@ test('Fullscreen estate game keeps actions, settings and lot inspection in one c
   await click(document.querySelector('.estate-primary-actions button'));assert.equal(sent[0].command,'roll');
   await click(document.querySelector('[aria-label="Thu gọn HUD"]'));assert.equal(document.querySelector('.estate-game-hud-body').hidden,true);
   await click(document.querySelector('[data-cell-index="3"]'));
-  assert.equal(document.querySelector('.estate-game-hud-body').hidden,false);assert.ok(document.querySelector('.estate-inspector').closest('.estate-game-hud'));
+  assert.ok(document.querySelector('.estate-corner-inspector .estate-inspector'),'Clicking a lot opens the compact top-left corner inspector');
+  assert.equal(document.querySelector('.estate-game-hud-body').hidden,true,'Inspecting a lot stays in the left corner without expanding or scrolling the right HUD');
   assert.equal(document.querySelector('.party-cell-popup-wrap'),null);
   await render(PartyBoard,{...props,immersive:false});assert.equal(document.querySelector('.estate-game-hud'),null);assert.equal(document.body.style.overflow,'scroll');
 });

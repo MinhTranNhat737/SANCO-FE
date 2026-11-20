@@ -215,20 +215,21 @@ function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme){
   round(ctx,inner,inner,innerSpan,innerSpan,0,palette.center,'#546658',1.5);
   text(ctx,'TỶ PHÚ',300,266,34,palette.centerInk,UI_FONT,'900');
   text(ctx,'VIỆT NAM',300,302,19,palette.centerInk,UI_FONT,'800');
+  const priceColor=theme==='dark'?'#fae39b':'#24170c';
   VN_CELLS.forEach(c=>{
     const b=estateBounds(c.index,13),w=b.width,h=b.height,corner=c.index%12===0;
     const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:'#64748b';
     const price=own?c.price+' tr':c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount+' tr':'';
     ctx.save();ctx.translate(b.x,b.y);
-    round(ctx,.4,.4,w-.8,h-.8,0,corner?palette.special:palette.lot,corner?'#c8a65a':'#34483b',corner?1.6:1.05);
-    if(c.type==='property')round(ctx,1,1,w-2,5.6,0,bandColor);
-    const rows=estateTitleLines(c.name,true),fs=corner?8.2:7.8;
-    const tx=w/2,ty=rows.length>1?(c.type==='property'?12.2:10.8):(c.type==='property'?15.5:14.2);
-    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.3),fs,palette.lotInk,UI_FONT,'850',w-4));
+    round(ctx,.35,.35,w-.7,h-.7,0,corner?palette.special:palette.lot,corner?'#d4b060':'#34483b',corner?1.7:1.05);
+    if(c.type==='property')round(ctx,1,1,w-2,6.2,0,bandColor);
+    const rows=estateTitleLines(c.name,true),fs=corner?9.6:9.0;
+    const tx=w/2,ty=rows.length>1?(c.type==='property'?13.2:11.2):(c.type==='property'?17.2:15.2);
+    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.1),fs,palette.lotInk,UI_FONT,'900',w-3));
     if(!PROVINCE_LANDMARKS[c.name]){
-      ctx.save();ctx.translate(w/2,h*(price?.63:.67));ctx.scale(corner?.9:.72,corner?.9:.72);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
+      ctx.save();ctx.translate(w/2,h*(price?.63:.66));ctx.scale(corner?.9:.68,corner?.9:.68);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
     }
-    if(price)text(ctx,price,tx,h-5.2,corner?7.4:7.0,palette.lotInk,UI_FONT,'850',w-4);
+    if(price)text(ctx,price,tx,h-5.0,corner?8.5:8.0,c.type==='tax'?'#fca5a5':priceColor,UI_FONT,'900',w-3);
     ctx.restore();
   });
 }

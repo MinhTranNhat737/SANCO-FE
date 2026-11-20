@@ -113,7 +113,7 @@ export function table(kind:string,textures={wood:woodTexture,board:boardTexture,
       const [r,col]=estateGridCell(c.index,13),b=estateBounds(c.index,13);
       const pt=worldPoint([b.x+b.width/2,b.y+b.height*.64]);
       const mon=landmarkMonument(lm.kind,lm.accent);
-      mon.scale.setScalar(.56);
+      mon.scale.setScalar(.46);
       mon.position.set(pt.x,SURFACE+.005,pt.z);
       const edgeIdx=r===12?0:col===0?1:r===0?2:3;
       mon.rotation.y=-edgeIdx*Math.PI/2;

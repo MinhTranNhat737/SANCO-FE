@@ -400,7 +400,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
         <PipDie value={flatRoll.d1} className="is-tumbling"/>
         {vietnam&&<PipDie value={flatRoll.d2} className="is-tumbling delay"/>}
       </div>}
-      {!fullscreen&&inspector&&<div className="party-cell-popup-wrap">
+      {inspector&&<div className={fullscreen?'estate-corner-inspector':'party-cell-popup-wrap'}>
         {inspector}
       </div>}
       <div className="party-board-dice-hud">
@@ -432,7 +432,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       </div>
     </div>
     {!fullscreen&&cameraBar}
-    {fullscreen&&<EstateFullscreenHud title={cash(state.players.find(player=>player.side===mySide)?.cash||0)} status={hudStatus||(isBoardBusy?'Đang di chuyển…':turn===mySide?'Lượt của bạn':'Đang chờ lượt')} diceBadge={hudDiceBadge} players={hudPlayers} actions={hudActions} inspector={inspector} decision={decision} attention={selectedCell!==null?'lot:'+selectedCell:['buy','buyout','auction','debt','deal'].includes(state.stage)?state.stage:''} onExit={onExit} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget}/>{hudMenu}</>}/> }
+    {fullscreen&&<EstateFullscreenHud title={cash(state.players.find(player=>player.side===mySide)?.cash||0)} status={hudStatus||(isBoardBusy?'Đang di chuyển…':turn===mySide?'Lượt của bạn':'Đang chờ lượt')} diceBadge={hudDiceBadge} players={hudPlayers} actions={hudActions} inspector={null} decision={decision} attention={['buy','buyout','auction','debt','deal'].includes(state.stage)?state.stage:''} onExit={onExit} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget}/>{hudMenu}</>}/> }
     {failed&&!fullscreen&&<span className="party-fallback-note" role="status">Đang dùng bàn 2D trên thiết bị này.</span>}
   </div>;
   return fullscreen?createPortal(boardContent,document.body):boardContent;
