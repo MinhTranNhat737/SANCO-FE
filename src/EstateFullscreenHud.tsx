@@ -84,8 +84,10 @@ export default function EstateFullscreenHud({title,status,diceBadge,players,acti
       {actions}
       <details className="estate-hud-menu"><summary>Menu</summary>
         {menu}
-        <button type="button" className="button button-secondary full" onClick={()=>{if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});else void document.documentElement.requestFullscreen?.().catch(()=>{});}}><Maximize size={15}/>Toàn màn hình</button>
-        {onExit&&<button type="button" className="button button-secondary full" onClick={onExit}><ArrowLeft size={15}/>Về sảnh</button>}
+        <div className="estate-hud-footer-actions">
+          <button type="button" className="button button-secondary" onClick={()=>{if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});else void document.documentElement.requestFullscreen?.().catch(()=>{});}}><Maximize size={14}/>Toàn màn</button>
+          {onExit&&<button type="button" className="button button-secondary" onClick={onExit}><ArrowLeft size={14}/>Về sảnh</button>}
+        </div>
       </details>
     </div>
   </aside>;

@@ -16,18 +16,12 @@ test('48 square lots stay on one perimeter with the original four corners and co
   assert.equal(VN_CELLS.filter(c=>c.type==='property').length,34);assert.equal(VN_CELLS.length,48);
 });
 
-test('Perimeter lots cover the board without overlap, with largest square corners and compact center on the 48-lot board',()=>{
+test('Square lots cover the perimeter without overlap and every part of a lot remains selectable',()=>{
   for(const size of [6,13]){
     const count=4*(size-1),bounds=Array.from({length:count},(_,i)=>estateBounds(i,size));
-    const edge=size-1;
     for(let i=0;i<count;i++){
-      const b=bounds[i],isCorner=i%edge===0;
-      if(size===6||isCorner)assert.equal(b.width,b.height,'Corners (and legacy 6x6 lots) must remain square');
-      else assert.ok(Math.max(b.width,b.height)>Math.min(b.width,b.height),'Vietnam side lots are deeper rectangular cards');
-      if(size===13&&!isCorner){
-        const corner=bounds[0];
-        assert.ok(corner.width*corner.height>b.width*b.height*2,'Four corner spaces must be the largest spaces on the board');
-      }
+      const b=bounds[i];
+      assert.equal(b.width,b.height,'Every lot must remain square');
       assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=600.000001&&b.y+b.height<=600.000001);
       for(const dx of [.01,.25,.5,.75,.99])for(const dy of [.01,.25,.5,.75,.99]){
         assert.equal(estateIndexAt((b.x+b.width*dx-300)/60,(b.y+b.height*dy-300)/60,size),i);
@@ -39,8 +33,7 @@ test('Perimeter lots cover the board without overlap, with largest square corner
     }
     const usedArea=bounds.reduce((sum,b)=>sum+b.width*b.height,0),center=estateCenterBounds(size);
     assert.ok(Math.abs(usedArea+center.width*center.height-600*600)<1e-6,'Lots and center must cover the whole board');
-    if(size===13)assert.ok(center.width<600-1200/13,'Center area is reduced in favor of larger lots and corners');
-    else assert.equal(center.width,600-1200/size,'Legacy 6x6 center matches grid');
+    assert.equal(center.width,600-1200/size,'The middle retains the single-ring square layout');
   }
 });
 

@@ -212,47 +212,23 @@ function drawSpecialIcon(ctx:CanvasRenderingContext2D,type:string,cx:number,cy:n
 function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme){
   const palette=BOARD_PALETTES[theme];
   const center=estateCenterBounds(13),inner=center.x,innerSpan=center.width;
-  round(ctx,inner,inner,innerSpan,innerSpan,0,palette.center,'#546658',1.6);
-  text(ctx,'TỶ PHÚ',300,264,29,palette.centerInk,UI_FONT,'900');
-  text(ctx,'VIỆT NAM',300,295,16,palette.centerInk,UI_FONT,'800');
+  round(ctx,inner,inner,innerSpan,innerSpan,0,palette.center,'#546658',1.5);
+  text(ctx,'TỶ PHÚ',300,266,34,palette.centerInk,UI_FONT,'900');
+  text(ctx,'VIỆT NAM',300,302,19,palette.centerInk,UI_FONT,'800');
   VN_CELLS.forEach(c=>{
-    const b=estateBounds(c.index,13),w=b.width,h=b.height;
-    const corner=c.index%12===0,horizontal=w>h*1.2,vertical=h>w*1.2;
-    const isBottom=b.y>300,isLeft=b.x<300;
+    const b=estateBounds(c.index,13),w=b.width,h=b.height,corner=c.index%12===0;
     const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:'#64748b';
     const price=own?c.price+' tr':c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount+' tr':'';
     ctx.save();ctx.translate(b.x,b.y);
-    round(ctx,.4,.4,w-.8,h-.8,0,corner?palette.special:palette.lot,'#34483b',1.2);
-    if(corner){
-      const rows=estateTitleLines(c.name,true);
-      rows.forEach((line,i)=>text(ctx,line,w/2,(rows.length>1?20:25)+i*14,12.5,palette.lotInk,UI_FONT,'900',w-12));
-      ctx.save();ctx.translate(w/2,h*.56);ctx.scale(1.55,1.55);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
-      if(price)text(ctx,price,w/2,h-13,11,palette.lotInk,UI_FONT,'900',w-10);
-    }else if(vertical){
-      const band=11;
-      if(c.type==='property')round(ctx,1,isBottom?1:h-band-1,w-2,band,0,bandColor);
-      const rows=estateTitleLines(c.name,true),fs=8.5;
-      const titleStart=isBottom?(c.type==='property'?22:15):(rows.length>1?23:28);
-      rows.forEach((line,i)=>text(ctx,line,w/2,titleStart+i*(fs+2),fs,palette.lotInk,UI_FONT,'850',w-4));
-      if(!PROVINCE_LANDMARKS[c.name]){
-        ctx.save();ctx.translate(w/2,isBottom?h*.58:h*.50);ctx.scale(.85,.85);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
-      }
-      if(price)text(ctx,price,w/2,isBottom?h-11:(c.type==='property'?h-band-9:h-11),7.8,palette.lotInk,UI_FONT,'850',w-4);
-    }else if(horizontal){
-      const band=11,hasLandmark=Boolean(PROVINCE_LANDMARKS[c.name]);
-      if(c.type==='property')round(ctx,isLeft?w-band-1:1,1,band,h-2,0,bandColor);
-      // Wide crisp text area on the outer side; inner side holds the color band & 3D landmark/house
-      const textX=isLeft?(hasLandmark?w*.34:w*.42):(hasLandmark?w*.66:w*.58);
-      const maxW=hasLandmark?w*.56:w*.66;
-      const rows=estateTitleLines(c.name,false),fs=9.4;
-      const titleY=price?h*.36:h*.52;
-      rows.forEach((line,i)=>text(ctx,line,textX,titleY+i*(fs+1.5),fs,palette.lotInk,UI_FONT,'850',maxW));
-      if(price)text(ctx,price,textX,h*.74,8.2,palette.lotInk,UI_FONT,'850',maxW);
-      if(!hasLandmark){
-        const iconX=isLeft?w-15:15;
-        ctx.save();ctx.translate(iconX,h/2);ctx.scale(.85,.85);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
-      }
+    round(ctx,.4,.4,w-.8,h-.8,0,corner?palette.special:palette.lot,corner?'#c8a65a':'#34483b',corner?1.6:1.05);
+    if(c.type==='property')round(ctx,1,1,w-2,5.6,0,bandColor);
+    const rows=estateTitleLines(c.name,true),fs=corner?8.2:7.8;
+    const tx=w/2,ty=rows.length>1?(c.type==='property'?12.2:10.8):(c.type==='property'?15.5:14.2);
+    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+1.3),fs,palette.lotInk,UI_FONT,'850',w-4));
+    if(!PROVINCE_LANDMARKS[c.name]){
+      ctx.save();ctx.translate(w/2,h*(price?.63:.67));ctx.scale(corner?.9:.72,corner?.9:.72);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
     }
+    if(price)text(ctx,price,tx,h-5.2,corner?7.4:7.0,palette.lotInk,UI_FONT,'850',w-4);
     ctx.restore();
   });
 }

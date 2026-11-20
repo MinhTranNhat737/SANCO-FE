@@ -314,72 +314,34 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
     <rect className="board-svg-base" width="780" height="780" fill="#fff" stroke="#111827" strokeWidth="3"/>
     <rect className="board-svg-center" x={center.x} y={center.y} width={center.width} height={center.height} fill="#f5f3eb" stroke="#111827" strokeWidth="2"/>
     <g aria-hidden="true">
-      <text className="board-svg-label" x="390" y="366" textAnchor="middle" fill="#172d24" fontSize="38" fontWeight="900">TỶ PHÚ</text>
-      <text x="390" y="400" textAnchor="middle" fill="#475b50" fontSize="20" fontWeight="800">VIỆT NAM</text>
-      <text x="390" y="434" textAnchor="middle" fill="#475b50" fontSize="16" fontWeight="700">Vòng {state.round}</text>
+      <text className="board-svg-label" x="390" y="367" textAnchor="middle" fill="#172d24" fontSize="44" fontWeight="900">TỶ PHÚ</text>
+      <text x="390" y="405" textAnchor="middle" fill="#475b50" fontSize="23" fontWeight="800">VIỆT NAM</text>
+      <text x="390" y="446" textAnchor="middle" fill="#475b50" fontSize="19" fontWeight="700">Vòng {state.round}</text>
     </g>
     {VN_CELLS.map(c=>{
       const cell=bounds(c.index),w=cell.width,h=cell.height,owned=state.property[c.index],lvl=state.houses[c.index]||0;
-      const corner=c.index%12===0,horizontal=w>h*1.2,vertical=h>w*1.2;
-      const isBottom=cell.y>390,isLeft=cell.x<390;
-      const rows=estateTitleLines(c.name,!horizontal),occupied=activePlayers.some(p=>p.position===c.index);
+      const corner=c.index%12===0,rows=estateTitleLines(c.name,true),occupied=activePlayers.some(p=>p.position===c.index);
       const color=owned?TOKEN_STYLES[owned]?.fill||PARTY_COLORS[owned]:'#111827';
       const accent=c.group!==undefined?CLASSIC_GROUP_COLORS[c.group]||VN_GROUP_COLORS[c.group]:'#64748b';
       const selectedHere=selected===c.index,auction=auctionLot===c.index,landmark=PROVINCE_LANDMARKS[c.name];
+      const tx=w/2,fs=corner?10.5:10.0,ty=rows.length>1?(c.type==='property'?17:15):(c.type==='property'?22:20);
+      const artX=w/2,artY=h*.66;
       const price=ownable(c)?c.price+' tr':c.type==='start'?'+'+estateSalary(state)+' tr':c.type==='tax'?'−'+c.amount+' tr':'';
-      const band=14;
       return <g key={c.index} data-cell-index={c.index} data-corner={corner?'true':undefined} transform={`translate(${cell.x} ${cell.y})`} data-owned={Boolean(owned)||selectedHere} role="button" tabIndex={0} aria-label={'Xem '+c.name} aria-pressed={selectedHere} onClick={()=>onSelect(c.index)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(c.index);}}}>
-        <rect className={auction?'board-svg-lot vn-auction-lot-pulse':selectedHere?'board-svg-selected':'board-svg-lot'} x={0} y={0} width={w} height={h} fill={auction||selectedHere?'#fef08a':owned?OWNER_BG[owned]||'#fff':corner?'#fff3da':'#fff'} stroke={auction?'#d97706':selectedHere?'#dc2626':color} strokeWidth={selectedHere||owned||auction?3.2:1.6}/>
-        {corner&&<>
-          {rows.map((line,i)=><text key={i} x={w/2} y={(rows.length>1?26:34)+i*18} textAnchor="middle" fontSize="15.5" fontWeight="900" fill="#111827">{line}</text>)}
-          {!occupied&&<g transform={`translate(${w/2} ${h*.58}) scale(1.45)`}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>}
-          {price&&<text x={w/2} y={h-14} textAnchor="middle" fontSize="13.5" fontWeight="900" fill="#b91c1c">{price}</text>}
-        </>}
-        {vertical&&<>
-          {c.type==='property'&&<rect x={1} y={isBottom?1:h-band-1} width={w-2} height={band} fill={accent}/>}
-          {rows.map((line,i)=>{
-            const fs=10.4,startY=isBottom?(c.type==='property'?28:20):(rows.length>1?22:28);
-            return <text key={i} x={w/2} y={startY+i*(fs+2.5)} textAnchor="middle" fontSize={fs} fontWeight="850" fill="#111827" textLength={line.length>8?w-6:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>;
-          })}
-          {!occupied&&(()=>{
-            const artX=w/2,artY=isBottom?h*.61:h*.51;
-            return lvl>0
-              ?<g transform={`translate(${artX} ${artY}) scale(.58) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>
-              :landmark?<g transform={`translate(${artX} ${artY}) scale(1.25)`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>
-              :<g transform={`translate(${artX} ${artY}) scale(.88)`}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>;
-          })()}
-          {price&&<text x={w/2} y={isBottom?h-10:(c.type==='property'?h-band-8:h-10)} textAnchor="middle" fontSize="9.8" fontWeight="850" fill={ownable(c)?'#172d24':'#b91c1c'}>{price}</text>}
-          {owned&&<rect x={1} y={isBottom?h-4:1} width={w-2} height={3} fill={color}/>}
-        </>}
-        {horizontal&&<>
-          {c.type==='property'&&<rect x={isLeft?w-band-1:1} y={1} width={band} height={h-2} fill={accent}/>}
-          {(()=>{
-            const textX=isLeft?w*.38:w*.62,artX=isLeft?w-band-15:band+15;
-            return <>
-              {rows.map((line,i)=><text key={i} x={textX} y={(price?19:27)+i*12.5} textAnchor="middle" fontSize="11.2" fontWeight="850" fill="#111827" textLength={line.length>10?w*.56:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
-              {price&&<text x={textX} y={h-9} textAnchor="middle" fontSize="10" fontWeight="850" fill={ownable(c)?'#172d24':'#b91c1c'}>{price}</text>}
-              {!occupied&&(lvl>0
-                ?<g transform={`translate(${artX} ${h/2}) scale(.52) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>
-                :landmark?<g transform={`translate(${artX} ${h/2}) scale(1.18)`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>
-                :<g transform={`translate(${artX} ${h/2}) scale(.8)`}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>)}
-            </>;
-          })()}
-          {owned&&<rect x={isLeft?1:w-4} y={1} width={3} height={h-2} fill={color}/>}
-        </>}
-        {state.mortgaged?.[c.index]&&<path d={`M6 ${h-6}L${w-6} 6`} stroke="#dc2626" strokeWidth="3" opacity=".85"/>}
+        <rect className={auction?'board-svg-lot vn-auction-lot-pulse':selectedHere?'board-svg-selected':'board-svg-lot'} x={0} y={0} width={w} height={h} fill={auction||selectedHere?'#fef08a':owned?OWNER_BG[owned]||'#fff':corner?'#fff2d6':'#fff'} stroke={auction?'#d97706':selectedHere?'#dc2626':owned?color:corner?'#b58b3c':'#111827'} strokeWidth={selectedHere||owned||auction?3:corner?2.2:1.5}/>
+        {c.type==='property'&&<rect x={1} y={1} width={w-2} height={7} fill={accent}/>}
+        {rows.map((line,i)=><text key={i} x={tx} y={ty+i*(fs+1.8)} textAnchor="middle" fontSize={fs} fontWeight="850" fill="#111827" textLength={line.length>8?w-6:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
+        {!occupied&&(lvl>0?<g transform={`translate(${artX} ${artY}) scale(.46) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={`translate(${artX} ${artY}) scale(.92)`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={`translate(${artX} ${artY}) scale(${corner?.82:.68})`}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>)}
+        {price&&<text x={tx} y={h-4.5} textAnchor="middle" fontSize="9.0" fontWeight="850" fill={ownable(c)?'#172d24':'#b91c1c'}>{price}</text>}
+        {owned&&<rect x={1} y={h-3} width={w-2} height={2.5} fill={color}/>}
+        {state.mortgaged?.[c.index]&&<path d={`M5 ${h-7}L${w-5} 9`} stroke="#dc2626" strokeWidth="3" opacity=".85"/>}
       </g>;
     })}
     {activePlayers.map((p,i)=>{
       const b=bounds(p.position),cellmates=activePlayers.filter(other=>other.position===p.position),slot=cellmates.findIndex(other=>other.side===p.side),many=cellmates.length>4;
-      const horiz=b.width>b.height*1.2,isLeft=b.x<390;
-      const tokenScale=Math.min(b.width,b.height)/48;
-      const ox=horiz
-        ?(isLeft?b.width*(.72-(slot%2)*.18):b.width*(.28+(slot%2)*.18))
-        :b.width*(cellmates.length===1?.5:many?.18+(slot%4)*.21:.32+(slot%2)*.36);
-      const oy=horiz
-        ?b.height*(cellmates.length<=2?.5:.34+Math.floor(slot/2)*.32)
-        :b.height*(cellmates.length<=2?.62:.52+Math.floor(slot/2)*.18);
-      return <g key={p.side} transform={`translate(${b.x+ox} ${b.y+oy}) scale(${tokenScale})`}><FlatPlayerToken cx={0} cy={0} side={p.side} cell={p.position} index={i} isMine={p.side===mySide} isTurn={p.side===turnSide} compact={cellmates.length>1} crowded={many}/></g>;
+      const ox=b.width*(cellmates.length===1?.5:many?.16+(slot%4)*.225:.3+(slot%2)*.4);
+      const oy=b.height*(cellmates.length<=2?2/3:many?.59+Math.floor(slot/4)*.155:.59+Math.floor(slot/2)*.155);
+      return <g key={p.side} transform={`translate(${b.x+ox} ${b.y+oy}) scale(${b.width/60})`}><FlatPlayerToken cx={0} cy={0} side={p.side} cell={p.position} index={i} isMine={p.side===mySide} isTurn={p.side===turnSide} compact={cellmates.length>1} crowded={many}/></g>;
     })}
     {glowLots.filter(lot=>lot>=0&&lot<48).map(lot=>{const b=bounds(lot),side=state.property[lot];return <g key={justPurchasedKey+':'+lot} className="vn-ownership-glow" data-glow-lot={lot} aria-hidden="true">
       <rect x={b.x+4} y={b.y+4} width={b.width-8} height={b.height-8} fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="8" filter={'url(#'+glowId+')'}/>

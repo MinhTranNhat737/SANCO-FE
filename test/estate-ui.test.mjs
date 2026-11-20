@@ -35,10 +35,9 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   const g=game(8);
   await render(PartyBoard,{kind:'monopoly',state:g.party,mySide:'R',turn:'R',legal:[],enabled:false,animate:false});
   const lots=[...document.querySelectorAll('[data-cell-index]')];assert.equal(lots.length,48);
-  const cornerRect=lots[0].querySelector('rect'),sideRect=lots[1].querySelector('rect');
-  assert.equal(Number(cornerRect.getAttribute('width')),Number(cornerRect.getAttribute('height')),'Corner lot must be square');
-  assert.ok(Number(cornerRect.getAttribute('width'))>Number(sideRect.getAttribute('width'))*2,'Corners are wider than side slots');
-  assert.ok(Number(sideRect.getAttribute('height'))>Number(sideRect.getAttribute('width'))*2,'Side slots are deeper rectangular cards');
+  for(const lot of lots){
+    const rect=lot.querySelector('rect');assert.equal(Number(rect.getAttribute('width')),Number(rect.getAttribute('height')),'Every lot must be an exact square');
+  }
   const surface=()=>document.querySelector('.estate-board-surface');
   assert.equal(surface().style.width,'1560px','Large mode must enlarge the actual board');
   const viewport=document.querySelector('.estate-board-viewport');
@@ -50,7 +49,7 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   assert.equal(viewport.scrollLeft,0);assert.equal(viewport.scrollTop,0);
   await click(button('Phóng to'));assert.equal(surface().style.width,'1560px');
   await click(button('Thu nhỏ'));assert.equal(surface().style.width,'1300px');
-  const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.ok(Number(court.getAttribute('width'))<560,'Center court is more compact to give tiles more space');
+  const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.equal(court.getAttribute('width'),'660');
   await click(lots[3]);
   assert.match(document.querySelector('.estate-inspector').textContent,new RegExp(VN_CELLS[3].name));
   assert.equal(document.querySelector('[data-cell-index="3"]').getAttribute('aria-pressed'),'true');
