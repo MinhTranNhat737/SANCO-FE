@@ -228,7 +228,19 @@ export default function App() {
     try {
       const data=await gameAction(socket.current,'room',room.id,body);
       acceptRoom(data.room); setModal(null);
-      if (action === 'move' && sound) { playMoveSound(room.kind, typeof move === 'object' ? {from: move.from ?? undefined, to: move.to, action: move.action} : undefined); }
+      if (action === 'move' && sound && room.kind !== 'monopoly') {
+        const latest = (data.room.game.moves as {from?:number|null;to?:number;action?:string;piece?:string;captured?:string|null;captures?:number[];check?:boolean}[] | undefined)?.at(-1);
+        const caps = latest?.captures?.length ? latest.captures : (latest?.captured && latest.to != null ? [latest.to] : []);
+        playMoveSound(room.kind, {
+          from: latest?.from ?? (typeof move === 'object' ? move.from ?? undefined : undefined),
+          to: latest?.to ?? (typeof move === 'object' ? move.to : typeof move === 'number' ? move : undefined),
+          action: latest?.action ?? (typeof move === 'object' ? move.action : undefined),
+          piece: latest?.piece,
+          captures: caps,
+          check: Boolean(latest?.check || data.room.game.check),
+          checkmate: data.room.game.phase === 'finished' && data.room.game.result?.reason === 'checkmate',
+        });
+      }
     } catch (e) { notifyError(e); try { const data = await api(`/rooms/${room.id}`); acceptRoom(data.room); } catch {} } finally { setBusy(false); }
   }
   const nav = [{page:'matchmaking' as Page,label:t('Tìm trận'),icon:Swords},{page:'rankings' as Page,label:t('Xếp hạng'),icon:Trophy},{ page: 'home' as Page, label: t('Chơi cờ'), icon: Home }, { page: 'practice' as Page, label: t('Chơi với máy'), icon: Bot }, { page: 'rooms' as Page, label: t('Phòng của tôi'), icon: DoorOpen }, { page: 'history' as Page, label: t('Lịch sử'), icon: History }, { page: 'rules' as Page, label: t('Luật'), icon: BookOpen }];

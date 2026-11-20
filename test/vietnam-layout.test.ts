@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {estateGridCell,estateBounds,estateCenterBounds,estateBoardSize,estatePixelRatio,estatePoint,estateIndexAt,partyRoll,vnLayout,vnTileSize,bestVnLayout,VN_SQUARE} from '../src/three/party-layout.ts';
+import {estateGridCell,estateBounds,estateCenterBounds,estateBoardSize,estatePixelRatio,estatePoint,estateIndexAt,partyRoll,vnLayout,vnTileSize,bestVnLayout,VN_SQUARE,VN_CORNER_RATIO,isEstateCorner} from '../src/three/party-layout.ts';
 import {VN_CELLS} from '../src/estate-data.ts';
 
 test('48 square lots stay on one perimeter with the original four corners and correct eight-player picking',()=>{
@@ -16,15 +16,20 @@ test('48 square lots stay on one perimeter with the original four corners and co
   assert.equal(VN_CELLS.filter(c=>c.type==='property').length,34);assert.equal(VN_CELLS.length,48);
 });
 
-test('Square lots cover the perimeter without overlap and every part of a lot remains selectable',()=>{
+test('Square corners and balanced edge lots cover the perimeter without overlap and stay selectable',()=>{
   for(const size of [6,13]){
-    const count=4*(size-1),bounds=Array.from({length:count},(_,i)=>estateBounds(i,size));
+    const count=4*(size-1),board=estateBoardSize(size),bounds=Array.from({length:count},(_,i)=>estateBounds(i,size));
     for(let i=0;i<count;i++){
       const b=bounds[i];
-      assert.equal(b.width,b.height,'Every lot must remain square');
-      assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=600.000001&&b.y+b.height<=600.000001);
+      if(size===6||isEstateCorner(i,size)){
+        assert.ok(Math.abs(b.width-b.height)<1e-9,'Corners and mini-board lots must remain exact squares');
+      }else{
+        const ratio=Math.max(b.width,b.height)/Math.min(b.width,b.height);
+        assert.ok(Math.abs(ratio-VN_CORNER_RATIO)<1e-6,'Edge lots keep the balanced 1:1.24 proportion');
+      }
+      assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=board.width+1e-6&&b.y+b.height<=board.height+1e-6);
       for(const dx of [.01,.25,.5,.75,.99])for(const dy of [.01,.25,.5,.75,.99]){
-        assert.equal(estateIndexAt((b.x+b.width*dx-300)/60,(b.y+b.height*dy-300)/60,size),i);
+        assert.equal(estateIndexAt((b.x+b.width*dx-board.width/2)/60,(b.y+b.height*dy-board.height/2)/60,size),i);
       }
       for(let j=i+1;j<count;j++){
         const other=bounds[j],overlapX=Math.min(b.x+b.width,other.x+other.width)-Math.max(b.x,other.x),overlapY=Math.min(b.y+b.height,other.y+other.height)-Math.max(b.y,other.y);
@@ -32,8 +37,8 @@ test('Square lots cover the perimeter without overlap and every part of a lot re
       }
     }
     const usedArea=bounds.reduce((sum,b)=>sum+b.width*b.height,0),center=estateCenterBounds(size);
-    assert.ok(Math.abs(usedArea+center.width*center.height-600*600)<1e-6,'Lots and center must cover the whole board');
-    assert.equal(center.width,600-1200/size,'The middle retains the single-ring square layout');
+    assert.ok(Math.abs(usedArea+center.width*center.height-board.width*board.height)<1e-6,'Lots and center must cover the whole board');
+    assert.ok(Math.abs(center.width-(board.width-2*board.depth))<1e-6,'The middle retains the single-ring court layout');
   }
 });
 
@@ -62,7 +67,12 @@ test('All adaptive 48-lot widescreen layouts (13x13..18x8) keep exact square til
       const [r,c]=cells[i],[nr,nc]=cells[(i+1)%48],b=bounds[i];
       assert.ok(r===0||r===rows-1||c===0||c===cols-1,'Every lot must stay on the outer ring');
       assert.equal(Math.abs(nr-r)+Math.abs(nc-c),1,'Adjacent lots must touch orthogonally');
-      assert.ok(Math.abs(b.width-b.height)<1e-9,'Every lot must be an exact square');
+      if(isEstateCorner(i,layout)){
+        assert.ok(Math.abs(b.width-b.height)<1e-9,'Corners must be exact squares');
+      }else{
+        const ratio=Math.max(b.width,b.height)/Math.min(b.width,b.height);
+        assert.ok(Math.abs(ratio-VN_CORNER_RATIO)<1e-6,'Edge lots keep the balanced 1:1.24 proportion');
+      }
       assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=board.width+1e-6&&b.y+b.height<=board.height+1e-6);
       for(let seat=0;seat<8;seat++){const p=estatePoint(i,seat,layout);assert.equal(estateIndexAt(p.x,p.z,layout),i);}
       for(let j=i+1;j<48;j++){

@@ -1,6 +1,6 @@
 import {BOARD_PALETTES,type BoardTheme} from '../board-palette.ts';
 import * as T from 'three';
-import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,estateBounds,estateCenterBounds,estateBoardSize,estateLayout,estateTitleLines,groupOf,type EstateLayout,type EstateSize} from './party-layout.ts';
+import {CITIES,GROUP_COLORS,PARTY_COLORS,PARTY_SIDES,LUDO_PATH,LUDO_SAFE,estateBounds,estateCenterBounds,estateBoardSize,estateEdge,isEstateCorner,estateLayout,estateTitleLines,groupOf,type EstateLayout,type EstateSize} from './party-layout.ts';
 import {VN_CELLS,VN_GROUP_COLORS,ownable} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 
@@ -215,22 +215,59 @@ function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme,layout:Estat
   round(ctx,center.x,center.y,center.width,center.height,0,palette.center,'#546658',1.5);
   text(ctx,'TỶ PHÚ',mx,my-34,34,palette.centerInk,UI_FONT,'900');
   text(ctx,'VIỆT NAM',mx,my+2,19,palette.centerInk,UI_FONT,'800');
-  const priceColor=theme==='dark'?'#fae39b':'#24170c';
+  const stripDepth=Math.max(10,board.depth-board.unit);
   VN_CELLS.forEach(c=>{
-    const b=estateBounds(c.index,layout),w=b.width,h=b.height,corner=c.index%12===0;
-    const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:'#64748b';
-    const price=own?c.price+' tr':c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount+' tr':'';
+    const b=estateBounds(c.index,layout),w=b.width,h=b.height;
+    const physCorner=isEstateCorner(c.index,layout),specialCorner=c.index%12===0;
+    const edge=estateEdge(c.index,layout),vertical=edge===1||edge===3;
+    const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:c.type==='station'?'#475569':c.type==='utility'?'#b45309':c.type==='tax'?'#7f1d1d':'#4b5563';
+    const price=own?String(c.price):c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount:'';
+    const landmark=PROVINCE_LANDMARKS[c.name];
     ctx.save();ctx.translate(b.x,b.y);
-    round(ctx,.35,.35,w-.7,h-.7,0,corner?palette.special:palette.lot,corner?'#d4b060':'#34483b',corner?1.7:1.05);
-    if(c.type==='property')round(ctx,1,1,w-2,5.4,0,bandColor);
-    // Larger, heavier lettering: lot names at ~23% of the lot, prices at ~21%.
-    const rows=estateTitleLines(c.name,true),fs=corner?10.8:10.4;
-    const tx=w/2,ty=rows.length>1?(c.type==='property'?12.6:10.8):(c.type==='property'?16.4:14.4);
-    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+.4),fs,palette.lotInk,UI_FONT,'900',w-2.4));
-    if(!PROVINCE_LANDMARKS[c.name]){
-      ctx.save();ctx.translate(w/2,h*(price?.64:.66));ctx.scale(corner?1.05:.86,corner?1.05:.86);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
+    round(ctx,.35,.35,w-.7,h-.7,0,specialCorner?palette.special:palette.lot,specialCorner?'#d4b060':'#34483b',specialCorner?1.8:1.1);
+
+    if(physCorner){
+      // Large square corner tile: bold title + large iconic emblem + bonus
+      const rows=estateTitleLines(c.name,true),fs=10.8;
+      rows.forEach((line,i)=>text(ctx,line,w/2,12+i*(fs+.6),fs,palette.lotInk,UI_FONT,'900',w-4));
+      if(landmark){
+        ctx.save();ctx.translate(w/2,h*.54);ctx.scale(1.85,1.85);drawLandmarkIcon(ctx,landmark.kind,0,0,bandColor);ctx.restore();
+      }else{
+        ctx.save();ctx.translate(w/2,h*(price?.54:.58));ctx.scale(1.45,1.45);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
+      }
+      if(price)text(ctx,price,w/2,h-7.5,9.8,c.type==='tax'?'#fca5a5':'#fae39b',UI_FONT,'900',w-4);
+      ctx.restore();
+      return;
     }
-    if(price)text(ctx,price,tx,h-5.2,corner?9.8:9.6,c.type==='tax'?'#fca5a5':priceColor,UI_FONT,'900',w-2.4);
+
+    // Balanced edge tile: colored price bar along the inner court edge + square body with name & large landmark icon
+    const hasStrip=Boolean(price||c.type==='property');
+    const s=hasStrip?stripDepth:0;
+    if(hasStrip){
+      if(edge===0)round(ctx,.8,.8,w-1.6,s,0,bandColor);
+      else if(edge===2)round(ctx,.8,h-s-.8,w-1.6,s,0,bandColor);
+      else if(edge===1)round(ctx,w-s-.8,.8,s,h-1.6,0,bandColor);
+      else round(ctx,.8,.8,s,h-1.6,0,bandColor);
+      if(price){
+        const pCol='#fffbeb';
+        ctx.save();
+        if(edge===0)text(ctx,price,w/2,s/2+.9,9.6,pCol,UI_FONT,'900',w-3);
+        else if(edge===2)text(ctx,price,w/2,h-s/2-.6,9.6,pCol,UI_FONT,'900',w-3);
+        else if(edge===1){ctx.translate(w-s/2-.6,h/2);ctx.rotate(Math.PI/2);text(ctx,price,0,.5,9.6,pCol,UI_FONT,'900',h-3);}
+        else{ctx.translate(s/2+.9,h/2);ctx.rotate(-Math.PI/2);text(ctx,price,0,.5,9.6,pCol,UI_FONT,'900',h-3);}
+        ctx.restore();
+      }
+    }
+    const bx=edge===3?s:0,by=edge===0?s:0,bw=vertical?w-s:w,bh=vertical?h:h-s;
+    const rows=estateTitleLines(c.name,true),fs=9.8;
+    const tx=bx+bw/2,ty=by+(rows.length>1?7.8:10.5);
+    rows.forEach((line,i)=>text(ctx,line,tx,ty+i*(fs+.2),fs,palette.lotInk,UI_FONT,'900',bw-2.4));
+    const iconY=by+bh*(rows.length>1?.68:.64);
+    if(landmark){
+      ctx.save();ctx.translate(tx,iconY);ctx.scale(1.62,1.62);drawLandmarkIcon(ctx,landmark.kind,0,0,bandColor);ctx.restore();
+    }else{
+      ctx.save();ctx.translate(tx,iconY);ctx.scale(1.16,1.16);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
+    }
     ctx.restore();
   });
 }
@@ -290,5 +327,14 @@ export function labelTexture(label:string,background='#eee4bd',color='#2b4938',s
   ctx.strokeRect(pad,pad,size-pad*2,height-pad*2);
   const fSize=Math.min(height*.58,size/(Math.max(2,label.length)*.62));
   text(ctx,label,size/2,height/2+1,fSize,color,font,'900',size-pad*2.6);
+  return texture(el);
+}
+export function calloutTexture(name:string,sub:string,dotColor:string){
+  const {el,ctx}=canvas(384,116);
+  round(ctx,6,6,372,104,22,'#14110df2','#f5d57a',5);
+  ctx.beginPath();ctx.arc(38,58,14,0,Math.PI*2);ctx.fillStyle=dotColor;ctx.fill();ctx.strokeStyle='#ffffff';ctx.lineWidth=3.5;ctx.stroke();
+  ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillStyle='#fffbeb';ctx.font=`900 34px ${UI_FONT}`;ctx.fillText(name,66,sub?43:58,300);
+  if(sub){ctx.fillStyle='#f6d97e';ctx.font=`800 22px ${UI_FONT}`;ctx.fillText(sub,66,80,300);}
   return texture(el);
 }

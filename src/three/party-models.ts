@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
-import {labelTexture,boardTexture,woodTexture} from './party-art.ts';
-import {PARTY_COLORS,estateBounds,estateBoardSize,estateEdge,estateWorld,type EstateSize} from './party-layout.ts';
+import {labelTexture,calloutTexture,boardTexture,woodTexture} from './party-art.ts';
+import {PARTY_COLORS,estateBounds,estateBoardSize,estateCenterBounds,estateEdge,isEstateCorner,estateWorld,type EstateSize} from './party-layout.ts';
 import {VN_CELLS} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 export {diceFaceRotation as diceRotation} from './dice-motion.ts';
@@ -99,8 +99,8 @@ function landmarkMonument(kind:LandmarkKind,accent:string){
 export function table(kind:string,textures:{wood:typeof woodTexture;board:(kind:string,edition?:string)=>T.Texture;label:typeof labelTexture}={wood:woodTexture,board:boardTexture,label:labelTexture},edition='legacy',layout:EstateSize=13){
   const root=new T.Group(),wood=new T.MeshStandardMaterial({map:textures.wood(),color:'#c49b72',roughness:.4}),brass=gold();
   const vietnam=kind==='monopoly'&&edition==='vn-v2';
-  // The Vietnam board may be a wide rectangle of square lots; the wood frame hugs it tightly.
-  const face=vietnam?estateBoardSize(layout):{width:600,height:600},faceW=face.width/60,faceD=face.height/60;
+  // The Vietnam board may be a wide rectangle of balanced lots; the wood frame hugs it tightly.
+  const face=vietnam?estateBoardSize(layout):{width:600,height:600,unit:100,depth:100},faceW=face.width/60,faceD=face.height/60;
   const pad=vietnam?[.34,.2,.12]:[.94,.72,.6];
   mesh(new T.BoxGeometry(faceW+pad[0],.34,faceD+pad[0]),wood,root,0,-.12);
   mesh(new T.BoxGeometry(faceW+pad[1],.07,faceD+pad[1]),brass,root,0,.085);
@@ -112,16 +112,19 @@ export function table(kind:string,textures:{wood:typeof woodTexture;board:(kind:
   for(const x of[-pinX,pinX])for(const z of[-pinZ,pinZ]){const pin=mesh(new T.CylinderGeometry(.05,.05,.012,20),brass,root,x,.232,z);pin.castShadow=false;}
   const plate=mesh(new T.PlaneGeometry(1.15,.23),new T.MeshStandardMaterial({map:textures.label('SÂN CỜ','#c7a45a','#3e3522'),roughness:.3,metalness:.4}),root,0,-.12,(faceD+pad[0])/2+.013);plate.castShadow=false;
   if(vietnam){
+    const sDepth=Math.max(10,face.depth-face.unit);
     VN_CELLS.forEach(c=>{
       const lm=PROVINCE_LANDMARKS[c.name];
       if(!lm)return;
-      const b=estateBounds(c.index,layout);
-      const pt=estateWorld([b.x+b.width/2,b.y+b.height*.64],layout);
+      const b=estateBounds(c.index,layout),edge=estateEdge(c.index,layout),corner=isEstateCorner(c.index,layout);
+      const bx=corner?b.x:edge===3?b.x+sDepth:b.x,by=corner?b.y:edge===0?b.y+sDepth:b.y;
+      const bw=corner||edge===0||edge===2?b.width:b.width-sDepth,bh=corner||edge===1||edge===3?b.height:b.height-sDepth;
+      const pt=estateWorld([bx+bw/2,by+bh*.66],layout);
       const mon=landmarkMonument(lm.kind,lm.accent);
       mon.name=`vn-landmark-${c.index}`;
-      mon.scale.setScalar(.56);
+      mon.scale.setScalar(.62);
       mon.position.set(pt.x,SURFACE+.005,pt.z);
-      mon.rotation.y=-estateEdge(c.index,layout)*Math.PI/2;
+      mon.rotation.y=-edge*Math.PI/2;
       root.add(mon);
     });
   }
@@ -342,6 +345,41 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
       root.add(b);
     }
   });
+  return root;
+}
+export function occupiedCallouts(state:{players:{side:string;position:number;active:boolean}[];houses?:number[];edition?:string},layout:EstateSize=13){
+  const root=new T.Group();
+  if(state.edition!=='vn-v2'||typeof document==='undefined')return root;
+  const active=state.players.filter(p=>p.active);
+  const byCell=new Map<number,string[]>();
+  for(const p of active){
+    const list=byCell.get(p.position)||[];
+    list.push(p.side);
+    byCell.set(p.position,list);
+  }
+  const center=estateCenterBounds(layout);
+  const pillW=1.42,pillH=.43,halfW=pillW*30,halfH=pillH*30;
+  for(const [cellIdx,sides] of byCell){
+    const c=VN_CELLS[cellIdx];if(!c)continue;
+    const b=estateBounds(cellIdx,layout),edge=estateEdge(cellIdx,layout);
+    const lvl=state.houses?.[cellIdx]||0;
+    const sub=lvl>0?(lvl===5?'★ Khách sạn':`Nhà cấp ${lvl}`):(c.price>0?`${c.price} tr`:c.type==='start'?'+400 tr':c.type==='tax'?`−${c.amount} tr`:'');
+    let px=b.x+b.width/2,py=b.y+b.height/2;
+    if(edge===0){py=center.y+center.height-halfH-6;px=Math.max(center.x+halfW+6,Math.min(center.x+center.width-halfW-6,px));}
+    else if(edge===2){py=center.y+halfH+6;px=Math.max(center.x+halfW+6,Math.min(center.x+center.width-halfW-6,px));}
+    else if(edge===1){px=center.x+halfW+6;py=Math.max(center.y+halfH+6,Math.min(center.y+center.height-halfH-6,py));}
+    else{px=center.x+center.width-halfW-6;py=Math.max(center.y+halfH+6,Math.min(center.y+center.height-halfH-6,py));}
+    try{
+      const tex=calloutTexture(c.name,sub,PARTY_COLORS[sides[0]]||'#f59e0b');
+      const plaque=new T.Mesh(new T.PlaneGeometry(pillW,pillH),new T.MeshBasicMaterial({map:tex,transparent:true,toneMapped:false,depthTest:false}));
+      plaque.rotation.x=-Math.PI/2;
+      const world=estateWorld([px,py],layout);
+      plaque.position.set(world.x,SURFACE+.12,world.z);
+      plaque.renderOrder=8;
+      plaque.raycast=()=>{};
+      root.add(plaque);
+    }catch{/* Headless fallback */}
+  }
   return root;
 }
 export function dice(){

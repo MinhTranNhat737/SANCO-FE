@@ -8,11 +8,13 @@ export interface SoundPlyHint {
   captures?: number[];
   effects?: {square: number; kind: string}[];
   check?: boolean;
+  checkmate?: boolean;
 }
 
 let sharedCtx: AudioContext | null = null;
 let sharedNoise: AudioBuffer | null = null;
 let lastSoundAt = 0;
+let lastPriority = 0;
 
 export function isSoundEnabled(): boolean {
   try {
@@ -165,17 +167,40 @@ function playCommanderSound(ctx: AudioContext, noise: AudioBuffer, now: number, 
   }
 }
 
+function woodImpact(ctx: AudioContext, noise: AudioBuffer, startTime: number, intensity = 1, pitch = 1) {
+  // Layered hardwood-on-wooden-board resonance: crisp surface crack + hollow table body thump
+  const v = Math.min(1.8, Math.max(0.35, intensity));
+  noiseBurst(ctx, noise, 'bandpass', 1480 * pitch, 3.2, startTime, 0.032, 0.22 * v, 680 * pitch);
+  noiseBurst(ctx, noise, 'lowpass', 420 * pitch, 1.3, startTime, 0.065, 0.2 * v, 110);
+  tone(ctx, 'triangle', 220 * pitch, 72 * pitch, startTime, 0.075, 0.23 * v);
+  tone(ctx, 'sine', 490 * pitch, 210 * pitch, startTime + 0.004, 0.045, 0.1 * v);
+}
+
+function gongShimmer(ctx: AudioContext, noise: AudioBuffer, startTime: number, grand = false) {
+  // Traditional bronze gong / martial cymbal overtones for Xiangqi check & checkmate
+  const partials = grand
+    ? [[220, 0.22, 1.15], [311.1, 0.17, 1.0], [440, 0.16, 0.92], [659.25, 0.13, 0.75], [987.77, 0.09, 0.58], [1480, 0.06, 0.42]]
+    : [[370, 0.15, 0.44], [554.37, 0.13, 0.38], [830.6, 0.1, 0.3], [1244.5, 0.07, 0.24]];
+  for (const [freq, gain, dur] of partials) {
+    tone(ctx, 'sine', freq, freq * 0.985, startTime, dur, gain);
+  }
+  noiseBurst(ctx, noise, 'bandpass', grand ? 2100 : 2600, 2.0, startTime, grand ? 0.55 : 0.26, grand ? 0.16 : 0.12, grand ? 720 : 1150);
+}
+
 export function playMoveSound(kind: GameKind, move?: SoundPlyHint | null): void {
   const stamp = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  if (stamp - lastSoundAt < 55) return;
+  const captures = (move?.captures?.length || 0) > 0;
+  const check = Boolean(move?.check);
+  const checkmate = Boolean(move?.checkmate);
+  const priority = checkmate ? 3 : check ? 2 : captures ? 1 : 0;
+  if (stamp - lastSoundAt < 55 && priority <= lastPriority) return;
   lastSoundAt = stamp;
+  lastPriority = priority;
   const audio = getAudio();
   if (!audio) return;
   const {ctx, noise} = audio;
   try {
     const now = ctx.currentTime;
-    const captures = (move?.captures?.length || 0) > 0;
-    const check = Boolean(move?.check);
 
     if (kind === 'commander') {
       playCommanderSound(ctx, noise, now, move);
@@ -184,21 +209,58 @@ export function playMoveSound(kind: GameKind, move?: SoundPlyHint | null): void 
 
     switch (kind) {
       case 'chess': {
-        // Warm carved wood thud; stronger knock on capture; brass bell on check
-        noiseBurst(ctx, noise, 'bandpass', captures ? 520 : 380, 2.6, now, 0.055, captures ? 0.22 : 0.15);
-        tone(ctx, 'triangle', captures ? 190 : 145, 62, now, 0.08, captures ? 0.22 : 0.16);
-        if (captures) tone(ctx, 'sine', 340, 110, now + 0.02, 0.07, 0.14);
-        if (check) tone(ctx, 'sine', 880, 660, now + 0.06, 0.18, 0.14);
+        // Warm carved wood knock on hardwood board; forceful capture slam; brass chime on check/checkmate
+        woodImpact(ctx, noise, now, captures ? 1.3 : 0.92, captures ? 0.92 : 0.85);
+        if (captures) {
+          noiseBurst(ctx, noise, 'bandpass', 1120, 2.4, now + 0.022, 0.045, 0.18, 420);
+          tone(ctx, 'triangle', 320, 96, now + 0.02, 0.085, 0.16);
+        }
+        if (checkmate) {
+          tone(ctx, 'triangle', 523.25, 523.25, now + 0.07, 0.22, 0.16);
+          tone(ctx, 'sine', 659.25, 659.25, now + 0.14, 0.26, 0.16);
+          tone(ctx, 'sine', 783.99, 783.99, now + 0.22, 0.48, 0.18);
+        } else if (check) {
+          tone(ctx, 'sine', 880, 660, now + 0.06, 0.2, 0.16);
+          tone(ctx, 'triangle', 1320, 990, now + 0.08, 0.16, 0.1);
+        }
         break;
       }
       case 'xiangqi': {
-        // Crisp hardwood/bamboo clack ("tách") with hollow board resonance
-        noiseBurst(ctx, noise, 'bandpass', 1420, 3.4, now, 0.042, captures ? 0.28 : 0.2);
-        tone(ctx, 'triangle', captures ? 680 : 540, 195, now, 0.055, captures ? 0.24 : 0.17);
-        if (captures) {
-          noiseBurst(ctx, noise, 'bandpass', 980, 2.5, now + 0.035, 0.05, 0.18);
+        // Vivid Chinese chess audio: crisp rosewood snap on wood board, heavy slam on capture, bronze gong on check, war-drum + ceremonial gong on checkmate
+        if (checkmate) {
+          // Forceful piece slam onto hardwood board
+          woodImpact(ctx, noise, now, 1.55, 0.94);
+          // Deep resonant war-drum strike ("trống trận")
+          noiseBurst(ctx, noise, 'lowpass', 260, 0.9, now + 0.045, 0.38, 0.34, 52);
+          tone(ctx, 'sine', 112, 38, now + 0.045, 0.36, 0.32);
+          // Ceremonial bronze gong swell + 3-note martial finale
+          gongShimmer(ctx, noise, now + 0.085, true);
+          tone(ctx, 'triangle', 587.33, 587.33, now + 0.14, 0.18, 0.16);
+          tone(ctx, 'triangle', 440, 440, now + 0.28, 0.18, 0.15);
+          tone(ctx, 'sine', 880, 880, now + 0.42, 0.62, 0.2);
+          tone(ctx, 'triangle', 1174.66, 1174.66, now + 0.42, 0.52, 0.12);
+        } else if (captures) {
+          // Two-stage heavy wooden capture ("Đập quân"): piece-on-piece crack + forceful slam onto hollow wooden board
+          noiseBurst(ctx, noise, 'bandpass', 2350, 3.6, now, 0.028, 0.3, 1180);
+          tone(ctx, 'triangle', 820, 260, now, 0.042, 0.24);
+          woodImpact(ctx, noise, now + 0.026, 1.52, 0.88);
+          tone(ctx, 'sine', 138, 46, now + 0.028, 0.11, 0.22);
+          if (check) {
+            gongShimmer(ctx, noise, now + 0.07, false);
+            tone(ctx, 'triangle', 659.25, 659.25, now + 0.08, 0.12, 0.14);
+            tone(ctx, 'sine', 987.77, 987.77, now + 0.15, 0.22, 0.16);
+          }
+        } else if (check) {
+          // Sharp hardwood snap + martial bronze gong + urgent two-tone check warning ("CHIẾU!")
+          woodImpact(ctx, noise, now, 1.25, 1.06);
+          gongShimmer(ctx, noise, now + 0.048, false);
+          tone(ctx, 'triangle', 659.25, 659.25, now + 0.06, 0.12, 0.14);
+          tone(ctx, 'sine', 987.77, 987.77, now + 0.13, 0.24, 0.16);
+        } else {
+          // Authentic carved hardwood piece snapping onto resonant wooden Xiangqi board ("tách-cộc")
+          woodImpact(ctx, noise, now, 1.02, 1.12);
+          noiseBurst(ctx, noise, 'bandpass', 2150, 4.0, now, 0.024, 0.18, 920);
         }
-        if (check) tone(ctx, 'sawtooth', 740, 520, now + 0.05, 0.16, 0.12);
         break;
       }
       case 'go': {
@@ -297,14 +359,53 @@ export function playDiceSound(kind: GameKind = 'ludo'): void {
   const {ctx, noise} = audio;
   try {
     const now = ctx.currentTime;
-    // 3 quick dice cup rattles
-    for (let i = 0; i < 3; i++) {
-      const t = now + i * 0.048;
-      noiseBurst(ctx, noise, 'bandpass', 1750 + i * 220, 3.2, t, 0.032, 0.16);
-      tone(ctx, 'triangle', 620 + i * 90, 340, t, 0.035, 0.11);
+    // Realistic ivory dice tumbling & bouncing onto a resonant hardwood board
+    const bounces = [
+      {t: 0, gain: 1.05, pitch: 1.15},
+      {t: 0.088, gain: 0.85, pitch: 1.28},
+      {t: 0.162, gain: 0.68, pitch: 1.38},
+      {t: 0.225, gain: 0.5, pitch: 1.48},
+    ];
+    for (const b of bounces) {
+      woodImpact(ctx, noise, now + b.t, b.gain * 0.72, b.pitch);
+      noiseBurst(ctx, noise, 'bandpass', 2200 * b.pitch, 3.8, now + b.t, 0.022, 0.16 * b.gain);
     }
     if (kind === 'monopoly') {
-      tone(ctx, 'sine', 880, 1174, now + 0.15, 0.09, 0.11);
+      // Second die settling slightly staggered on wood
+      woodImpact(ctx, noise, now + 0.05, 0.65, 1.22);
+      woodImpact(ctx, noise, now + 0.135, 0.52, 1.34);
+    }
+  } catch {
+    // Ignore audio context restrictions
+  }
+}
+
+export function playWoodStepSound(stepIndex = 0): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx, noise} = audio;
+  try {
+    const pitch = 1.02 + (stepIndex % 4) * 0.045;
+    woodImpact(ctx, noise, ctx.currentTime, 0.68, pitch);
+  } catch {
+    // Ignore audio context restrictions
+  }
+}
+
+export function playBuildSound(level = 1): void {
+  const audio = getAudio();
+  if (!audio) return;
+  const {ctx, noise} = audio;
+  try {
+    const now = ctx.currentTime;
+    // Crisp carpenter mallet tap on wood + ascending harmonic chime for tier C1..C5
+    woodImpact(ctx, noise, now, 0.95, 0.96);
+    woodImpact(ctx, noise, now + 0.075, 0.8, 1.08);
+    const base = 523.25 * Math.pow(1.09, Math.max(0, Math.min(4, level - 1)));
+    tone(ctx, 'triangle', base, base, now + 0.11, 0.13, 0.14);
+    tone(ctx, 'sine', base * 1.25, base * 1.25, now + 0.17, 0.18, 0.15);
+    if (level >= 5) {
+      tone(ctx, 'sine', base * 1.5, base * 1.5, now + 0.23, 0.28, 0.17);
     }
   } catch {
     // Ignore audio context restrictions

@@ -17,12 +17,21 @@ export const groupOf=(i:number)=>Math.floor(PROPERTY_SPACES.indexOf(i)/2);
 export type EstateLayout={cols:number;rows:number;unit:number};
 export type EstateSize=number|EstateLayout;
 export const VN_TILE=600/13;
+/**
+ * Balanced corner/depth ratio (~1.24x edge width): gives corners a larger square footprint
+ * and edge tiles a comfortable, non-skinny body with an inner colored price strip + large icon.
+ */
+export const VN_CORNER_RATIO=1.24;
 const VN_LAYOUTS:Record<number,EstateLayout>=Object.fromEntries([13,14,15,16,17,18].map(cols=>[cols,Object.freeze({cols,rows:26-cols,unit:VN_TILE})]));
 export function vnLayout(cols=13):EstateLayout{return VN_LAYOUTS[Math.max(13,Math.min(18,Math.round(cols)))];}
 export const VN_SQUARE=vnLayout(13);
+function cornerRatio(size:EstateSize){const l=estateLayout(size);return l.cols+l.rows>=20?VN_CORNER_RATIO:1;}
 /** Lot size (screen px) each Vietnam layout would get inside a width x height area. */
-export function vnTileSize(layout:EstateLayout,width:number,height:number,margin=.3){return Math.min(width/(layout.cols+margin),height/(layout.rows+margin));}
-/** Pick the 48-lot layout whose square lots come out biggest for the available area. */
+export function vnTileSize(layout:EstateLayout,width:number,height:number,margin=.3){
+  const extra=2*(VN_CORNER_RATIO-1);
+  return Math.min(width/(layout.cols+extra+margin),height/(layout.rows+extra+margin));
+}
+/** Pick the 48-lot layout whose lots come out biggest for the available area. */
 export function bestVnLayout(width:number,height:number):EstateLayout{
   if(!(width>0&&height>0))return VN_SQUARE;
   let best=VN_SQUARE,bestTile=vnTileSize(VN_SQUARE,width,height);
@@ -30,7 +39,10 @@ export function bestVnLayout(width:number,height:number):EstateLayout{
   return best;
 }
 export function estateLayout(size:EstateSize=6):EstateLayout{return typeof size==='number'?(size===13?VN_SQUARE:{cols:size,rows:size,unit:600/size}):size;}
-export function estateBoardSize(size:EstateSize=6,extent=600){const l=estateLayout(size),u=l.unit*extent/600;return {width:l.cols*u,height:l.rows*u,unit:u};}
+export function estateBoardSize(size:EstateSize=6,extent=600){
+  const l=estateLayout(size),u=l.unit*extent/600,d=u*cornerRatio(size);
+  return {width:2*d+(l.cols-2)*u,height:2*d+(l.rows-2)*u,unit:u,depth:d};
+}
 export function estateCell(index:number,size:EstateSize=6){
   const {cols,rows}=estateLayout(size),C=cols-1,R=rows-1;
   if(index<=C)return [R,C-index];
@@ -41,14 +53,19 @@ export function estateCell(index:number,size:EstateSize=6){
 export function estateGridCell(index:number,size:EstateSize=6){return estateCell(index,size);}
 /** 0 = bottom edge, 1 = left, 2 = top, 3 = right. */
 export function estateEdge(index:number,size:EstateSize=6){const {cols,rows}=estateLayout(size),[r,c]=estateCell(index,size);return r===rows-1?0:c===0?1:r===0?2:c===cols-1?3:0;}
-// Both renderers, hit testing, pieces and effects share equal square lots on the single outer ring.
+export function isEstateCorner(index:number,size:EstateSize=6){const {cols,rows}=estateLayout(size),[r,c]=estateCell(index,size);return (r===0||r===rows-1)&&(c===0||c===cols-1);}
+// Both renderers, hit testing, pieces and effects share balanced perimeter lots + larger square corners.
 export function estateBounds(index:number,size:EstateSize=6,extent=600){
-  const [row,col]=estateGridCell(index,size),{unit}=estateBoardSize(size,extent);
-  return {x:col*unit,y:row*unit,width:unit,height:unit};
+  const {cols,rows}=estateLayout(size),[row,col]=estateGridCell(index,size),{unit:u,depth:d}=estateBoardSize(size,extent);
+  const x=col===0?0:d+(col-1)*u;
+  const y=row===0?0:d+(row-1)*u;
+  const width=col===0||col===cols-1?d:u;
+  const height=row===0||row===rows-1?d:u;
+  return {x,y,width,height};
 }
 export function estateCenterBounds(size:EstateSize=6,extent=600){
-  const {width,height,unit}=estateBoardSize(size,extent);
-  return {x:unit,y:unit,width:width-unit*2,height:height-unit*2};
+  const {width,height,depth}=estateBoardSize(size,extent);
+  return {x:depth,y:depth,width:width-depth*2,height:height-depth*2};
 }
 /** Board pixel -> world coordinates, centred on the (possibly rectangular) board. */
 export function estateWorld([x,y]:number[],size:EstateSize=6){const {width,height}=estateBoardSize(size);return {x:(x-width/2)/60,z:(y-height/2)/60};}

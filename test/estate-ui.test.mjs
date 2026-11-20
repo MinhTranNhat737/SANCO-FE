@@ -36,7 +36,9 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   await render(PartyBoard,{kind:'monopoly',state:g.party,mySide:'R',turn:'R',legal:[],enabled:false,animate:false});
   const lots=[...document.querySelectorAll('[data-cell-index]')];assert.equal(lots.length,48);
   for(const lot of lots){
-    const rect=lot.querySelector('rect');assert.equal(Number(rect.getAttribute('width')),Number(rect.getAttribute('height')),'Every lot must be an exact square');
+    const rect=lot.querySelector('rect'),w=Number(rect.getAttribute('width')),h=Number(rect.getAttribute('height'));
+    if(lot.getAttribute('data-corner')==='true')assert.ok(Math.abs(w-h)<1e-6,'Corners must be exact squares');
+    else assert.ok(Math.max(w,h)/Math.min(w,h)<=1.3,'Edge lots stay comfortably proportioned (not skinny rectangles)');
   }
   const surface=()=>document.querySelector('.estate-board-surface');
   assert.equal(surface().style.width,'1560px','Large mode must enlarge the actual board');
@@ -44,12 +46,14 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   Object.defineProperties(viewport,{clientWidth:{value:600},clientHeight:{value:400}});
   Object.defineProperties(surface(),{clientWidth:{get:()=>parseFloat(surface().style.width)||600},clientHeight:{get:()=>parseFloat(surface().style.width)||600}});
   await click(button('Quân của bạn'));assert.equal(viewport.scrollLeft,960);assert.equal(viewport.scrollTop,1160);
-  await click(button('Phóng to'));assert.equal(surface().style.width,'1820px');
+  assert.equal(button('Phóng to'),undefined,'Zoom-in button removed from menu');
+  assert.equal(button('Thu nhỏ'),undefined,'Zoom-out button removed from menu');
   await click(button('Toàn bàn'));assert.ok(document.querySelector('.estate-board-viewport.is-fit'));
   assert.equal(viewport.scrollLeft,0);assert.equal(viewport.scrollTop,0);
-  await click(button('Phóng to'));assert.equal(surface().style.width,'1560px');
-  await click(button('Thu nhỏ'));assert.equal(surface().style.width,'1300px');
   const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.equal(court.getAttribute('width'),'660');
+  const callout=document.querySelector('.vn-occupied-callout[data-callout-cell="0"]');
+  assert.ok(callout,'Occupied tile pops out a side callout label so standing tokens never hide the tile name');
+  assert.match(callout.textContent,/Xuất phát/);
   await click(lots[3]);
   assert.match(document.querySelector('.estate-inspector').textContent,new RegExp(VN_CELLS[3].name));
   assert.equal(document.querySelector('[data-cell-index="3"]').getAttribute('aria-pressed'),'true');
@@ -316,20 +320,68 @@ test('Fullscreen widescreen board adapts from 16x10 (HUD open) to 17x9 (HUD coll
     Object.defineProperties(stage,{clientWidth:{get:()=>stageW,configurable:true},clientHeight:{get:()=>stageH,configurable:true}});
     await act(async()=>{observers.forEach(o=>o.trigger());});
     assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'16x10','HUD open 1660x1080 picks 16x10 widescreen layout');
-    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 960 600');
+    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 988.8 628.8');
     for(const lot of document.querySelectorAll('[data-cell-index]')){
-      const r=lot.querySelector('rect');assert.equal(Number(r.getAttribute('width')),Number(r.getAttribute('height')),'Every lot stays an exact square in 16x10');
+      const r=lot.querySelector('rect'),w=Number(r.getAttribute('width')),h=Number(r.getAttribute('height'));
+      if(lot.getAttribute('data-corner')==='true')assert.ok(Math.abs(w-h)<1e-6,'Corners stay exact squares in 16x10');
+      else assert.ok(Math.max(w,h)/Math.min(w,h)<=1.3,'Edge lots keep balanced proportion in 16x10');
     }
     // Collapse HUD -> stage freesizes to full 1920x1080 -> switches to 17x9!
     await click(document.querySelector('[aria-label="Thu gọn HUD"]'));
     stageW=1920;stageH=1080;
     await act(async()=>{observers.forEach(o=>o.trigger());});
     assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'17x9','Collapsed HUD freesizes to 17x9 across entire 16:9 screen');
-    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 1020 540');
+    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 1048.8 568.8');
     for(const lot of document.querySelectorAll('[data-cell-index]')){
-      const r=lot.querySelector('rect');assert.equal(Number(r.getAttribute('width')),Number(r.getAttribute('height')),'Every lot stays an exact square in 17x9');
+      const r=lot.querySelector('rect'),w=Number(r.getAttribute('width')),h=Number(r.getAttribute('height'));
+      if(lot.getAttribute('data-corner')==='true')assert.ok(Math.abs(w-h)<1e-6,'Corners stay exact squares in 17x9');
+      else assert.ok(Math.max(w,h)/Math.min(w,h)<=1.3,'Edge lots keep balanced proportion in 17x9');
     }
   }finally{
     globalThis.ResizeObserver=OrigRO;
+  }
+});
+
+test('Audio synthesis drives hardwood board impacts and dramatic Xiangqi capture, check and checkmate cues',async()=>{
+  const sfx=await vite.ssrLoadModule('/src/sound-effects.ts');
+  let oscCount=0,noiseCount=0;
+  const makeParam=()=>({setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}});
+  const FakeAudioContext=class{
+    constructor(){this.sampleRate=44100;this.currentTime=0;this.state='running';this.destination={};}
+    resume(){return Promise.resolve();}
+    createBuffer(_ch,len){return {sampleRate:44100,getChannelData:()=>new Float32Array(len)};}
+    createOscillator(){oscCount++;return {type:'sine',frequency:makeParam(),connect(){},start(){},stop(){}};}
+    createGain(){return {gain:makeParam(),connect(){}};}
+    createBiquadFilter(){return {type:'bandpass',frequency:makeParam(),Q:makeParam(),connect(){}};}
+    createBufferSource(){noiseCount++;return {buffer:null,connect(){},start(){},stop(){}};}
+  };
+  const prevAC=window.AudioContext;
+  window.AudioContext=FakeAudioContext;
+  localStorage.removeItem('sc-sound');
+  try{
+    sfx.playDiceSound('monopoly');
+    assert.ok(noiseCount>=6&&oscCount>=6,'Dice roll synthesizes multi-bounce hardwood table impacts');
+
+    const beforeStep=oscCount;
+    sfx.playWoodStepSound(1);
+    assert.ok(oscCount>beforeStep,'Wood step sound triggers hardwood impact');
+
+    const beforeBuild=oscCount;
+    sfx.playBuildSound(5);
+    assert.ok(oscCount>=beforeBuild+5,'Building Hotel triggers wood knock + golden chord');
+
+    // Xiangqi normal -> capture -> check -> checkmate progressively richer soundscapes (priority overrides debounce!)
+    const counts=[];
+    for(const hint of [{from:0,to:1},{from:0,to:1,captures:[1]},{from:0,to:1,check:true},{from:0,to:1,check:true,checkmate:true}]){
+      const o0=oscCount,n0=noiseCount;
+      sfx.playMoveSound('xiangqi',hint);
+      counts.push((oscCount-o0)+(noiseCount-n0));
+    }
+    assert.ok(counts[0]>=4,'Xiangqi normal move plays crisp wood snap');
+    assert.ok(counts[1]>counts[0],'Xiangqi capture adds heavy piece-clash + table slam');
+    assert.ok(counts[2]>counts[0],'Xiangqi check adds bronze gong shimmer + martial warning');
+    assert.ok(counts[3]>counts[2],'Xiangqi checkmate adds war-drum + grand ceremonial gong finale');
+  }finally{
+    window.AudioContext=prevAC;
   }
 });

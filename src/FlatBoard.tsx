@@ -10,7 +10,7 @@ import CommanderPiece from './CommanderPiece';
 // Solid chess glyphs take their side color from CSS; the white Unicode glyphs are hollow.
 const chessSilhouette=(piece:string)=>`${CHESS_LABELS[`b${piece[1]}`]}\uFE0E`;
 
-export default function FlatBoard({kind,board,selected,targets,last,checkSquare,winning=[],flipped,enabled,onSquare}:{kind:GameKind;board:(string|null)[];selected:number|null;targets:number[];last:PracticeMove|null;checkSquare:number|null;winning?:number[];flipped:boolean;enabled:boolean;onSquare:(index:number)=>void}){
+export default function FlatBoard({kind,board,selected,targets,last,checkSquare,checkmate=false,winning=[],flipped,enabled,onSquare}:{kind:GameKind;board:(string|null)[];selected:number|null;targets:number[];last:PracticeMove|null;checkSquare:number|null;checkmate?:boolean;winning?:number[];flipped:boolean;enabled:boolean;onSquare:(index:number)=>void}){
   const [boardTheme]=useBoardTheme();
   const meta=META[kind],ref=useRef<HTMLDivElement>(null),[focus,setFocus]=useState(0);
   const lastKey=last?`${kind}:${last.from}:${last.to}:${last.action||''}`:'';
@@ -31,9 +31,10 @@ export default function FlatBoard({kind,board,selected,targets,last,checkSquare,
       action:last.action,
       piece:(board[last.to]??(last.from!==null?prevBoard[last.from]:null))||undefined,
       captures:captured?[last.to]:[],
-      check:checkSquare!==null
+      check:checkSquare!==null,
+      checkmate
     });
-  },[lastKey,kind,board,last,checkSquare]);
+  },[lastKey,kind,board,last,checkSquare,checkmate]);
   return <div data-board-theme={boardTheme} className={`practice-flat-board flat-${kind}`} ref={ref} role="grid" aria-label={t('Bàn {0} {1} cột {2} hàng', meta.name, meta.cols, meta.rows)} style={{'--columns':meta.cols} as CSSProperties}>
     {kind==='commander'&&<svg className="flat-go-lines ctl-terrain" viewBox="0 0 11 12" aria-hidden="true"><g transform={flipped?'rotate(180 5.5 6)':undefined}>
       <rect width="2.5" height="12" fill="var(--ctl-sea)"/><rect x="2.5" y="5.5" width="8.5" height="1" fill="var(--ctl-river)"/>

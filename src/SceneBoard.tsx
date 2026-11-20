@@ -14,7 +14,7 @@ import {loadCommanderModels,commanderPiece} from './three/commander-models';
 import {commanderUnits} from './commander-ui';
 import {buildCommanderScenery,COMMANDER_SCENERY_PADDING} from './three/commander-scenery';
 
-export type SceneBoardProps={gameKey:string;history:PracticePly[];plyCount:number;onAnimatingChange:(busy:boolean)=>void;onZoomChange:(zoom:number)=>void;pendingSquare:number|null;kind:GameKind;board:(string|null)[];selected:number|null;targets:number[];last:PracticeMove|null;checkSquare:number|null;winning:number[];flipped:boolean;topView:boolean;resetViewKey:number;zoom:number;enabled:boolean;onSquare:(square:number)=>void;onFallback:()=>void;airDefense?:boolean;scenery?:boolean};
+export type SceneBoardProps={gameKey:string;history:PracticePly[];plyCount:number;onAnimatingChange:(busy:boolean)=>void;onZoomChange:(zoom:number)=>void;pendingSquare:number|null;kind:GameKind;board:(string|null)[];selected:number|null;targets:number[];last:PracticeMove|null;checkSquare:number|null;checkmate?:boolean;winning:number[];flipped:boolean;topView:boolean;resetViewKey:number;zoom:number;enabled:boolean;onSquare:(square:number)=>void;onFallback:()=>void;airDefense?:boolean;scenery?:boolean};
 type Props=SceneBoardProps;
 
 function tableTexture(kind:GameKind,width:number,depth:number,theme:BoardTheme){
@@ -256,7 +256,8 @@ export default function SceneBoard(props:Props){
         action:plan.actors.some(a=>a.path==='bomb')?'bomb':plan.actors.some(a=>a.path==='fire')?'fire':'move',
         captures:plan.captures,
         effects:plan.actors.some(a=>a.path==='burn')?[{square:plan.actors[0]?.to??0,kind:'burnt'}]:undefined,
-        check:props.checkSquare!==null
+        check:live.current.checkSquare!==null,
+        checkmate:Boolean(live.current.checkmate)
       });
       if(props.kind==='commander'&&plan.departure)snap(plan.departure);
       const victims=plan.captures.flatMap(index=>{const object=stationary.get(index);return object?[{object,origin:object.position.clone()}]:[];});
@@ -294,7 +295,8 @@ export default function SceneBoard(props:Props){
         queue.length=0;active=null;snap(p.board);signal(false);
         if(prev&&prev.key===next.key&&next.count>prev.count&&p.last){
           const now=performance.now(),latest=p.history[p.history.length-1];
-          playMoveSound(p.kind,{from:p.last.from??undefined,to:p.last.to,action:p.last.action,piece:latest?.piece,captures:latest?.captures,check:p.checkSquare!==null});
+          const caps=latest?.captures?.length?latest.captures:(latest?.captured?[p.last.to]:[]);
+          playMoveSound(p.kind,{from:p.last.from??undefined,to:p.last.to,action:p.last.action,piece:latest?.piece,captures:caps,check:p.checkSquare!==null,checkmate:Boolean(p.checkmate)});
           if(p.kind==='commander'){
             if(p.last.from!==null)spawnMuzzle(p.last.from,now);
             spawnBlast(p.last.to,now,60,Boolean(p.last.action?.includes('bomb')));
