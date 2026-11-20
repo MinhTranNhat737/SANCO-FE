@@ -1,3 +1,4 @@
+import { t } from './language.ts';
 import {useBoardTheme} from './BoardAppearance';
 import {type BoardTheme} from './board-palette';
 import {boardTexture,woodTexture,labelTexture} from './three/party-art';
@@ -392,5 +393,5 @@ export default function ScenePartyBoard(props:Props){
   useEffect(()=>{controller.current?.sync();},[props.state,props.enabled,props.legal,props.mySide,props.animate,props.lastDie,props.rollKey,props.selectedCell,props.justPurchasedLot,props.justPurchasedKey,props.justPurchasedLots,props.auctionLot,props.tileFx]);
   useEffect(()=>{controller.current?.appearance(boardTheme);},[boardTheme]);
   useEffect(()=>{controller.current?.camera();},[props.topView,props.resetKey]);
-  return <div className="party-model" ref={host} role="img" aria-label={`Bộ cờ ${props.kind==='ludo'?'Cá ngựa':props.state.edition==='vn-v2'?'Tỷ phú Việt Nam':'Tỷ phú bản cũ'} 3D, bàn gỗ và quân cờ nổi.`}/>;
+  return <div className="party-model" ref={host} role="img" aria-label={t('Bộ cờ {0} 3D, bàn gỗ và quân cờ nổi.', props.kind==='ludo'?t('Cá ngựa'):props.state.edition==='vn-v2'?t('Tỷ phú Việt Nam'):t('Tỷ phú bản cũ'))}/>;
 }

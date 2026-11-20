@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {estateGridCell,estateBounds,estateCenterBounds,estatePixelRatio,estatePoint,estateIndexAt,partyRoll} from '../src/three/party-layout.ts';
+import {estateGridCell,estateBounds,estateCenterBounds,estateBoardSize,estatePixelRatio,estatePoint,estateIndexAt,partyRoll,vnLayout,vnTileSize,bestVnLayout,VN_SQUARE} from '../src/three/party-layout.ts';
 import {VN_CELLS} from '../src/estate-data.ts';
 
 test('48 square lots stay on one perimeter with the original four corners and correct eight-player picking',()=>{
@@ -49,4 +49,35 @@ test('Estate rendering targets 2K on normal and high-DPI screens without exceedi
   }
   const limited=estatePixelRatio(1200,600,1,2048);
   assert.equal(1200*limited,2048);
+});
+
+test('All adaptive 48-lot widescreen layouts (13x13..18x8) keep exact square tiles, zero overlap and grow tiles when HUD collapses',()=>{
+  for(let cols=13;cols<=18;cols++){
+    const layout=vnLayout(cols),rows=26-cols,board=estateBoardSize(layout);
+    assert.equal(layout.cols,cols);assert.equal(layout.rows,rows);
+    const cells=Array.from({length:48},(_,i)=>estateGridCell(i,layout));
+    assert.equal(new Set(cells.map(c=>c.join(','))).size,48);
+    const bounds=Array.from({length:48},(_,i)=>estateBounds(i,layout));
+    for(let i=0;i<48;i++){
+      const [r,c]=cells[i],[nr,nc]=cells[(i+1)%48],b=bounds[i];
+      assert.ok(r===0||r===rows-1||c===0||c===cols-1,'Every lot must stay on the outer ring');
+      assert.equal(Math.abs(nr-r)+Math.abs(nc-c),1,'Adjacent lots must touch orthogonally');
+      assert.ok(Math.abs(b.width-b.height)<1e-9,'Every lot must be an exact square');
+      assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=board.width+1e-6&&b.y+b.height<=board.height+1e-6);
+      for(let seat=0;seat<8;seat++){const p=estatePoint(i,seat,layout);assert.equal(estateIndexAt(p.x,p.z,layout),i);}
+      for(let j=i+1;j<48;j++){
+        const other=bounds[j],overlapX=Math.min(b.x+b.width,other.x+other.width)-Math.max(b.x,other.x),overlapY=Math.min(b.y+b.height,other.y+other.height)-Math.max(b.y,other.y);
+        assert.ok(overlapX<1e-7||overlapY<1e-7,`Lots ${i} and ${j} overlap in ${cols}x${rows}`);
+      }
+    }
+    const usedArea=bounds.reduce((sum,b)=>sum+b.width*b.height,0),center=estateCenterBounds(layout);
+    assert.ok(Math.abs(usedArea+center.width*center.height-board.width*board.height)<1e-6);
+  }
+  // Widescreen 1920x1080 with HUD open (1660x1080) -> 16x10; HUD collapsed (1920x1080) -> 17x9 (bigger tiles, no sidebars!)
+  const openHud=bestVnLayout(1660,1080),fullScreen=bestVnLayout(1920,1080),ultraWide=bestVnLayout(2560,1080);
+  assert.equal(openHud.cols,16);assert.equal(openHud.rows,10);
+  assert.equal(fullScreen.cols,17);assert.equal(fullScreen.rows,9);
+  assert.equal(ultraWide.cols,18);assert.equal(ultraWide.rows,8);
+  assert.ok(vnTileSize(fullScreen,1920,1080)>vnTileSize(VN_SQUARE,1920,1080)*1.3,'17x9 tiles must be >30% larger linearly than 13x13 on 16:9');
+  assert.ok(vnTileSize(fullScreen,1920,1080)>vnTileSize(openHud,1660,1080),'Collapsing HUD freesizes the board to even larger square tiles');
 });

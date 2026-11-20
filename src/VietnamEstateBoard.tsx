@@ -1,3 +1,4 @@
+import { t } from './language.ts';
 import type {PartyState,PracticeMove} from './practice-types';
 import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash,estateRent,ownable} from './estate-data';
 import {estateBounds,estateCenterBounds,estateTitleLines,PARTY_COLORS,CITIES,GROUP_COLORS,groupOf} from './three/party-layout.ts';
@@ -7,16 +8,16 @@ import './estate.css';
 import {estateBuildCost,estateSalary} from './estate-rules';
 
 const TYPE_LABELS:Record<string,string>={
-  property:'Tỉnh / Thành phố',
-  station:'Bến xe / Nhà ga',
-  utility:'Công trình tiện ích',
-  start:'Ô Xuất phát',
-  tax:'Ô Thuế',
-  chance:'Thẻ Cơ hội',
-  community:'Quỹ Khí vận',
-  gotojail:'Vào Trại giam',
-  jail:'Trại giam / Thăm tù',
-  rest:'Bến nghỉ chân'
+  get property() { return t('Tỉnh / Thành phố'); },
+  get station() { return t('Bến xe / Nhà ga'); },
+  get utility() { return t('Công trình tiện ích'); },
+  get start() { return t('Ô Xuất phát'); },
+  get tax() { return t('Ô Thuế'); },
+  get chance() { return t('Thẻ Cơ hội'); },
+  get community() { return t('Quỹ Khí vận'); },
+  get gotojail() { return t('Vào Trại giam'); },
+  get jail() { return t('Trại giam / Thăm tù'); },
+  get rest() { return t('Bến nghỉ chân'); }
 };
 
 export function EstateInspector({
@@ -40,28 +41,28 @@ export function EstateInspector({
     if(!name)return null;
     const owner=state.property[selected],special=[0,3,5,8,10,13,15,18].includes(selected),grp=groupOf(selected),price=100+selected*20,houses=state.houses[selected]||0;
     const cellActions=legal.filter(m=>m.to===selected||((m.action||m.command)==='buy'&&state.players.some(p=>p.position===selected)));
-    return <article className="estate-inspector estate-cell-card" role="region" aria-label={`Thông tin ô ${name}`}>
+    return <article className="estate-inspector estate-cell-card" role="region" aria-label={t('Thông tin ô {0}', name)}>
       <div className="estate-card-header" style={{'--cell-accent':special?'#9aa175':GROUP_COLORS[grp]||'#a39c78'} as React.CSSProperties}>
         <i style={{background:special?'#9aa175':GROUP_COLORS[grp]||'#a39c78'}}/>
         <div>
-          <span className="estate-card-kicker">Ô #{selected+1} · {special?'Ô sự kiện':`Nhóm màu ${grp+1}`}</span>
+          <span className="estate-card-kicker">{t('Ô #')}{selected+1} · {special?t('Ô sự kiện'):t('Nhóm màu {0}', grp+1)}</span>
           <strong>{name}</strong>
-          <small>{owner?`Chủ sở hữu: ${SIDE_NAMES[owner]||owner}`:special?'Ô đặc biệt':'Chưa có chủ'}</small>
+          <small>{owner?t('Chủ sở hữu: {0}', SIDE_NAMES[owner]||owner):special?t('Ô đặc biệt'):t('Chưa có chủ')}</small>
         </div>
-        {onClose&&<button type="button" className="estate-card-close" onClick={onClose} aria-label="Đóng thông tin ô">×</button>}
+        {onClose&&<button type="button" className="estate-card-close" onClick={onClose} aria-label={t('Đóng thông tin ô')}>×</button>}
       </div>
       <div className="estate-inspect-facts">
         {!special?<>
           <div className="estate-fact-grid">
-            <span>Giá mua<strong>{price}</strong></span>
-            <span>Nhà hiện tại<strong>{houses} nhà</strong></span>
-            <span>Xây nhà<strong>100 / căn</strong></span>
-            <span>Tiền thuê<strong>{Math.round(price*.35)+houses*45}</strong></span>
+            <span>{t('Giá mua')}<strong>{price}</strong></span>
+            <span>{t('Nhà hiện tại')}<strong>{houses}{' ' + t('nhà')}</strong></span>
+            <span>{t('Xây nhà')}<strong>{t('100 / căn')}</strong></span>
+            <span>{t('Tiền thuê')}<strong>{Math.round(price*.35)+houses*45}</strong></span>
           </div>
-        </>:<p>{selected===0?'Đi qua hoặc dừng nhận +200 tiền.':selected===5?'Nộp thuế −120 tiền.':selected===10?'Nghỉ 1 lượt tại đây.':selected===15?'Bến đỗ tự do, không mất phí.':'Rút thẻ Cơ hội ngẫu nhiên.'}</p>}
+        </>:<p>{selected===0?t('Đi qua hoặc dừng nhận +200 tiền.'):selected===5?t('Nộp thuế −120 tiền.'):selected===10?t('Nghỉ 1 lượt tại đây.'):selected===15?t('Bến đỗ tự do, không mất phí.'):t('Rút thẻ Cơ hội ngẫu nhiên.')}</p>}
       </div>
       {enabled&&cellActions.length>0&&<div className="estate-card-actions">
-        {cellActions.map(m=>{const act=m.action||m.command||'';return <button key={act+':'+m.to} type="button" className="button button-small" onClick={()=>onAction?.(m)}>{act==='buy'?`Mua ${name}`:act==='build'?'Xây thêm nhà':act==='sell'?'Bán tài sản':act}</button>;})}
+        {cellActions.map(m=>{const act=m.action||m.command||'';return <button key={act+':'+m.to} type="button" className="button button-small" onClick={()=>onAction?.(m)}>{act==='buy'?`Mua ${name}`:act==='build'?t('Xây thêm nhà'):act==='sell'?t('Bán tài sản'):act}</button>;})}
       </div>}
     </article>;
   }
@@ -78,49 +79,49 @@ export function EstateInspector({
   });
   const actionLabels:Record<string,string>={
     buy:`Mua ${c.name} (${cash(c.price)})`,
-    auction:'Mở đấu giá',
-    build:`Xây nhà (${cash(estateBuildCost(state,c.buildCost))})`,
-    mortgage:`Thế chấp (+${cash(Math.floor(c.price/2))})`,
-    redeem:`Chuộc đất (${cash(Math.ceil(c.price*.55))})`,
-    sell_building:'Bán nhà',
-    sell:`Bán đất (+${cash(Math.floor(c.price/2))})`
+    auction:t('Mở đấu giá'),
+    build:t('Xây nhà ({0})', cash(estateBuildCost(state,c.buildCost))),
+    mortgage:t('Thế chấp (+{0})', cash(Math.floor(c.price/2))),
+    redeem:t('Chuộc đất ({0})', cash(Math.ceil(c.price*.55))),
+    sell_building:t('Bán nhà'),
+    sell:t('Bán đất (+{0})', cash(Math.floor(c.price/2)))
   };
 
-  return <article className="estate-inspector estate-cell-card" role="region" aria-label={`Thông tin ô ${c.name}`}>
+  return <article className="estate-inspector estate-cell-card" role="region" aria-label={t('Thông tin ô {0}', c.name)}>
     <div className="estate-card-header" style={{'--cell-accent':accent} as React.CSSProperties}>
       <i style={{background:accent}}/>
       <div>
-        <span className="estate-card-kicker">Ô #{c.index+1} · {TYPE_LABELS[c.type]||'Ô bàn cờ'}</span>
+        <span className="estate-card-kicker">{t('Ô #')}{c.index+1} · {TYPE_LABELS[c.type]||t('Ô bàn cờ')}</span>
         <strong>{c.name}</strong>
         {PROVINCE_LANDMARKS[c.name]&&<span className="estate-landmark-tag">★ {PROVINCE_LANDMARKS[c.name].title}</span>}
         <small>
-          {owner?`Chủ: ${SIDE_NAMES[owner]}`:ownable(c)?'Chưa có chủ · Có thể mua':'Ô sự kiện chung'}
-          {mortgaged?' · Đang thế chấp':''}
-          {ownable(c)&&c.type==='property'?` · ${houses===5?'1 Khách sạn':houses?`${houses} nhà`:'Đất trống'}`:''}
+          {owner?t('Chủ: {0}', SIDE_NAMES[owner]):ownable(c)?t('Chưa có chủ · Có thể mua'):t('Ô sự kiện chung')}
+          {mortgaged?t(' · Đang thế chấp'):''}
+          {ownable(c)&&c.type==='property'?` · ${houses===5?t('1 Khách sạn'):houses?t('{0} nhà', houses):t('Đất trống')}`:''}
         </small>
       </div>
-      {onClose&&<button type="button" className="estate-card-close" onClick={onClose} aria-label="Đóng thông tin ô">×</button>}
+      {onClose&&<button type="button" className="estate-card-close" onClick={onClose} aria-label={t('Đóng thông tin ô')}>×</button>}
     </div>
     <div className="estate-inspect-facts">
       {ownable(c)?<>
         <div className="estate-fact-grid">
-          <span>Giá mua<strong>{cash(c.price)}</strong></span>
-          <span>Thuê hiện tại<strong>{mortgaged?'0 (Thế chấp)':owner?cash(estateRent(state,selected)):'Chưa có chủ'}</strong></span>
-          {c.buildCost>0&&<span>Giá xây dựng<strong>{cash(estateBuildCost(state,c.buildCost))} / cấp</strong></span>}
-          <span>Thế chấp / Chuộc<strong>{cash(Math.floor(c.price/2))} / {cash(Math.ceil(c.price*.55))}</strong></span>
+          <span>{t('Giá mua')}<strong>{cash(c.price)}</strong></span>
+          <span>{t('Thuê hiện tại')}<strong>{mortgaged?t('0 (Thế chấp)'):owner?cash(estateRent(state,selected)):t('Chưa có chủ')}</strong></span>
+          {c.buildCost>0&&<span>{t('Giá xây dựng')}<strong>{cash(estateBuildCost(state,c.buildCost))}{' ' + t('/ cấp')}</strong></span>}
+          <span>{t('Thế chấp / Chuộc')}<strong>{cash(Math.floor(c.price/2))} / {cash(Math.ceil(c.price*.55))}</strong></span>
         </div>
         {c.type==='property'&&c.rent.length>=6&&<div className="estate-rent-tiers">
-          <span>Đất trống: <b>{cash(c.rent[0])}</b></span>
-          <span>1 nhà: <b>{cash(c.rent[1])}</b></span>
-          <span>2 nhà: <b>{cash(c.rent[2])}</b></span>
-          <span>3 nhà: <b>{cash(c.rent[3])}</b></span>
-          <span>4 nhà: <b>{cash(c.rent[4])}</b></span>
-          <span>Khách sạn: <b>{cash(c.rent[5])}</b></span>
+          <span>{t('Đất trống:') + ' '}<b>{cash(c.rent[0])}</b></span>
+          <span>{t('1 nhà:') + ' '}<b>{cash(c.rent[1])}</b></span>
+          <span>{t('2 nhà:') + ' '}<b>{cash(c.rent[2])}</b></span>
+          <span>{t('3 nhà:') + ' '}<b>{cash(c.rent[3])}</b></span>
+          <span>{t('4 nhà:') + ' '}<b>{cash(c.rent[4])}</b></span>
+          <span>{t('Khách sạn:') + ' '}<b>{cash(c.rent[5])}</b></span>
         </div>}
-        {state.market&&<p className="estate-special-note">Thị trường: {state.market.description}. Tiền thuê hiện tại đã áp dụng hệ số; bảng cấp nhà là giá cơ bản.</p>}
-        {c.type==='station'&&<p className="estate-special-note">Tiền thuê cơ bản theo số bến/ga cùng chủ: 1 ga 50 tr · 2 ga 100 tr · 3 ga 200 tr · 4 ga 400 tr.</p>}
-        {c.type==='utility'&&<p className="estate-special-note">Sở hữu 1 tiện ích: thuê = 5× tổng 2 xúc xắc · Sở hữu đủ 2 tiện ích: thuê = 12× tổng 2 xúc xắc.</p>}
-      </>:<p className="estate-special-note">{c.type==='start'?`Đi qua hoặc dừng tại Xuất phát nhận +${estateSalary(state)} triệu.`:c.type==='tax'?`Nộp ngân sách nhà nước ${cash(c.amount||0)}.`:c.type==='gotojail'?'Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.':c.type==='jail'?'Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).':c.type==='rest'?'Bến dừng chân tự do, không phải nộp phí.':'Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.'}</p>}
+        {state.market&&<p className="estate-special-note">{t('Thị trường:') + ' '}{state.market.description}{t('. Tiền thuê hiện tại đã áp dụng hệ số; bảng cấp nhà là giá cơ bản.')}</p>}
+        {c.type==='station'&&<p className="estate-special-note">{t('Tiền thuê cơ bản theo số bến/ga cùng chủ: 1 ga 50 tr · 2 ga 100 tr · 3 ga 200 tr · 4 ga 400 tr.')}</p>}
+        {c.type==='utility'&&<p className="estate-special-note">{t('Sở hữu 1 tiện ích: thuê = 5× tổng 2 xúc xắc · Sở hữu đủ 2 tiện ích: thuê = 12× tổng 2 xúc xắc.')}</p>}
+      </>:<p className="estate-special-note">{c.type==='start'?t('Đi qua hoặc dừng tại Xuất phát nhận +{0} triệu.', estateSalary(state)):c.type==='tax'?t('Nộp ngân sách nhà nước {0}.', cash(c.amount||0)):c.type==='gotojail'?t('Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.'):c.type==='jail'?t('Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).'):c.type==='rest'?t('Bến dừng chân tự do, không phải nộp phí.'):t('Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.')}</p>}
     </div>
     {enabled&&cellMoves.length>0&&<div className="estate-card-actions">
       {cellMoves.map(m=>{const act=m.action||m.command||'';return <button key={act+':'+m.to} type="button" className="button button-small" onClick={()=>onAction?.(m)}>{actionLabels[act]||act}</button>;})}
@@ -143,14 +144,14 @@ const CLASSIC_GROUP_COLORS=[
 ];
 
 const TOKEN_STYLES:Record<string,{fill:string;dark:string;label:string}>={
-  R:{fill:'#ef233c',dark:'#9b0a1e',label:'ĐỎ'},
-  G:{fill:'#10b981',dark:'#065f46',label:'XANH'},
-  Y:{fill:'#f59e0b',dark:'#92400e',label:'VÀNG'},
+  R:{fill:'#ef233c',dark:'#9b0a1e',get label() { return t('ĐỎ'); }},
+  G:{fill:'#10b981',dark:'#065f46',get label() { return t('XANH'); }},
+  Y:{fill:'#f59e0b',dark:'#92400e',get label() { return t('VÀNG'); }},
   B:{fill:'#2563eb',dark:'#1e3a8a',label:'LAM'},
-  P:{fill:'#9333ea',dark:'#581c87',label:'TÍM'},
+  P:{fill:'#9333ea',dark:'#581c87',get label() { return t('TÍM'); }},
   O:{fill:'#f97316',dark:'#9a3412',label:'CAM'},
-  C:{fill:'#06b6d4',dark:'#155e75',label:'NGỌC'},
-  K:{fill:'#ec4899',dark:'#9d174d',label:'HỒNG'}
+  C:{fill:'#06b6d4',dark:'#155e75',get label() { return t('NGỌC'); }},
+  K:{fill:'#ec4899',dark:'#9d174d',get label() { return t('HỒNG'); }}
 };
 
 const OWNER_BG:Record<string,string>={R:'#ffe3e6',G:'#d8f8eb',Y:'#fef3c7',B:'#dbeafe',P:'#f3e8ff',O:'#ffedd5',C:'#cffafe',K:'#fce7f3'};
@@ -222,7 +223,7 @@ function SpecialCellArt({type,name,cx,cy}:{type:string;name:string;cx:number;cy:
     </g>;
   }
   if(type==='utility'){
-    const water=name.toLowerCase().includes('nước');
+    const water=name.toLowerCase().includes(t('nước'));
     return water?<g aria-hidden="true">
       <path d={`M${cx} ${cy-8}C${cx-7} ${cy} ${cx-7} ${cy+7} ${cx} ${cy+7}C${cx+7} ${cy+7} ${cx+7} ${cy} ${cx} ${cy-8}Z`} fill="#38bdf8" stroke="#111" strokeWidth="1.1"/>
     </g>:<g aria-hidden="true">
@@ -274,7 +275,7 @@ function SpecialCellArt({type,name,cx,cy}:{type:string;name:string;cx:number;cy:
 function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:string}){
   const lvl=Math.max(1,Math.min(5,level));
   const w=14+lvl*5,h=8+lvl*3.2,bx=x+30-w/2,by=y+49-h;
-  return <g aria-label={lvl===5?'Khách sạn':`Nhà cấp ${lvl}`}>
+  return <g aria-label={lvl===5?t('Khách sạn'):t('Nhà cấp {0}', lvl)}>
     <rect x={bx} y={by} width={w} height={h} rx="2" fill="#fffbeb" stroke="#111111" strokeWidth="1.4"/>
     <path d={`M${bx-2} ${by} L${x+30} ${by-4-lvl*1.1} L${bx+w+2} ${by} Z`} fill={color} stroke="#111111" strokeWidth="1.1"/>
     <text x={x+30} y={by+h-2} textAnchor="middle" fontSize={lvl===5?7.5:8} fontWeight="900" fill="#111111">{lvl===5?'★KS':`C${lvl}`}</text>
@@ -284,7 +285,7 @@ function FlatBuilding({x,y,level,color}:{x:number;y:number;level:number;color:st
 function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false,crowded=false}:{cx:number;cy:number;side:string;cell:number;index:number;isMine:boolean;isTurn:boolean;compact?:boolean;crowded?:boolean}){
   const style=TOKEN_STYLES[side]||{fill:PARTY_COLORS[side]||'#ef233c',dark:'#7f1d1d',label:`P${index+1}`};
   const scale=crowded?.24:compact?.34:.5;
-  return <g className="flat-player-token" data-token-side={side} data-token-cell={cell} transform={`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`} aria-label={`Nhân vật ${SIDE_NAMES[side]||side}${isMine?' (Bạn)':''}`}>
+  return <g className="flat-player-token" data-token-side={side} data-token-cell={cell} transform={`translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`} aria-label={t('Nhân vật {0}{1}', SIDE_NAMES[side]||side, isMine?t(' (Bạn)'):'')}>
     {isTurn&&<circle cx={cx} cy={cy} r="17.5" fill="none" stroke="#111111" strokeWidth="2.2" strokeDasharray="3 2"/>}
     {isMine&&<circle cx={cx} cy={cy} r="15.5" fill="none" stroke="#facc15" strokeWidth="2.8"/>}
     {/* Drop shadow */}
@@ -299,7 +300,7 @@ function FlatPlayerToken({cx,cy,side,cell,index,isMine,isTurn,compact=false,crow
     <path d={`M${cx-5.5} ${cy-9.5} L${cx-3} ${cy-14} L${cx} ${cy-11} L${cx+3} ${cy-14} L${cx+5.5} ${cy-9.5} Z`} fill="#facc15" stroke="#111111" strokeWidth="1"/>
     {/* Clear player badge pill at bottom of token */}
     <rect x={cx-11} y={cy+5.2} width="22" height="9.2" rx="4.6" fill="#111111" stroke="#ffffff" strokeWidth="1.1"/>
-    <text x={cx} y={cy+12.1} textAnchor="middle" fontSize="6.8" fontWeight="900" fill="#fde047">{isMine?'BẠN':`${index+1}·${style.label}`}</text>
+    <text x={cx} y={cy+12.1} textAnchor="middle" fontSize="6.8" fontWeight="900" fill="#fde047">{isMine?t('BẠN'):`${index+1}·${style.label}`}</text>
   </g>;
 }
 
@@ -309,14 +310,14 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
   const glowId=useId().replaceAll(':','');
   const glowLots=justPurchasedLots??(justPurchasedLot!=null?[justPurchasedLot]:[]);
   const bounds=(index:number)=>estateBounds(index,13,780),center=estateCenterBounds(13,780);
-  return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label="Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành" preserveAspectRatio="xMidYMid meet">
+  return <div className="party-board estate-board vn-estate-flat"><svg viewBox="0 0 780 780" role="img" aria-label={t('Bàn Tỷ phú Việt Nam 48 ô, 34 tỉnh thành')} preserveAspectRatio="xMidYMid meet">
     <defs><filter id={glowId} x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4"/></filter></defs>
     <rect className="board-svg-base" width="780" height="780" fill="#fff" stroke="#111827" strokeWidth="3"/>
     <rect className="board-svg-center" x={center.x} y={center.y} width={center.width} height={center.height} fill="#f5f3eb" stroke="#111827" strokeWidth="2"/>
     <g aria-hidden="true">
-      <text className="board-svg-label" x="390" y="367" textAnchor="middle" fill="#172d24" fontSize="44" fontWeight="900">TỶ PHÚ</text>
-      <text x="390" y="405" textAnchor="middle" fill="#475b50" fontSize="23" fontWeight="800">VIỆT NAM</text>
-      <text x="390" y="446" textAnchor="middle" fill="#475b50" fontSize="19" fontWeight="700">Vòng {state.round}</text>
+      <text className="board-svg-label" x="390" y="367" textAnchor="middle" fill="#172d24" fontSize="44" fontWeight="900">{t('TỶ PHÚ')}</text>
+      <text x="390" y="405" textAnchor="middle" fill="#475b50" fontSize="23" fontWeight="800">{t('VIỆT NAM')}</text>
+      <text x="390" y="446" textAnchor="middle" fill="#475b50" fontSize="19" fontWeight="700">{t('Vòng') + ' '}{state.round}</text>
     </g>
     {VN_CELLS.map(c=>{
       const cell=bounds(c.index),w=cell.width,h=cell.height,owned=state.property[c.index],lvl=state.houses[c.index]||0;
@@ -332,7 +333,7 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
         {c.type==='property'&&<rect x={1} y={1} width={w-2} height={7.5} fill={accent}/>}
         {rows.map((line,i)=><text key={i} x={tx} y={ty+i*(fs+1.4)} textAnchor="middle" fontSize={fs} fontWeight="900" fill="#111827" textLength={line.length>7?w-4:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
         {!occupied&&(lvl>0?<g transform={`translate(${artX} ${artY}) scale(.62) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={`translate(${artX} ${artY}) scale(.86)`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={`translate(${artX} ${artY}) scale(${corner?.82:.64})`}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>)}
-        {lvl>0&&<g className="vn-house-level-badge" aria-label={lvl===5?'Khách sạn':`Nhà cấp ${lvl}`}>
+        {lvl>0&&<g className="vn-house-level-badge" aria-label={lvl===5?t('Khách sạn'):t('Nhà cấp {0}', lvl)}>
           <rect x={w-24} y={1.5} width="22.5" height="12" rx="3" fill={lvl===5?'#d97706':color} stroke="#ffffff" strokeWidth="1"/>
           <text x={w-12.75} y={10.2} textAnchor="middle" fontSize="7.6" fontWeight="900" fill="#ffffff">{lvl===5?'★KS':`C${lvl}`}</text>
         </g>}
@@ -352,7 +353,7 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
       <rect x={b.x+3} y={b.y+3} width={b.width-6} height={b.height-6} fill="none" stroke={PARTY_COLORS[side||'R']} strokeWidth="3"/>
     </g>;})}
     {tileFx&&tileFx.lot>=0&&tileFx.lot<48&&(()=>{
-      const b=bounds(tileFx.lot),cx=b.x+b.width/2,cy=b.y+b.height/2,isGain=tileFx.amount>0,label=tileFx.type==='jail'?'Vào tù':tileFx.amount?(isGain?'+':'−')+Math.abs(tileFx.amount)+' tr':'';
+      const b=bounds(tileFx.lot),cx=b.x+b.width/2,cy=b.y+b.height/2,isGain=tileFx.amount>0,label=tileFx.type==='jail'?t('Vào tù'):tileFx.amount?(isGain?'+':'−')+Math.abs(tileFx.amount)+' tr':'';
       return label&&<g key={tileFx.key} className="vn-tile-fx" aria-hidden="true"><g className="vn-fx-float"><rect x={cx-31} y={cy-12} width="62" height="24" rx="12" fill={isGain?'#14532d':'#7f1d1d'} stroke="#fff" strokeWidth="1.5"/><text x={cx} y={cy+4} textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff">{label}</text></g></g>;
     })()}
   </svg></div>;

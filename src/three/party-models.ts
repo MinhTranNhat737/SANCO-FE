@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {labelTexture,boardTexture,woodTexture} from './party-art.ts';
-import {PARTY_COLORS,estateGridCell,estateBounds,worldPoint} from './party-layout.ts';
+import {PARTY_COLORS,estateBounds,estateBoardSize,estateEdge,estateWorld,type EstateSize} from './party-layout.ts';
 import {VN_CELLS} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 export {diceFaceRotation as diceRotation} from './dice-motion.ts';
@@ -96,30 +96,32 @@ function landmarkMonument(kind:LandmarkKind,accent:string){
   return root;
 }
 
-export function table(kind:string,textures={wood:woodTexture,board:boardTexture,label:labelTexture},edition='legacy'){
+export function table(kind:string,textures:{wood:typeof woodTexture;board:(kind:string,edition?:string)=>T.Texture;label:typeof labelTexture}={wood:woodTexture,board:boardTexture,label:labelTexture},edition='legacy',layout:EstateSize=13){
   const root=new T.Group(),wood=new T.MeshStandardMaterial({map:textures.wood(),color:'#c49b72',roughness:.4}),brass=gold();
   const vietnam=kind==='monopoly'&&edition==='vn-v2';
-  const outerSpan=vietnam?10.34:10.94,brassSpan=vietnam?10.2:10.72,inlaySpan=vietnam?10.12:10.6;
-  mesh(new T.BoxGeometry(outerSpan,.34,outerSpan),wood,root,0,-.12);
-  mesh(new T.BoxGeometry(brassSpan,.07,brassSpan),brass,root,0,.085);
-  const inlay=mesh(new T.BoxGeometry(inlaySpan,INLAY_THICKNESS,inlaySpan),wood,root,0,INLAY_CENTER);inlay.name='table-wood-inlay';
+  // The Vietnam board may be a wide rectangle of square lots; the wood frame hugs it tightly.
+  const face=vietnam?estateBoardSize(layout):{width:600,height:600},faceW=face.width/60,faceD=face.height/60;
+  const pad=vietnam?[.34,.2,.12]:[.94,.72,.6];
+  mesh(new T.BoxGeometry(faceW+pad[0],.34,faceD+pad[0]),wood,root,0,-.12);
+  mesh(new T.BoxGeometry(faceW+pad[1],.07,faceD+pad[1]),brass,root,0,.085);
+  const inlay=mesh(new T.BoxGeometry(faceW+pad[2],INLAY_THICKNESS,faceD+pad[2]),wood,root,0,INLAY_CENTER);inlay.name='table-wood-inlay';
   // Printed ink keeps its authored contrast regardless of room illumination.
-  const face=mesh(new T.PlaneGeometry(10,10),new T.MeshBasicMaterial({map:textures.board(kind,edition),toneMapped:false}),root,0,SURFACE);face.rotation.x=-Math.PI/2;face.name='table-playing-surface';face.castShadow=false;
-  const shadows=mesh(new T.PlaneGeometry(10,10),new T.ShadowMaterial({opacity:.24,depthWrite:false}),root,0,SURFACE+.002);shadows.rotation.x=-Math.PI/2;shadows.castShadow=false;shadows.raycast=()=>{};
-  const pinPos=vietnam?5.08:5.24;
-  for(const x of[-pinPos,pinPos])for(const z of[-pinPos,pinPos]){const pin=mesh(new T.CylinderGeometry(.05,.05,.012,20),brass,root,x,.232,z);pin.castShadow=false;}
-  const plate=mesh(new T.PlaneGeometry(1.15,.23),new T.MeshStandardMaterial({map:textures.label('SÂN CỜ','#c7a45a','#3e3522'),roughness:.3,metalness:.4}),root,0,-.12,outerSpan/2+.013);plate.castShadow=false;
-  if(kind==='monopoly'&&edition==='vn-v2'){
+  const print=mesh(new T.PlaneGeometry(faceW,faceD),new T.MeshBasicMaterial({map:textures.board(kind,edition),toneMapped:false}),root,0,SURFACE);print.rotation.x=-Math.PI/2;print.name='table-playing-surface';print.castShadow=false;
+  const shadows=mesh(new T.PlaneGeometry(faceW,faceD),new T.ShadowMaterial({opacity:.24,depthWrite:false}),root,0,SURFACE+.002);shadows.rotation.x=-Math.PI/2;shadows.castShadow=false;shadows.raycast=()=>{};
+  const pinX=faceW/2+(vietnam?.08:.24),pinZ=faceD/2+(vietnam?.08:.24);
+  for(const x of[-pinX,pinX])for(const z of[-pinZ,pinZ]){const pin=mesh(new T.CylinderGeometry(.05,.05,.012,20),brass,root,x,.232,z);pin.castShadow=false;}
+  const plate=mesh(new T.PlaneGeometry(1.15,.23),new T.MeshStandardMaterial({map:textures.label('SÂN CỜ','#c7a45a','#3e3522'),roughness:.3,metalness:.4}),root,0,-.12,(faceD+pad[0])/2+.013);plate.castShadow=false;
+  if(vietnam){
     VN_CELLS.forEach(c=>{
       const lm=PROVINCE_LANDMARKS[c.name];
       if(!lm)return;
-      const [r,col]=estateGridCell(c.index,13),b=estateBounds(c.index,13);
-      const pt=worldPoint([b.x+b.width/2,b.y+b.height*.64]);
+      const b=estateBounds(c.index,layout);
+      const pt=estateWorld([b.x+b.width/2,b.y+b.height*.64],layout);
       const mon=landmarkMonument(lm.kind,lm.accent);
-      mon.scale.setScalar(.46);
+      mon.name=`vn-landmark-${c.index}`;
+      mon.scale.setScalar(.56);
       mon.position.set(pt.x,SURFACE+.005,pt.z);
-      const edgeIdx=r===12?0:col===0?1:r===0?2:3;
-      mon.rotation.y=-edgeIdx*Math.PI/2;
+      mon.rotation.y=-estateEdge(c.index,layout)*Math.PI/2;
       root.add(mon);
     });
   }
@@ -284,26 +286,26 @@ export function house(level=1,side='R'){
   let badgeMat:T.Material=roofMat;
   if(typeof document!=='undefined'){
     try{
-      const badgeTex=labelTexture(lvl===5?'★KS':`CẤP ${lvl}`,lvl===5?'#b45309':ownerHex,'#fffbeb',128);
+      const badgeTex=labelTexture(lvl===5?'★KS':`C${lvl}`,lvl===5?'#b45309':ownerHex,'#ffffff',192,108,"'Be Vietnam Pro','Segoe UI',Arial,sans-serif");
       badgeMat=new T.MeshBasicMaterial({map:badgeTex,toneMapped:false});
     }catch{/* Fallback to solid owner color in headless tests */}
   }
-  const badge=mesh(new T.BoxGeometry(.34,.025,.17),badgeMat,root,0,badgeY,0);
+  const badge=mesh(new T.BoxGeometry(.36,.028,.2),badgeMat,root,0,badgeY,0);
   badge.castShadow=false;
   return root;
 }
 const BoxGeometry=T.BoxGeometry;
-export function estateAssets(state:{property:(string|null)[];houses:number[];edition?:string;mortgaged?:boolean[]}){
-  const root=new T.Group(),vietnam=state.edition==='vn-v2',size=vietnam?13:6,edgeCount=size-1;
+export function estateAssets(state:{property:(string|null)[];houses:number[];edition?:string;mortgaged?:boolean[]},layout:EstateSize=13){
+  const root=new T.Group(),vietnam=state.edition==='vn-v2',size:EstateSize=vietnam?layout:6;
   state.property.forEach((side,i)=>{
     if(!side)return;
-    const [r,c]=estateGridCell(i,size),bounds=estateBounds(i,size),center=worldPoint([bounds.x+bounds.width/2,bounds.y+bounds.height/2]),tileW=bounds.width/60,tileH=bounds.height/60,tileSpan=Math.min(tileW,tileH);
+    const bounds=estateBounds(i,size),center=estateWorld([bounds.x+bounds.width/2,bounds.y+bounds.height/2],size),tileW=bounds.width/60,tileH=bounds.height/60,tileSpan=Math.min(tileW,tileH);
     const isMortgaged=Boolean(state.mortgaged?.[i]),ownerColor=PARTY_COLORS[side]||'#c74b42';
 
     // 1. Full-cell buyer color overlay & raised 3D border frame
     const cellGroup=new T.Group();
     cellGroup.position.set(center.x,SURFACE+.005,center.z);
-    const edgeIdx=r===edgeCount?0:c===0?1:r===0?2:3;
+    const edgeIdx=estateEdge(i,size);
     cellGroup.rotation.y=vietnam?0:-edgeIdx*Math.PI/2;
 
     const tint=new T.Mesh(
@@ -330,20 +332,20 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     const lvl=state.houses[i]||0;
     if(lvl>0){
       const b=house(lvl,side);
-      const baseScale=vietnam?.76:1.25;
+      const baseScale=vietnam?.84:1.25;
       b.scale.setScalar(baseScale);
-      const buildPt=worldPoint(vietnam?[bounds.x+bounds.width/2,bounds.y+bounds.height*.62]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2]);
+      const buildPt=estateWorld(vietnam?[bounds.x+bounds.width/2,bounds.y+bounds.height*.62]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2],size);
       b.position.set(buildPt.x,SURFACE+.014,buildPt.z);
       b.rotation.y=-edgeIdx*Math.PI/2;
       b.traverse(node=>{node.raycast=()=>{};});
       root.add(b);
       if(vietnam&&typeof document!=='undefined'){
         try{
-          const tagTex=labelTexture(lvl===5?'★KS':`C${lvl}`,lvl===5?'#d97706':ownerColor,'#ffffff',128);
-          const tag=new T.Mesh(new T.PlaneGeometry(tileSpan*.44,tileSpan*.25),new T.MeshBasicMaterial({map:tagTex,toneMapped:false,depthTest:true}));
+          const tagTex=labelTexture(lvl===5?'★KS':`C${lvl}`,lvl===5?'#d97706':ownerColor,'#ffffff',192,108,"'Be Vietnam Pro','Segoe UI',Arial,sans-serif");
+          const tag=new T.Mesh(new T.PlaneGeometry(tileSpan*.52,tileSpan*.3),new T.MeshBasicMaterial({map:tagTex,toneMapped:false,depthTest:true}));
           tag.rotation.x=-Math.PI/2;
-          const tagPt=worldPoint([bounds.x+bounds.width*.76,bounds.y+bounds.height*.16]);
-          tag.position.set(tagPt.x,SURFACE+.032,tagPt.z);
+          const tagPt=estateWorld([bounds.x+bounds.width*.72,bounds.y+bounds.height*.18],size);
+          tag.position.set(tagPt.x,SURFACE+.034,tagPt.z);
           tag.raycast=()=>{};
           root.add(tag);
         }catch{/* Headless fallback */}

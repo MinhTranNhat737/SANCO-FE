@@ -7,17 +7,51 @@ export const GROUP_COLORS=['#bd8d76','#a9b979','#82aba6','#c9b576','#a08dbd','#7
 export const LUDO_PATH=[[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0]];
 export const LUDO_SAFE=[0,8,13,21,26,34,39,47];
 export const groupOf=(i:number)=>Math.floor(PROPERTY_SPACES.indexOf(i)/2);
-export function estateCell(index:number,size=6){const edge=size-1;return index<=edge?[edge,edge-index]:index<=edge*2?[edge*2-index,0]:index<=edge*3?[0,index-edge*2]:[index-edge*3,edge];}
-export function estateGridCell(index:number,size=6){return estateCell(index,size);}
+/**
+ * A ring of equal SQUARE lots laid on a rectangle of `cols` x `rows` lots.
+ * `unit` is the lot size in board pixels (600 px = 10 world units at extent 600).
+ * A 48-lot Vietnam ring needs cols + rows = 26, so the board can be
+ * 13x13, 14x12, 15x11, 16x10, 17x9 or 18x8 lots — the widest choice fills a
+ * landscape screen instead of leaving two empty bars beside a square board.
+ */
+export type EstateLayout={cols:number;rows:number;unit:number};
+export type EstateSize=number|EstateLayout;
+export const VN_TILE=600/13;
+const VN_LAYOUTS:Record<number,EstateLayout>=Object.fromEntries([13,14,15,16,17,18].map(cols=>[cols,Object.freeze({cols,rows:26-cols,unit:VN_TILE})]));
+export function vnLayout(cols=13):EstateLayout{return VN_LAYOUTS[Math.max(13,Math.min(18,Math.round(cols)))];}
+export const VN_SQUARE=vnLayout(13);
+/** Lot size (screen px) each Vietnam layout would get inside a width x height area. */
+export function vnTileSize(layout:EstateLayout,width:number,height:number,margin=.3){return Math.min(width/(layout.cols+margin),height/(layout.rows+margin));}
+/** Pick the 48-lot layout whose square lots come out biggest for the available area. */
+export function bestVnLayout(width:number,height:number):EstateLayout{
+  if(!(width>0&&height>0))return VN_SQUARE;
+  let best=VN_SQUARE,bestTile=vnTileSize(VN_SQUARE,width,height);
+  for(let cols=14;cols<=18;cols++){const layout=vnLayout(cols),tile=vnTileSize(layout,width,height);if(tile>bestTile*1.005){best=layout;bestTile=tile;}}
+  return best;
+}
+export function estateLayout(size:EstateSize=6):EstateLayout{return typeof size==='number'?(size===13?VN_SQUARE:{cols:size,rows:size,unit:600/size}):size;}
+export function estateBoardSize(size:EstateSize=6,extent=600){const l=estateLayout(size),u=l.unit*extent/600;return {width:l.cols*u,height:l.rows*u,unit:u};}
+export function estateCell(index:number,size:EstateSize=6){
+  const {cols,rows}=estateLayout(size),C=cols-1,R=rows-1;
+  if(index<=C)return [R,C-index];
+  if(index<=C+R)return [R-(index-C),0];
+  if(index<=2*C+R)return [0,index-C-R];
+  return [index-2*C-R,C];
+}
+export function estateGridCell(index:number,size:EstateSize=6){return estateCell(index,size);}
+/** 0 = bottom edge, 1 = left, 2 = top, 3 = right. */
+export function estateEdge(index:number,size:EstateSize=6){const {cols,rows}=estateLayout(size),[r,c]=estateCell(index,size);return r===rows-1?0:c===0?1:r===0?2:c===cols-1?3:0;}
 // Both renderers, hit testing, pieces and effects share equal square lots on the single outer ring.
-export function estateBounds(index:number,size=6,extent=600){
-  const [row,col]=estateGridCell(index,size),step=extent/size;
-  return {x:col*step,y:row*step,width:step,height:step};
+export function estateBounds(index:number,size:EstateSize=6,extent=600){
+  const [row,col]=estateGridCell(index,size),{unit}=estateBoardSize(size,extent);
+  return {x:col*unit,y:row*unit,width:unit,height:unit};
 }
-export function estateCenterBounds(size=6,extent=600){
-  const inset=extent/size;
-  return {x:inset,y:inset,width:extent-inset*2,height:extent-inset*2};
+export function estateCenterBounds(size:EstateSize=6,extent=600){
+  const {width,height,unit}=estateBoardSize(size,extent);
+  return {x:unit,y:unit,width:width-unit*2,height:height-unit*2};
 }
+/** Board pixel -> world coordinates, centred on the (possibly rectangular) board. */
+export function estateWorld([x,y]:number[],size:EstateSize=6){const {width,height}=estateBoardSize(size);return {x:(x-width/2)/60,z:(y-height/2)/60};}
 // Render the board's shorter side at 2K, within the GPU's drawing-buffer limit.
 export function estatePixelRatio(width:number,height:number,deviceRatio=1,maxSize=8192){
   const w=Math.max(1,width),h=Math.max(1,height);
@@ -47,6 +81,6 @@ export function ludoRoute(side:string,token:number,from:number,to:number){
   if(from>=0&&to>from)return Array.from({length:to-from},(_,i)=>worldPoint(ludoCell(side,token,from+i+1)));
   return [worldPoint(ludoCell(side,token,to))];
 }
-export function estatePoint(position:number,seat=0,size=6){const b=estateBounds(position,size);if(seat>=4){const sub=seat-4;return worldPoint([b.x+b.width*(.18+(sub%2)*.64),b.y+b.height*(.22+Math.floor(sub/2)*.34)]);}return worldPoint([b.x+b.width*(.27+(seat%2)*.44),b.y+b.height*(.43+Math.floor(seat/2)*.38)]);}
-export function estateIndexAt(x:number,z:number,size=6){const px=x*60+300,py=z*60+300;if(px<0||py<0||px>=600||py>=600)return null;for(let i=0;i<4*(size-1);i++){const b=estateBounds(i,size);if(px>=b.x&&px<b.x+b.width&&py>=b.y&&py<b.y+b.height)return i;}return null;}
+export function estatePoint(position:number,seat=0,size:EstateSize=6){const b=estateBounds(position,size);if(seat>=4){const sub=seat-4;return estateWorld([b.x+b.width*(.18+(sub%2)*.64),b.y+b.height*(.22+Math.floor(sub/2)*.34)],size);}return estateWorld([b.x+b.width*(.27+(seat%2)*.44),b.y+b.height*(.43+Math.floor(seat/2)*.38)],size);}
+export function estateIndexAt(x:number,z:number,size:EstateSize=6){const {width,height}=estateBoardSize(size),{cols,rows}=estateLayout(size),px=x*60+width/2,py=z*60+height/2;if(px<0||py<0||px>=width||py>=height)return null;for(let i=0;i<2*(cols+rows)-4;i++){const b=estateBounds(i,size);if(px>=b.x&&px<b.x+b.width&&py>=b.y&&py<b.y+b.height)return i;}return null;}
 export function partyRoll(moves:{action?:string;die?:number;dice?:number[];at?:number;side?:string}[],count=moves.length){const rolls=[];for(let i=0;i<Math.min(count,moves.length);i++){const m=moves[i];if(m.action==='roll'&&m.die)rolls.push({key:`${i}:${m.at||0}`,value:m.die,...(m.dice?{faces:m.dice}:{}),side:m.side});}const last=rolls.at(-1);return {lastDie:last?.value??null,rollKey:last?.key??'',rolls};}

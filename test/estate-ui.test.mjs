@@ -253,3 +253,83 @@ test('Auction modal centers over the board in fullscreen and built tiles show pe
   assert.equal(lot1.querySelector('.vn-house-level-badge')?.textContent,'C3','Level badge stays visible even when a token stands on the lot');
   assert.equal(lot3.querySelector('.vn-house-level-badge')?.textContent,'★KS','Hotel badge renders clearly');
 });
+
+test('Building progression from Level 1 to Level 5 Hotel renders distinct 2D/3D models and badges at every tier',async()=>{
+  localStorage.setItem('sc-party-view','2d');
+  const {house,estateAssets}=await vite.ssrLoadModule('/src/three/party-models.ts');
+  const {vnLayout}=await vite.ssrLoadModule('/src/three/party-layout.ts');
+  const g=game(2),p=g.party;
+  const group0=VN_CELLS.filter(c=>c.type==='property'&&c.group===0).map(c=>c.index);
+  for(const idx of group0)p.property[idx]='R';
+  p.players[0].cash=50000;
+  // Keep tokens off group0 so both FlatBuilding and badge are rendered
+  p.players[0].position=0;p.players[1].position=0;
+
+  let prev3DMeshes=0,prev3DMaxY=0;
+  for(let level=1;level<=5;level++){
+    for(const idx of group0){
+      vietnamMove(g,{action:'build',to:idx,from:null,details:{}},()=>1);
+      assert.equal(p.houses[idx],level,`Lot ${idx} must reach level ${level}`);
+    }
+    await render(PartyBoard,{kind:'monopoly',state:p,mySide:'R',turn:'R',legal:[],enabled:false,animate:false,immersive:true});
+    const target=group0[0];
+    const cell=document.querySelector(`[data-cell-index="${target}"]`);
+    assert.equal(cell.getAttribute('data-house-level'),String(level));
+    assert.equal(cell.querySelector('.vn-house-level-badge')?.textContent,level===5?'★KS':`C${level}`);
+    const building2D=cell.querySelector(`.vn-flat-building[data-building-level="${level}"]`);
+    assert.ok(building2D,`2D building graphic must render for level ${level}`);
+
+    // Verify real Three.js 3D house model and estateAssets placement on widescreen 17x9 layout
+    const model3D=house(level,'R');
+    let meshes=0,maxY=0;
+    model3D.traverse(node=>{
+      if(node.isMesh){
+        meshes++;
+        node.geometry.computeBoundingBox();
+        maxY=Math.max(maxY,node.position.y+(node.geometry.boundingBox?.max.y||0));
+      }
+    });
+    assert.ok(meshes>prev3DMeshes,`3D level ${level} model must be richer than level ${level-1} (${meshes} vs ${prev3DMeshes})`);
+    assert.ok(maxY>prev3DMaxY,`3D level ${level} building must stand taller than level ${level-1} (${maxY.toFixed(2)} vs ${prev3DMaxY.toFixed(2)})`);
+    prev3DMeshes=meshes;prev3DMaxY=maxY;
+
+    const assets3D=estateAssets(p,vnLayout(17));
+    assert.ok(assets3D.children.length>=group0.length*2,`3D estateAssets must build cell frames and level-${level} houses on 17x9 board`);
+  }
+});
+
+test('Fullscreen widescreen board adapts from 16x10 (HUD open) to 17x9 (HUD collapsed) with all 48 square tiles',async()=>{
+  localStorage.setItem('sc-party-view','2d');
+  const g=game(2);
+  let stageW=1660,stageH=1080;
+  const observers=[];
+  const OrigRO=globalThis.ResizeObserver;
+  globalThis.ResizeObserver=class{
+    constructor(cb){this.cb=cb;observers.push(this);}
+    observe(el){this.el=el;}
+    disconnect(){}
+    trigger(){this.cb([]);}
+  };
+  try{
+    await render(PartyBoard,{kind:'monopoly',state:g.party,mySide:'R',turn:'R',legal:[],enabled:false,animate:false,immersive:true});
+    const stage=document.querySelector('.party-stage-wrap');
+    Object.defineProperties(stage,{clientWidth:{get:()=>stageW,configurable:true},clientHeight:{get:()=>stageH,configurable:true}});
+    await act(async()=>{observers.forEach(o=>o.trigger());});
+    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'16x10','HUD open 1660x1080 picks 16x10 widescreen layout');
+    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 960 600');
+    for(const lot of document.querySelectorAll('[data-cell-index]')){
+      const r=lot.querySelector('rect');assert.equal(Number(r.getAttribute('width')),Number(r.getAttribute('height')),'Every lot stays an exact square in 16x10');
+    }
+    // Collapse HUD -> stage freesizes to full 1920x1080 -> switches to 17x9!
+    await click(document.querySelector('[aria-label="Thu gọn HUD"]'));
+    stageW=1920;stageH=1080;
+    await act(async()=>{observers.forEach(o=>o.trigger());});
+    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'17x9','Collapsed HUD freesizes to 17x9 across entire 16:9 screen');
+    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 1020 540');
+    for(const lot of document.querySelectorAll('[data-cell-index]')){
+      const r=lot.querySelector('rect');assert.equal(Number(r.getAttribute('width')),Number(r.getAttribute('height')),'Every lot stays an exact square in 17x9');
+    }
+  }finally{
+    globalThis.ResizeObserver=OrigRO;
+  }
+});
