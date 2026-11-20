@@ -16,16 +16,16 @@
 }
 .estate-immersive .estate-board-viewport::-webkit-scrollbar {display:none}
 .estate-immersive .estate-board-viewport.is-fit {
-  display:grid;place-items:center;padding:6px 10px;box-sizing:border-box;overflow:hidden;
+  display:grid;place-items:center;padding:2px 4px;box-sizing:border-box;overflow:hidden;
 }
 .estate-immersive .estate-board-viewport.is-fit>.estate-board-surface {
-  width:min(calc(100vw - var(--estate-hud-width,276px) - 20px),calc(100dvh - 12px));max-width:100%;
-  border-radius:10px;box-shadow:0 24px 64px #00000073;
+  width:min(calc(100vw - var(--estate-hud-width,260px) - 8px),calc(100dvh - 4px));max-width:100%;
+  border-radius:8px;box-shadow:0 24px 64px #00000073;
   transform:translate3d(0,0,0) scale(1);transform-origin:center center;
   transition:transform .46s cubic-bezier(.22,1,.36,1);will-change:transform;
 }
 .estate-immersive:has(.estate-game-hud.is-collapsed) .estate-board-viewport.is-fit>.estate-board-surface {
-  width:min(calc(100vw - 16px),calc(100dvh - 12px));
+  width:min(calc(100vw - 8px),calc(100dvh - 4px));
 }
 .estate-immersive .estate-board-viewport.is-fit>.estate-board-surface[data-walking-zoom="true"] {
   transition:transform .26s cubic-bezier(.22,1,.36,1);
@@ -41,7 +41,7 @@
 
 /* Minimalist Right-Hand Hub (resizable via left-edge handle) */
 .estate-game-hud {
-  position:relative;flex:0 0 var(--estate-hud-width,276px);width:var(--estate-hud-width,276px);max-width:calc(100vw - 24px);height:100dvh;z-index:45;
+  position:relative;flex:0 0 var(--estate-hud-width,260px);width:var(--estate-hud-width,260px);max-width:calc(100vw - 24px);height:100dvh;z-index:45;
   display:flex;flex-direction:column;
   border-left:1px solid #c9ab6b26;
   background:linear-gradient(180deg,#16130ef2 0%,#100d09f7 100%);

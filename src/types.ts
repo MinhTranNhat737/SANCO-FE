@@ -13,5 +13,5 @@ export type Room = {
   drawOffer: 'me' | 'opponent' | null;
   game: { ratingChanges?:Record<string,import('./rating-types').RatingChange>;id: string; rules: string; phase: 'waiting' | 'playing' | 'finished'; board: (Mark | null)[]; initialBoard?:(string|null)[]; moves: (Move|PracticePly)[]; turn: Mark; legal?:PracticeMove[]; check?:boolean;checkSquare?:number|null;passed?:string|null;
     party?:PartyState;initialParty?:PartyState;score?:Record<string,number>;passes?:number;prisoners?:Record<string,number>;
-    commander?: { scores: Record<string, number> }; matchDeadline?: number; turnLimitMs?: number; turnDeadline?: number | null; remaining: Record<Mark, number>; turnStartedAt: number | null; result: { winner: Mark | null; reason: string; line: number[]; at: number } | null };
+    commander?: { scores: Record<string, number> }; matchDeadline?: number; matchLimitMs?: number | null; unlimited?: boolean; turnLimitMs?: number; turnDeadline?: number | null; turnThinkStartAt?: number | null; remaining: Record<Mark, number>; turnStartedAt: number | null; result: { winner: Mark | null; reason: string; line: number[]; at: number } | null };
 };

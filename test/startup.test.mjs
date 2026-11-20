@@ -431,6 +431,7 @@ test('Creating a Monopoly room defaults to casual creative mode, supports 8 seat
   assert.match(document.querySelector('.casual-room-badge').textContent,/Chế độ giải trí/);
   assert.equal(document.querySelector('.rank-room-toggle'),null);
   assert.equal(document.querySelector('.room-side-options'),null);
+  assert.ok(document.querySelector('input[aria-label="Tự chỉnh thời gian ván (phút)"]'),'Monopoly room creation exposes custom match duration input');
   const capButtons=[...document.querySelectorAll('.capacity-grid-8 button')];
   assert.equal(capButtons.length,7);
   await click(capButtons.find(b=>b.textContent==='8 người'));
@@ -438,6 +439,7 @@ test('Creating a Monopoly room defaults to casual creative mode, supports 8 seat
   assert.equal(createdBody.ranked,false);
   assert.equal(createdBody.side,'random');
   assert.equal(createdBody.capacity,8);
+  assert.equal(createdBody.minutes,0);
   assert.equal(createdBody.estateMode,'auto');
   assert.match(document.querySelector('.rank-room-label').textContent,/Chế độ giải trí/);
   assert.equal(document.querySelectorAll('.practice-aside .party-roster-vertical .party-player-card').length,0);

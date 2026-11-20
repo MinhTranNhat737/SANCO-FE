@@ -98,14 +98,17 @@ function landmarkMonument(kind:LandmarkKind,accent:string){
 
 export function table(kind:string,textures={wood:woodTexture,board:boardTexture,label:labelTexture},edition='legacy'){
   const root=new T.Group(),wood=new T.MeshStandardMaterial({map:textures.wood(),color:'#c49b72',roughness:.4}),brass=gold();
-  mesh(new T.BoxGeometry(10.94,.34,10.94),wood,root,0,-.12);
-  mesh(new T.BoxGeometry(10.72,.07,10.72),brass,root,0,.085);
-  const inlay=mesh(new T.BoxGeometry(10.6,INLAY_THICKNESS,10.6),wood,root,0,INLAY_CENTER);inlay.name='table-wood-inlay';
+  const vietnam=kind==='monopoly'&&edition==='vn-v2';
+  const outerSpan=vietnam?10.34:10.94,brassSpan=vietnam?10.2:10.72,inlaySpan=vietnam?10.12:10.6;
+  mesh(new T.BoxGeometry(outerSpan,.34,outerSpan),wood,root,0,-.12);
+  mesh(new T.BoxGeometry(brassSpan,.07,brassSpan),brass,root,0,.085);
+  const inlay=mesh(new T.BoxGeometry(inlaySpan,INLAY_THICKNESS,inlaySpan),wood,root,0,INLAY_CENTER);inlay.name='table-wood-inlay';
   // Printed ink keeps its authored contrast regardless of room illumination.
   const face=mesh(new T.PlaneGeometry(10,10),new T.MeshBasicMaterial({map:textures.board(kind,edition),toneMapped:false}),root,0,SURFACE);face.rotation.x=-Math.PI/2;face.name='table-playing-surface';face.castShadow=false;
   const shadows=mesh(new T.PlaneGeometry(10,10),new T.ShadowMaterial({opacity:.24,depthWrite:false}),root,0,SURFACE+.002);shadows.rotation.x=-Math.PI/2;shadows.castShadow=false;shadows.raycast=()=>{};
-  for(const x of[-5.24,5.24])for(const z of[-5.24,5.24]){const pin=mesh(new T.CylinderGeometry(.055,.055,.012,20),brass,root,x,.232,z);pin.castShadow=false;}
-  const plate=mesh(new T.PlaneGeometry(1.15,.23),new T.MeshStandardMaterial({map:textures.label('SÂN CỜ','#c7a45a','#3e3522'),roughness:.3,metalness:.4}),root,0,-.12,5.483);plate.castShadow=false;
+  const pinPos=vietnam?5.08:5.24;
+  for(const x of[-pinPos,pinPos])for(const z of[-pinPos,pinPos]){const pin=mesh(new T.CylinderGeometry(.05,.05,.012,20),brass,root,x,.232,z);pin.castShadow=false;}
+  const plate=mesh(new T.PlaneGeometry(1.15,.23),new T.MeshStandardMaterial({map:textures.label('SÂN CỜ','#c7a45a','#3e3522'),roughness:.3,metalness:.4}),root,0,-.12,outerSpan/2+.013);plate.castShadow=false;
   if(kind==='monopoly'&&edition==='vn-v2'){
     VN_CELLS.forEach(c=>{
       const lm=PROVINCE_LANDMARKS[c.name];
@@ -276,16 +279,16 @@ export function house(level=1,side='R'){
     mesh(new T.OctahedronGeometry(.075,0),trim,root,0,topY+.36,0);
   }
 
-  // Rooftop level badge so the tier (1..4 or ★5 KS) is readable from every camera angle
-  const badgeY=topY+(lvl===5?.48:.19+lvl*.025);
+  // Rooftop level badge facing upward so the tier (C1..C4 or ★KS) is crystal-clear from both top-down and orbit views
+  const badgeY=topY+(lvl===5?.46:.18+lvl*.024);
   let badgeMat:T.Material=roofMat;
   if(typeof document!=='undefined'){
     try{
-      const badgeTex=labelTexture(lvl===5?'★5 KS':`CẤP ${lvl}`,ownerHex,'#fff8dc',128);
+      const badgeTex=labelTexture(lvl===5?'★KS':`CẤP ${lvl}`,lvl===5?'#b45309':ownerHex,'#fffbeb',128);
       badgeMat=new T.MeshBasicMaterial({map:badgeTex,toneMapped:false});
     }catch{/* Fallback to solid owner color in headless tests */}
   }
-  const badge=mesh(new T.BoxGeometry(.26,.11,.025),badgeMat,root,0,badgeY,0);
+  const badge=mesh(new T.BoxGeometry(.34,.025,.17),badgeMat,root,0,badgeY,0);
   badge.castShadow=false;
   return root;
 }
@@ -323,17 +326,28 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     crest.castShadow=false;crest.raycast=()=>{};
     root.add(cellGroup);
 
-    // 2. Tiered 3D Building (Level 1..5) scaled clearly by level
+    // 2. Tiered 3D Building (Level 1..5) + top-down readable level badge (C1..C4 / ★KS)
     const lvl=state.houses[i]||0;
     if(lvl>0){
       const b=house(lvl,side);
-      const baseScale=vietnam?.54:1.25;
+      const baseScale=vietnam?.76:1.25;
       b.scale.setScalar(baseScale);
-      const buildPt=worldPoint(vietnam?[bounds.x+bounds.width/2,bounds.y+bounds.height*.65]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2]);
-      b.position.set(buildPt.x,SURFACE+.01,buildPt.z);
+      const buildPt=worldPoint(vietnam?[bounds.x+bounds.width/2,bounds.y+bounds.height*.62]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2]);
+      b.position.set(buildPt.x,SURFACE+.014,buildPt.z);
       b.rotation.y=-edgeIdx*Math.PI/2;
       b.traverse(node=>{node.raycast=()=>{};});
       root.add(b);
+      if(vietnam&&typeof document!=='undefined'){
+        try{
+          const tagTex=labelTexture(lvl===5?'★KS':`C${lvl}`,lvl===5?'#d97706':ownerColor,'#ffffff',128);
+          const tag=new T.Mesh(new T.PlaneGeometry(tileSpan*.44,tileSpan*.25),new T.MeshBasicMaterial({map:tagTex,toneMapped:false,depthTest:true}));
+          tag.rotation.x=-Math.PI/2;
+          const tagPt=worldPoint([bounds.x+bounds.width*.76,bounds.y+bounds.height*.16]);
+          tag.position.set(tagPt.x,SURFACE+.032,tagPt.z);
+          tag.raycast=()=>{};
+          root.add(tag);
+        }catch{/* Headless fallback */}
+      }
     }
   });
   return root;

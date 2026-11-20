@@ -222,8 +222,34 @@ test('Fullscreen HUD suppresses duplicate buy/auction buttons and supports resiz
   const hud=document.querySelector('.estate-game-hud');
   const resizer=document.querySelector('.estate-hud-resizer[role="separator"]');
   assert.ok(resizer,'HUD must provide a resize separator');
-  assert.equal(hud.style.width,'276px');
+  assert.equal(hud.style.width,'260px');
   await act(async()=>{resizer.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));});
-  assert.equal(hud.style.width,'296px');
-  assert.equal(localStorage.getItem('sc-estate-hud-width'),'296');
+  assert.equal(hud.style.width,'280px');
+  assert.equal(localStorage.getItem('sc-estate-hud-width'),'280');
+});
+
+test('Auction modal centers over the board in fullscreen and built tiles show persistent building level badges',async()=>{
+  localStorage.setItem('sc-party-view','2d');
+  const g=game(2),p=g.party;
+  p.property[1]='R';p.houses[1]=3;
+  p.property[3]='G';p.houses[3]=5;
+  p.players[0].position=1;
+  p.stage='auction';
+  p.auction={lot:2,bid:120,leader:'G',passed:[],returnSide:'R',history:[{side:'G',action:'bid',amount:120,at:1}]};
+  const legal=[{from:null,to:-1,action:'bid'},{from:null,to:-1,action:'pass_bid'}];
+  await render(PartyBoard,{
+    kind:'monopoly',state:p,mySide:'R',turn:'R',legal,enabled:true,animate:false,immersive:true,onMove:()=>{},
+    hudActions:createElement(Controls,{state:p,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:()=>{}})
+  });
+  const auctionModal=document.querySelector('.estate-auction-center');
+  assert.ok(auctionModal,'Auction modal must render');
+  assert.ok(auctionModal.closest('.party-stage-wrap'),'Auction modal must be centered in the board stage');
+  assert.equal(auctionModal.closest('.estate-game-hud'),null,'Auction modal must NOT be squeezed inside the right HUD');
+
+  const lot1=document.querySelector('[data-cell-index="1"]');
+  const lot3=document.querySelector('[data-cell-index="3"]');
+  assert.equal(lot1.getAttribute('data-house-level'),'3');
+  assert.equal(lot3.getAttribute('data-house-level'),'5');
+  assert.equal(lot1.querySelector('.vn-house-level-badge')?.textContent,'C3','Level badge stays visible even when a token stands on the lot');
+  assert.equal(lot3.querySelector('.vn-house-level-badge')?.textContent,'★KS','Hotel badge renders clearly');
 });

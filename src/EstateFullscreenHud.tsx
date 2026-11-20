@@ -3,7 +3,7 @@ import {ArrowLeft,ChevronDown,ChevronUp,Maximize} from 'lucide-react';
 
 const MIN_HUD_WIDTH=220;
 const MAX_HUD_WIDTH=460;
-const DEFAULT_HUD_WIDTH=276;
+const DEFAULT_HUD_WIDTH=260;
 const clampWidth=(value:number)=>Math.max(MIN_HUD_WIDTH,Math.min(MAX_HUD_WIDTH,Math.round(value)));
 
 export default function EstateFullscreenHud({title,status,diceBadge,players,actions,menu,inspector,decision,attention,onExit}:{title:string;status:ReactNode;diceBadge?:ReactNode;players?:ReactNode;actions:ReactNode;menu:ReactNode;inspector:ReactNode;decision:ReactNode;attention:string;onExit?:()=>void}){

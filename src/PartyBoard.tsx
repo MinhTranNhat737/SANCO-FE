@@ -378,6 +378,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
   const cameraBar=view==='3d'&&<div className="party-camera-bar"><span role="status">{holding?'Thả chuột để xúc xắc lăn trên bàn':isDiceRolling?'Xúc xắc đang lăn…':animPhase==='walk'?'Đang di chuyển…':kind==='monopoly'?'Bấm vào ô để xem · Kéo xoay':'Kéo xoay · Cuộn/chụm để zoom'}</span><button aria-pressed={top} onClick={()=>{setTop(!top);setReset(v=>v+1);}}><Layers size={15}/>{top?'Góc nghiêng':'Từ trên'}</button><button aria-label="Đặt lại góc nhìn bàn cờ" onClick={()=>{setTop(kind==='monopoly');setReset(v=>v+1);}}><RotateCcw size={15}/><span>Đặt lại</span></button></div>;
   const inspector=kind==='monopoly'&&selectedCell!==null?<EstateInspector state={state} selected={selectedCell} onClose={()=>setSelectedCell(null)} legal={legal} enabled={enabled} onAction={m=>onMove?.(moveRequest(m))}/>:null;
   const decision=vietnam&&onMove?<EstateAuctionModal state={state} mySide={mySide} turn={turn} playerNames={playerNames} legal={legal} enabled={enabled} busy={isBoardBusy} onMove={m=>onMove(moveRequest(m))}/>:null;
+  const centerAuction=fullscreen&&vietnam&&state.stage==='auction'&&Boolean(state.auction);
   const renderedBoard=view==='3d'?<Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m=>onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx} grabRef={grabRef} onCellSelect={i=>setSelectedCell(prev=>prev===i?null:i)} onHoldChange={setHolding} onPhaseChange={phase=>{setAnimPhase(phase);onAnimatingChange?.(phase!=='idle');}}/></Suspense></Board3DBoundary>:flat();
   const boardContent=<div data-board-theme={boardTheme} className={`party-board party-table party-table-${view}${vietnam?' party-table-estate':''}${fullscreen?' estate-immersive compact-interface':''}`}>
     {vietnam&&!fullscreen&&<EstateTutorial state={state} mySide={mySide} turn={turn} busy={isBoardBusy} live={animate}/>}
@@ -389,7 +390,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
         <span><strong>{buyerName}</strong> {purchaseFx.source==='auction'?'thắng đấu giá':purchaseFx.source==='buyout'?'đã mua lại':purchaseFx.source==='transfer'?'nhận chuyển nhượng':'đã mua'} <strong>{boughtCell.name}</strong>{purchaseFx.source==='buyout'&&sellerName?` từ ${sellerName}`:''}{purchaseFx.lots.length>1&&` và ${purchaseFx.lots.length-1} ô khác`}{purchaseFx.price>0&&<> · <em>{cash(purchaseFx.price)}</em></>}</span>
       </div>}
       {vietnam&&<EstateEventOverlay featured={activeFeatured} toasts={eventToasts} playerNames={playerNames} onDismissFeatured={()=>setFeaturedQueue(q=>q.slice(1))} onDismissToast={id=>setEventToasts(cur=>cur.filter(e=>e.id!==id))}/>}
-      {!fullscreen&&decision}
+      {(!fullscreen||centerAuction)&&decision}
       {view==='2d'&&flatHold&&<div className="board-dice-hand-follower" style={{left:`${flatHold.x}%`,top:`${flatHold.y}%`}} aria-hidden="true">
         <div className="board-held-dice">
           <PipDie value={flatHold.d1} className="is-shaking"/>
@@ -432,7 +433,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       </div>
     </div>
     {!fullscreen&&cameraBar}
-    {fullscreen&&<EstateFullscreenHud title={cash(state.players.find(player=>player.side===mySide)?.cash||0)} status={hudStatus||(isBoardBusy?'Đang di chuyển…':turn===mySide?'Lượt của bạn':'Đang chờ lượt')} diceBadge={hudDiceBadge} players={hudPlayers} actions={hudActions} inspector={null} decision={decision} attention={['buy','buyout','auction','debt','deal'].includes(state.stage)?state.stage:''} onExit={onExit} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget}/>{hudMenu}</>}/> }
+    {fullscreen&&<EstateFullscreenHud title={cash(state.players.find(player=>player.side===mySide)?.cash||0)} status={hudStatus||(isBoardBusy?'Đang di chuyển…':turn===mySide?'Lượt của bạn':'Đang chờ lượt')} diceBadge={hudDiceBadge} players={hudPlayers} actions={hudActions} inspector={null} decision={centerAuction?null:decision} attention={['buy','buyout','debt','deal'].includes(state.stage)?state.stage:''} onExit={onExit} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget}/>{hudMenu}</>}/> }
     {failed&&!fullscreen&&<span className="party-fallback-note" role="status">Đang dùng bàn 2D trên thiết bị này.</span>}
   </div>;
   return fullscreen?createPortal(boardContent,document.body):boardContent;
