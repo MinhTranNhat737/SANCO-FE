@@ -1,3 +1,4 @@
+import { t } from './language.ts';
 import {useBoardTheme} from './BoardAppearance';
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {META,CHESS_LABELS,X_LABELS,squareName,pieceName,type GameKind,type PracticeMove} from './practice-types';
@@ -33,7 +34,7 @@ export default function FlatBoard({kind,board,selected,targets,last,checkSquare,
       check:checkSquare!==null
     });
   },[lastKey,kind,board,last,checkSquare]);
-  return <div data-board-theme={boardTheme} className={`practice-flat-board flat-${kind}`} ref={ref} role="grid" aria-label={`Bàn ${meta.name} ${meta.cols} cột ${meta.rows} hàng`} style={{'--columns':meta.cols} as CSSProperties}>
+  return <div data-board-theme={boardTheme} className={`practice-flat-board flat-${kind}`} ref={ref} role="grid" aria-label={t('Bàn {0} {1} cột {2} hàng', meta.name, meta.cols, meta.rows)} style={{'--columns':meta.cols} as CSSProperties}>
     {kind==='commander'&&<svg className="flat-go-lines ctl-terrain" viewBox="0 0 11 12" aria-hidden="true"><g transform={flipped?'rotate(180 5.5 6)':undefined}>
       <rect width="2.5" height="12" fill="var(--ctl-sea)"/><rect x="2.5" y="5.5" width="8.5" height="1" fill="var(--ctl-river)"/>
       <g fill="#b6ad72" stroke="#716b40" strokeWidth=".03">{[5,7].map(c=><rect key={c} x={c+.29} y="5.48" width=".42" height="1.04"/>)}</g>

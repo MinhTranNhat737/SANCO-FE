@@ -78,7 +78,7 @@ export function EstateInspector({
     return m.to===selected&&['build','mortgage','redeem','sell_building','sell'].includes(act);
   });
   const actionLabels:Record<string,string>={
-    buy:`Mua ${c.name} (${cash(c.price)})`,
+    buy:`Mua ${t(c.name ?? '')} (${cash(c.price)})`,
     auction:t('Mở đấu giá'),
     build:t('Xây nhà ({0})', cash(estateBuildCost(state,c.buildCost))),
     mortgage:t('Thế chấp (+{0})', cash(Math.floor(c.price/2))),
@@ -92,7 +92,7 @@ export function EstateInspector({
       <i style={{background:accent}}/>
       <div>
         <span className="estate-card-kicker">{t('Ô #')}{c.index+1} · {TYPE_LABELS[c.type]||t('Ô bàn cờ')}</span>
-        <strong>{c.name}</strong>
+        <strong>{t(c.name ?? '')}</strong>
         {PROVINCE_LANDMARKS[c.name]&&<span className="estate-landmark-tag">★ {PROVINCE_LANDMARKS[c.name].title}</span>}
         <small>
           {owner?t('Chủ: {0}', SIDE_NAMES[owner]):ownable(c)?t('Chưa có chủ · Có thể mua'):t('Ô sự kiện chung')}
@@ -118,7 +118,7 @@ export function EstateInspector({
           <span>{t('4 nhà:') + ' '}<b>{cash(c.rent[4])}</b></span>
           <span>{t('Khách sạn:') + ' '}<b>{cash(c.rent[5])}</b></span>
         </div>}
-        {state.market&&<p className="estate-special-note">{t('Thị trường:') + ' '}{state.market.description}{t('. Tiền thuê hiện tại đã áp dụng hệ số; bảng cấp nhà là giá cơ bản.')}</p>}
+        {state.market&&<p className="estate-special-note">{t('Thị trường:') + ' '}{t(state.market.description ?? '')}{t('. Tiền thuê hiện tại đã áp dụng hệ số; bảng cấp nhà là giá cơ bản.')}</p>}
         {c.type==='station'&&<p className="estate-special-note">{t('Tiền thuê cơ bản theo số bến/ga cùng chủ: 1 ga 50 tr · 2 ga 100 tr · 3 ga 200 tr · 4 ga 400 tr.')}</p>}
         {c.type==='utility'&&<p className="estate-special-note">{t('Sở hữu 1 tiện ích: thuê = 5× tổng 2 xúc xắc · Sở hữu đủ 2 tiện ích: thuê = 12× tổng 2 xúc xắc.')}</p>}
       </>:<p className="estate-special-note">{c.type==='start'?t('Đi qua hoặc dừng tại Xuất phát nhận +{0} triệu.', estateSalary(state)):c.type==='tax'?t('Nộp ngân sách nhà nước {0}.', cash(c.amount||0)):c.type==='gotojail'?t('Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.'):c.type==='jail'?t('Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).'):c.type==='rest'?t('Bến dừng chân tự do, không phải nộp phí.'):t('Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.')}</p>}
@@ -332,7 +332,7 @@ export default function VietnamEstateBoard({state,mySide,selected,onSelect,justP
         <rect className={auction?'board-svg-lot vn-auction-lot-pulse':selectedHere?'board-svg-selected':'board-svg-lot'} x={0} y={0} width={w} height={h} fill={auction||selectedHere?'#fef08a':owned?OWNER_BG[owned]||'#fff':corner?'#fff2d6':'#fff'} stroke={auction?'#d97706':selectedHere?'#dc2626':owned?color:corner?'#b58b3c':'#111827'} strokeWidth={selectedHere||owned||auction?3:corner?2.2:1.5}/>
         {c.type==='property'&&<rect x={1} y={1} width={w-2} height={7.5} fill={accent}/>}
         {rows.map((line,i)=><text key={i} x={tx} y={ty+i*(fs+1.4)} textAnchor="middle" fontSize={fs} fontWeight="900" fill="#111827" textLength={line.length>7?w-4:undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
-        {!occupied&&(lvl>0?<g transform={`translate(${artX} ${artY}) scale(.62) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={`translate(${artX} ${artY}) scale(.86)`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={`translate(${artX} ${artY}) scale(${corner?.82:.64})`}><SpecialCellArt type={c.type} name={c.name} cx={0} cy={0}/></g>)}
+        {!occupied&&(lvl>0?<g transform={`translate(${artX} ${artY}) scale(.62) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color}/></g>:landmark?<g transform={`translate(${artX} ${artY}) scale(.86)`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent}/></g>:<g transform={`translate(${artX} ${artY}) scale(${corner?.82:.64})`}><SpecialCellArt type={c.type} name={t(c.name ?? '')} cx={0} cy={0}/></g>)}
         {lvl>0&&<g className="vn-house-level-badge" aria-label={lvl===5?t('Khách sạn'):t('Nhà cấp {0}', lvl)}>
           <rect x={w-24} y={1.5} width="22.5" height="12" rx="3" fill={lvl===5?'#d97706':color} stroke="#ffffff" strokeWidth="1"/>
           <text x={w-12.75} y={10.2} textAnchor="middle" fontSize="7.6" fontWeight="900" fill="#ffffff">{lvl===5?'★KS':`C${lvl}`}</text>

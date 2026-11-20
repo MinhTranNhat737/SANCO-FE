@@ -1,8 +1,9 @@
+import { languageTag, t } from './language.ts';
 import {useEffect,useId,useRef,useState} from 'react';
 import {ArrowRight,Bot,ChevronDown,LoaderCircle,RotateCcw,Search,Trophy} from 'lucide-react';
 import {api,ApiError} from './api';
 import {GAME_KINDS,META,type GameKind} from './practice-types';
-import {POOL_LABELS,type MatchPreset,type MatchTicket,type Rating} from './rating-types';
+import {rankName,POOL_LABELS,type MatchPreset,type MatchTicket,type Rating} from './rating-types';
 import type {Room,User} from './types';
 import RankBadge from './RankBadge';
 
@@ -30,8 +31,8 @@ export default function Matchmaking({initialKind,initialPool,user,onMatch,onBot,
     if(next.status!=='idle'){setKind(next.kind);setPresetId(next.preset);}
   };
   function report(error:unknown,queue=true){
-    const message=queue&&error instanceof ApiError&&error.status===404?'Máy chủ tìm trận chưa sẵn sàng. Hãy thử tải lại.':
-      error instanceof Error?error.message:'Chưa kết nối được máy chủ.';
+    const message=queue&&error instanceof ApiError&&error.status===404?t('Máy chủ tìm trận chưa sẵn sàng. Hãy thử tải lại.'):
+      error instanceof Error?error.message:t('Chưa kết nối được máy chủ.');
     setError(message);
   }
 
@@ -99,10 +100,10 @@ export default function Matchmaking({initialKind,initialPool,user,onMatch,onBot,
   }
 
   return <div className="rankings-page match-page">
-    <div className="page-heading"><h1>Tìm trận</h1></div>
-    <form className="panel match-form" aria-label="Tìm trận xếp hạng" onSubmit={e=>{e.preventDefault();if(user?.account&&selected&&ticket.status==='idle'&&!loading&&!busy&&!loadFailed)void send('search');}}>
+    <div className="page-heading"><h1>{t('Tìm trận')}</h1></div>
+    <form className="panel match-form" aria-label={t('Tìm trận xếp hạng')} onSubmit={e=>{e.preventDefault();if(user?.account&&selected&&ticket.status==='idle'&&!loading&&!busy&&!loadFailed)void send('search');}}>
       <div className="match-settings">
-        <label className="match-kind-label" htmlFor={gameSelectId}>Môn cờ</label>
+        <label className="match-kind-label" htmlFor={gameSelectId}>{t('Môn cờ')}</label>
         <div className="match-kind-select">
           <img src={`/thumbs/${kind}.jpg`} width="30" height="30" alt="" aria-hidden="true"/>
           <select id={gameSelectId} disabled={busy||ticket.status!=='idle'} value={kind} onChange={e=>{setKind(e.target.value as GameKind);setPresetId('10-0');}}>
@@ -110,27 +111,27 @@ export default function Matchmaking({initialKind,initialPool,user,onMatch,onBot,
           </select>
           <ChevronDown className="match-kind-chevron" size={18} aria-hidden="true"/>
         </div>
-        {presets[kind]&&<fieldset><legend>{kind==='commander'?'Thời gian cả ván':'Thời gian mỗi bên'}</legend>
-          <div className="match-presets">{presets[kind]?.map(preset=><button type="button" key={preset.id} disabled={busy||ticket.status!=='idle'} aria-pressed={selected?.id===preset.id} onClick={()=>setPresetId(preset.id)}><strong>{preset.minutes}{preset.increment?` + ${preset.increment}`:' phút'}</strong><small>{kind==='commander'?'Tổng lực':POOL_LABELS[preset.pool]}</small></button>)}</div>
+        {presets[kind]&&<fieldset><legend>{kind==='commander'?t('Thời gian cả ván'):t('Thời gian mỗi bên')}</legend>
+          <div className="match-presets">{presets[kind]?.map(preset=><button type="button" key={preset.id} disabled={busy||ticket.status!=='idle'} aria-pressed={selected?.id===preset.id} onClick={()=>setPresetId(preset.id)}><strong>{preset.minutes}{preset.increment?` + ${preset.increment}`:t(' phút')}</strong><small>{kind==='commander'?t('Tổng lực'):POOL_LABELS[preset.pool]}</small></button>)}</div>
         </fieldset>}
         {selected&&<div className="match-rating-strip">
-          {rating&&<div className="match-personal"><RankBadge rank={rating.rank} small/><span><strong>{rating.elo} Elo</strong><small>{rating.provisional?`${rating.games}/10 ván phân hạng`:rating.rank}</small></span></div>}
-          <button type="button" className="text-button" disabled={ticket.status!=='idle'||busy} onClick={()=>onRankings(kind,selected.pool)}><Trophy size={16}/>Hạng của tôi</button>
+          {rating&&<div className="match-personal"><RankBadge rank={rating.rank} small/><span><strong>{rating.elo} Elo</strong><small>{rating.provisional?t('{0}/10 ván phân hạng', rating.games):rankName(rating.rank)}</small></span></div>}
+          <button type="button" className="text-button" disabled={ticket.status!=='idle'||busy} onClick={()=>onRankings(kind,selected.pool)}><Trophy size={16}/>{t('Hạng của tôi')}</button>
         </div>}
       </div>
-      <section className="match-status" aria-label="Trạng thái tìm trận">
-        {error&&<p className="error-box" role="alert">{error}</p>}
+      <section className="match-status" aria-label={t('Trạng thái tìm trận')}>
+        {error&&<p className="error-box" role="alert">{t(error)}</p>}
         {ticket.status==='searching'?<>
-          <div role="status"><h2><LoaderCircle className="spin" size={21}/> Đang tìm đối thủ</h2><p>Đã chờ {Math.floor(ticket.waitedMs/1000)} giây · Phạm vi ±{ticket.eloWindow} Elo</p></div>
-          <button type="button" className="button button-secondary full" disabled={busy} onClick={()=>void send('cancel')}>Hủy tìm trận</button>
-          {ticket.botAvailable&&<button type="button" className="text-button" disabled={busy} onClick={()=>void playBot()}><Bot size={17}/>Chuyển sang đấu bot</button>}
+          <div role="status"><h2><LoaderCircle className="spin" size={21}/>{' ' + t('Đang tìm đối thủ')}</h2><p>{t('Đã chờ') + ' '}{Math.floor(ticket.waitedMs/1000)}{' ' + t('giây · Phạm vi ±')}{ticket.eloWindow} Elo</p></div>
+          <button type="button" className="button button-secondary full" disabled={busy} onClick={()=>void send('cancel')}>{t('Hủy tìm trận')}</button>
+          {ticket.botAvailable&&<button type="button" className="text-button" disabled={busy} onClick={()=>void playBot()}><Bot size={17}/>{t('Chuyển sang đấu bot')}</button>}
         </>:ticket.status==='matched'?<>
-          <h2 role="status">Đã tìm thấy đối thủ</h2><button type="button" className="button full" disabled={busy} onClick={()=>void openMatch(ticket.roomId)}>Vào bàn cờ<ArrowRight size={17}/></button>
+          <h2 role="status">{t('Đã tìm thấy đối thủ')}</h2><button type="button" className="button full" disabled={busy} onClick={()=>void openMatch(ticket.roomId)}>{t('Vào bàn cờ')}<ArrowRight size={17}/></button>
         </>:<div className="match-actions">
-          {loadFailed?<button type="button" className="button" onClick={()=>reload(n=>n+1)}><RotateCcw size={17}/>Tải lại</button>:
-            user&&!user.account?<button type="button" className="button" onClick={onLogin}>Đăng nhập để tìm trận<ArrowRight size={17}/></button>:
-            <button type="submit" className="button" disabled={loading||busy||!selected}>{loading||busy?<LoaderCircle className="spin" size={18}/>:<Search size={18}/>}Tìm trận</button>}
-          <button type="button" className="button button-secondary" disabled={!user||busy} onClick={()=>void playBot()}><Bot size={17}/>Đấu bot</button>
+          {loadFailed?<button type="button" className="button" onClick={()=>reload(n=>n+1)}><RotateCcw size={17}/>{t('Tải lại')}</button>:
+            user&&!user.account?<button type="button" className="button" onClick={onLogin}>{t('Đăng nhập để tìm trận')}<ArrowRight size={17}/></button>:
+            <button type="submit" className="button" disabled={loading||busy||!selected}>{loading||busy?<LoaderCircle className="spin" size={18}/>:<Search size={18}/>}{t('Tìm trận')}</button>}
+          <button type="button" className="button button-secondary" disabled={!user||busy} onClick={()=>void playBot()}><Bot size={17}/>{t('Đấu bot')}</button>
         </div>}
       </section>
     </form>

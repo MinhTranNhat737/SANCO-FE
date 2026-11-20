@@ -75,6 +75,7 @@ body { margin: 0; }
 .public-page a { color: var(--accent); text-underline-offset: .2em; }
 .public-page a:focus-visible, .startup-message button:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
 .public-page nav { margin-bottom: 20px; }
+.public-page nav .public-language { float: right; margin-left: 12px; }
 .public-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(115px, 215px); gap: 20px; align-items: center; padding: 22px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); }
 .public-hero img { width: 100%; height: auto; border-radius: 9px; }
 .public-actions, .public-games { display: flex; flex-wrap: wrap; gap: 8px; }

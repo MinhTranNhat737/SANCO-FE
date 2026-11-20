@@ -1,3 +1,5 @@
+import { systemMessage } from './system-message';
+import { t } from './language.ts';
 import {Sparkles,Coins,Landmark,LockKeyhole,KeyRound,Wrench,Undo2,Flag,ReceiptText,TrendingDown,ArrowRight,X} from 'lucide-react';
 import type {EstateEvent} from './practice-types';
 import {SIDE_NAMES,cash} from './estate-data';
@@ -46,9 +48,9 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
                 {isGain?`+${cash(ev.amount)}`:`−${cash(Math.abs(ev.amount))}`}
               </span>
             </div>
-            <p className="estate-cash-reason"><strong>{ev.title}:</strong> {ev.reason}</p>
+            <p className="estate-cash-reason"><strong>{t(ev.title ?? '')}:</strong> {systemMessage(ev.reason)}</p>
           </div>
-          <button type="button" className="estate-toast-close" aria-label="Đóng thông báo" onClick={()=>onDismissToast(ev.id)}><X size={13}/></button>
+          <button type="button" className="estate-toast-close" aria-label={t('Đóng thông báo')} onClick={()=>onDismissToast(ev.id)}><X size={13}/></button>
         </article>;
       })}
     </div>}
@@ -58,20 +60,20 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
       <div key={featured.id} className={`estate-card-scene deck-${featured.deck||'chance'}`} onClick={e=>e.stopPropagation()}>
         <div className="estate-card-front">
           <div className="estate-card-front-top">
-            <span className="estate-card-deck-pill">{featured.type==='market'?'Thị trường':featured.deck==='community'?'Khí vận':'Cơ hội'}</span>
-            <button type="button" className="estate-fx-close" aria-label="Đóng thẻ" onClick={onDismissFeatured}><X size={14}/></button>
+            <span className="estate-card-deck-pill">{featured.type==='market'?t('Thị trường'):featured.deck==='community'?t('Khí vận'):t('Cơ hội')}</span>
+            <button type="button" className="estate-fx-close" aria-label={t('Đóng thẻ')} onClick={onDismissFeatured}><X size={14}/></button>
           </div>
           <div className="estate-card-head">
             <span className="estate-card-icon-ring">{featured.type==='market'?<Landmark size={20}/>:cardIcon(featured.card)}</span>
             <div>
-              <h3 className="estate-card-title">{featured.title}</h3>
-              <p className="estate-card-desc">{featured.reason}</p>
+              <h3 className="estate-card-title">{t(featured.title ?? '')}</h3>
+              <p className="estate-card-desc">{systemMessage(featured.reason)}</p>
             </div>
           </div>
           <div className="estate-card-footer">
             <span className="estate-card-player">
               <i style={{background:PARTY_COLORS[featured.side]||'#d7a431'}}/>
-              {featured.type==='market'?'Áp dụng toàn bàn':nameOf(featured.side)}
+              {featured.type==='market'?t('Áp dụng toàn bàn'):nameOf(featured.side)}
             </span>
             {featured.amount!==0&&<span className={`estate-card-amount ${featured.amount>0?'pos':'neg'}`}>
               {featured.amount>0?`+${cash(featured.amount)}`:`−${cash(Math.abs(featured.amount))}`}
@@ -85,8 +87,8 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
     {featured&&featured.type==='jail'&&<div className="estate-fx-stage" role="status" aria-live="polite" onClick={onDismissFeatured}>
       <div key={featured.id} className="estate-jail-card" onClick={e=>e.stopPropagation()}>
         <div className="estate-card-front-top">
-          <span className="estate-jail-kicker"><LockKeyhole size={13}/>VÀO TRẠI GIAM</span>
-          <button type="button" className="estate-fx-close" aria-label="Đóng thông báo" onClick={onDismissFeatured}><X size={14}/></button>
+          <span className="estate-jail-kicker"><LockKeyhole size={13}/>{t('VÀO TRẠI GIAM')}</span>
+          <button type="button" className="estate-fx-close" aria-label={t('Đóng thông báo')} onClick={onDismissFeatured}><X size={14}/></button>
         </div>
         <div className="estate-jail-row">
           <span className="estate-jail-who">
@@ -94,8 +96,8 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
             <strong>{nameOf(featured.side)}</strong>
           </span>
         </div>
-        <p className="estate-jail-reason">{featured.reason}</p>
-        <small className="estate-jail-hint">Tối đa 3 lượt · Nộp 100 tr, dùng thẻ hoặc gieo đôi để ra</small>
+        <p className="estate-jail-reason">{systemMessage(featured.reason)}</p>
+        <small className="estate-jail-hint">{t('Tối đa 3 lượt · Nộp 100 tr, dùng thẻ hoặc gieo đôi để ra')}</small>
       </div>
     </div>}
   </>;

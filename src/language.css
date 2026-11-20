@@ -1,0 +1,47 @@
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 4px 9px;
+  border: 1px solid var(--border, currentColor);
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.language-switch:hover {
+  background: var(--bg-soft);
+}
+
+.lessons-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.orientation-toolbar .language-switch {
+  display: none;
+}
+
+.orientation-card > .language-switch {
+  margin-top: 12px;
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 1100px) {
+  .board-focus-shell .orientation-toolbar .language-switch {
+    display: inline-flex;
+    min-height: 28px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 420px) {
+  .lessons-top, .lessons-top-actions {
+    gap: 8px;
+  }
+}

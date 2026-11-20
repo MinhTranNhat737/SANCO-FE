@@ -1,3 +1,4 @@
+import { t } from './language.ts';
 import {useBoardTheme} from './BoardAppearance';
 import {playMoveSound} from './sound-effects';
 import {BOARD_PALETTES,type BoardTheme} from './board-palette';
@@ -47,7 +48,7 @@ function tableTexture(kind:GameKind,width:number,depth:number,theme:BoardTheme){
     for(let r=0;r<12;r++)line(-5,r-5.5,5,r-5.5);
     for(let c=0;c<11;c++){if(c<=2)line(c-5,-5.5,c-5,5.5);else{line(c-5,-5.5,c-5,-.5);line(c-5,.5,c-5,5.5);}}
     ctx.lineWidth=5;line(-3,-5.5,-3,5.5);
-    ctx.font='bold 26px sans-serif';ctx.textAlign='center';ctx.fillStyle=dark?'#fff1c8':'#304937';ctx.fillText('NGẦM',x(0),z(0));ctx.fillText('NGẦM',x(2),z(0));
+    ctx.font='bold 26px sans-serif';ctx.textAlign='center';ctx.fillStyle=dark?'#fff1c8':'#304937';ctx.fillText(t('NGẦM'),x(0),z(0));ctx.fillText(t('NGẦM'),x(2),z(0));
   }else if(kind==='xiangqi'){
     ctx.fillStyle=palette.river;ctx.fillRect(x(-4),z(-.5),x(4)-x(-4),z(.5)-z(-.5));
     ctx.fillStyle=palette.palace;for(const start of[-4.5,2.5])ctx.fillRect(x(-1),z(start),x(1)-x(-1),z(start+2)-z(start));
@@ -430,7 +431,7 @@ export default function SceneBoard(props:Props){
   useEffect(()=>{controller.current?.appearance(boardTheme);},[boardTheme]);
   useEffect(()=>{controller.current?.zoom();},[props.zoom]);
   useEffect(()=>{controller.current?.environment();},[props.scenery]);
-  return <div className="scene-board" ref={mount} tabIndex={0} onFocus={()=>controller.current?.update()} onBlur={()=>controller.current?.update()} role="group" aria-label={`Bàn ${META[props.kind].name} 3D. Dùng phím mũi tên và Enter để chọn ô. Ô đang chọn ${squareName(props.kind,focused)}: ${pieceName(props.kind,props.board[focused])}.`} onKeyDown={e=>{
+  return <div className="scene-board" ref={mount} tabIndex={0} onFocus={()=>controller.current?.update()} onBlur={()=>controller.current?.update()} role="group" aria-label={t('Bàn {0} 3D. Dùng phím mũi tên và Enter để chọn ô. Ô đang chọn {1}: {2}.', META[props.kind].name, squareName(props.kind,focused), pieceName(props.kind,props.board[focused]))} onKeyDown={e=>{
     const {cols,rows}=META[props.kind];let next=focused,sign=props.flipped?-1:1;
     if(e.key==='ArrowLeft')next=Math.max(0,Math.min(cols*rows-1,focused-sign));
     else if(e.key==='ArrowRight')next=Math.max(0,Math.min(cols*rows-1,focused+sign));
@@ -438,5 +439,5 @@ export default function SceneBoard(props:Props){
     else if(e.key==='ArrowDown')next=Math.max(0,Math.min(cols*rows-1,focused+cols*sign));
     else if(e.key==='Enter'||e.key===' '){e.preventDefault();if(props.enabled&&modelsReady)props.onSquare(focused);return;}
     else return;e.preventDefault();setFocused(next);
-  }}>{failed?<span className="scene-fallback-notice">Đang chuyển sang bàn 2D…</span>:!modelsReady&&<span className="ctl-model-loading" role="status">Đang tải mô hình 3D…</span>}</div>;
+  }}>{failed?<span className="scene-fallback-notice">{t('Đang chuyển sang bàn 2D…')}</span>:!modelsReady&&<span className="ctl-model-loading" role="status">{t('Đang tải mô hình 3D…')}</span>}</div>;
 }

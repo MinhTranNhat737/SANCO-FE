@@ -1,3 +1,4 @@
+import { t } from './language.ts';
 import { useEffect, useRef, useState } from 'react';
 import { MoveUpRight } from 'lucide-react';
 import type { BufferGeometry, NormalBufferAttributes, Material } from 'three';
@@ -89,9 +90,9 @@ export default function Board3D() {
     return () => { disposed = true; cleanup(); };
   }, []);
   return <div className="hero-art"><div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/>
-    <span className="art-note">Một bàn cờ.<br/>Vạn câu chuyện.</span>
+    <span className="art-note">{t('Một bàn cờ.')}<br/>{t('Vạn câu chuyện.')}</span>
     <div ref={mount} className="three-mount" aria-hidden="true"/>
     {!supported && <div className="three-fallback"><span>×</span><span>○</span><span>×</span></div>}
-    <span className="art-caption"><MoveUpRight size={13}/>{supported ? 'Kéo nhẹ để ngắm bàn cờ' : 'Gặp nhau trên bàn cờ'}</span>
+    <span className="art-caption"><MoveUpRight size={13}/>{supported ? t('Kéo nhẹ để ngắm bàn cờ') : t('Gặp nhau trên bàn cờ')}</span>
   </div>;
 }

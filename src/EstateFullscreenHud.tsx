@@ -1,3 +1,4 @@
+import { t } from './language.ts';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {ArrowLeft,ChevronDown,ChevronUp,Maximize} from 'lucide-react';
 
@@ -49,18 +50,18 @@ export default function EstateFullscreenHud({title,status,diceBadge,players,acti
     ref={asideRef}
     className={`estate-game-hud${collapsed?' is-collapsed':''}${resizing?' is-resizing':''}`}
     style={collapsed?undefined:{width,flexBasis:width}}
-    aria-label="HUD Tỷ phú"
+    aria-label={t('HUD Tỷ phú')}
   >
     {!collapsed&&<div
       className="estate-hud-resizer"
       role="separator"
       aria-orientation="vertical"
-      aria-label="Kéo để co giãn kích thước HUD"
+      aria-label={t('Kéo để co giãn kích thước HUD')}
       aria-valuemin={MIN_HUD_WIDTH}
       aria-valuemax={MAX_HUD_WIDTH}
       aria-valuenow={width}
       tabIndex={0}
-      title="Kéo để co giãn · Nhấp đúp để mặc định"
+      title={t('Kéo để co giãn · Nhấp đúp để mặc định')}
       onPointerDown={startResize}
       onDoubleClick={()=>setWidth(DEFAULT_HUD_WIDTH)}
       onKeyDown={e=>{
@@ -74,7 +75,7 @@ export default function EstateFullscreenHud({title,status,diceBadge,players,acti
         <strong>{title}</strong>
         <span className="estate-hud-status" role="status">{status}</span>
       </div>
-      <button type="button" aria-label={collapsed?'Mở HUD':'Thu gọn HUD'} aria-expanded={!collapsed} onClick={()=>setCollapsed(value=>!value)}>{collapsed?<ChevronDown size={18}/>:<ChevronUp size={18}/>}</button>
+      <button type="button" aria-label={collapsed?t('Mở HUD'):t('Thu gọn HUD')} aria-expanded={!collapsed} onClick={()=>setCollapsed(value=>!value)}>{collapsed?<ChevronDown size={18}/>:<ChevronUp size={18}/>}</button>
     </header>
     <div className="estate-game-hud-body" hidden={collapsed}>
       {diceBadge}
@@ -85,8 +86,8 @@ export default function EstateFullscreenHud({title,status,diceBadge,players,acti
       <details className="estate-hud-menu"><summary>Menu</summary>
         {menu}
         <div className="estate-hud-footer-actions">
-          <button type="button" className="button button-secondary" onClick={()=>{if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});else void document.documentElement.requestFullscreen?.().catch(()=>{});}}><Maximize size={14}/>Toàn màn</button>
-          {onExit&&<button type="button" className="button button-secondary" onClick={onExit}><ArrowLeft size={14}/>Về sảnh</button>}
+          <button type="button" className="button button-secondary" onClick={()=>{if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});else void document.documentElement.requestFullscreen?.().catch(()=>{});}}><Maximize size={14}/>{t('Toàn màn')}</button>
+          {onExit&&<button type="button" className="button button-secondary" onClick={onExit}><ArrowLeft size={14}/>{t('Về sảnh')}</button>}
         </div>
       </details>
     </div>

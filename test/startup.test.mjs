@@ -152,6 +152,33 @@ test('Practice opens a usable chess board after the session loads',async()=>{
   assert.ok(document.querySelector('.practice-setup'));assert.equal(document.querySelectorAll('.flat-chess [role="gridcell"]').length,64);assert.ok(document.querySelector('.practice-start'));assert.equal(document.querySelector('.startup-message'),null);
 });
 
+test('Changing languages preserves the active game and the preference survives loading a new page',async()=>{
+  const {initializeLanguage}=await vite.ssrLoadModule('/src/language.ts');
+  await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
+  await click(document.querySelector('.quick-lobby-actions .button-secondary'));
+  for(let i=0;i<20&&!document.querySelector('.practice-start');i++)await settle();
+  await click(document.querySelector('.practice-start'));
+  for(let i=0;i<20&&!document.querySelector('.practice-session h2');i++)await settle();
+  const gameUrl=window.location.href;
+  const board=document.querySelector('.flat-chess');
+  assert.ok(board);
+  assert.equal(document.querySelector('.practice-session h2').textContent,'Ván của bạn');
+  await click(document.querySelector('.topbar .language-switch'));
+  assert.equal(document.documentElement.lang,'en');
+  assert.equal(document.querySelector('.practice-session h2').textContent,'Your game');
+  assert.equal(document.querySelector('.flat-chess'),board);
+  assert.equal(window.location.href,gameUrl);
+
+  await act(async()=>root.unmount());
+  document.documentElement.lang='vi';
+  initializeLanguage();
+  assert.equal(document.documentElement.lang,'en');
+  root=createRoot(document.getElementById('root'));
+  await act(async()=>root.render(createElement(App)));await settle();
+  await click(document.querySelector('.topbar .language-switch'));
+  assert.equal(document.documentElement.lang,'vi');
+});
+
 test('Visual home filters playable new games, searches without accents, and recovers from no results',async()=>{
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
   assert.equal(document.querySelectorAll('.collection-card').length,KINDS.length);
@@ -365,6 +392,11 @@ test('Lesson deep links let a visitor try a move, review the result, and switch 
   await click(document.querySelector('[data-square="0"]'));
   assert.equal(document.querySelector('.lesson-explanation>strong').textContent,'Chiếu hết');
   assert.ok(document.querySelector('.flat-cell.in-check[data-square="6"]'));
+  await click(document.querySelector('.lessons-top .language-switch'));
+  assert.equal(document.querySelector('#lesson-title').textContent,'Back-rank mate');
+  assert.equal(document.querySelector('.lesson-explanation>strong').textContent,'Checkmate');
+  assert.ok(document.querySelector('.flat-cell.in-check[data-square="6"]'));
+  await click(document.querySelector('.lessons-top .language-switch'));
   await click(document.querySelector('[aria-label="Về đầu ví dụ"]'));
   assert.equal(document.querySelector('.lesson-explanation>strong').textContent,'Thử trên bàn cờ');
   await click([...document.querySelectorAll('.lesson-games button')].find(button=>button.textContent==='Cờ tướng'));

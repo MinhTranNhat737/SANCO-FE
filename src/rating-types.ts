@@ -1,3 +1,4 @@
+import { getLanguage, t } from './language.ts';
 import type {Difficulty,GameKind} from './practice-types';
 export type Rating={elo:number;games:number;wins:number;draws:number;losses:number;peak:number;provisional:boolean;placementLeft:number;rank:string;tier:string;nextRank:string|null;nextElo:number|null};
 export type RatingChange=Rating&{before:number;after:number;delta:number};
@@ -5,7 +6,11 @@ export type RankedProfile=Rating&{position:number|null;rankedPlayers:number};
 export type Leader=Rating&{name:string;position:number;me?:boolean};
 export type Leaderboard={players:Leader[];me?:RankedProfile};
 export type BotProfile={id:string;name:string;elo:number;rank:string;difficulty:Difficulty;estimated:boolean};
-export const POOL_LABELS={overall:'Elo chung',blitz:'Cờ chớp',rapid:'Cờ nhanh',classical:'Cờ dài'};
+export const POOL_LABELS={get overall() { return t('Elo chung'); },get blitz() { return t('Cờ chớp'); },get rapid() { return t('Cờ nhanh'); },get classical() { return t('Cờ dài'); }};
+
+export function rankName(rank: string) {
+  return rank === 'Vàng' && getLanguage() === 'en' ? 'Gold' : t(rank);
+}
 export type RatingPool=keyof typeof POOL_LABELS;
 export type MatchPreset={id:string;minutes:number;increment:number;pool:Exclude<RatingPool,'overall'>};
 export type MatchTicket={status:'idle'}|{status:'searching';kind:GameKind;preset:string;waitedMs:number;eloWindow:number;botAvailable:boolean}|{status:'matched';kind:GameKind;preset:string;roomId:string};

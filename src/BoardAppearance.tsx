@@ -1,3 +1,4 @@
+import { t } from './language.ts';
 import {useSyncExternalStore} from 'react';
 import {Sun,Moon} from 'lucide-react';
 import type {BoardTheme} from './board-palette';
@@ -19,8 +20,8 @@ export function useBoardTheme(){
 }
 export default function BoardAppearance(){
   const [theme,setTheme]=useBoardTheme();
-  return <div className="board-appearance" role="group" aria-label="Màu bàn cờ">
-    <button type="button" aria-pressed={theme==='light'} onClick={()=>setTheme('light')}><Sun size={15}/>Sáng</button>
-    <button type="button" aria-pressed={theme==='dark'} onClick={()=>setTheme('dark')}><Moon size={15}/>Tối</button>
+  return <div className="board-appearance" role="group" aria-label={t('Màu bàn cờ')}>
+    <button type="button" aria-pressed={theme==='light'} onClick={()=>setTheme('light')}><Sun size={15}/>{t('Sáng')}</button>
+    <button type="button" aria-pressed={theme==='dark'} onClick={()=>setTheme('dark')}><Moon size={15}/>{t('Tối')}</button>
   </div>;
 }

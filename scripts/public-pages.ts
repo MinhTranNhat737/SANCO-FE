@@ -2,6 +2,7 @@ import type {Plugin} from 'vite';
 import {GAME_KINDS, META, RULE_TEXT, isParty, type GameKind} from '../src/practice-types.ts';
 import {gamePage} from '../src/game-links.ts';
 import {LESSONS} from '../src/lesson-data.ts';
+import {guidePath, translate, type Language} from '../src/language.ts';
 const home = {
   path:'/', title:'Sân Cờ – Chơi Cờ Tỷ Phú, Cá Ngựa, Cờ Tư Lệnh, Cờ Vua, Cờ Tướng Online Miễn Phí',
   description:'Chơi 16 môn cờ online miễn phí trên Sân Cờ (sanco.games): Cờ Tỷ Phú Việt Nam, Cờ Cá Ngựa, Cờ Tư Lệnh 3D, Cờ Vua, Cờ Tướng, Caro, Cờ Vây, Cờ Gánh. Đấu xếp hạng Elo, tạo phòng riêng mời bạn hoặc luyện tập với Bot.',
@@ -19,7 +20,7 @@ export function siteOrigin(value?:string){
   return url.origin;
 }
 
-function meta(page:typeof home, origin:string, indexable:boolean){
+function meta(page:typeof home, origin:string, indexable:boolean, language:Language='vi', alternatePath?:string){
   const {title,description,image,path}=page;
   const escape=escapeHtml;
   return `<title>${escape(title)}</title>
@@ -27,10 +28,12 @@ function meta(page:typeof home, origin:string, indexable:boolean){
 <meta name="robots" content="${indexable?'index, follow, max-image-preview:large':'noindex, follow'}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sân Cờ">
-<meta property="og:locale" content="vi_VN">
+<meta property="og:locale" content="${language==='en'?'en_US':'vi_VN'}">
 <meta property="og:title" content="${escape(title)}">
 <meta property="og:description" content="${escape(description)}">
 ${origin?`<link rel="canonical" href="${escape(origin+path)}">
+${alternatePath?`<link rel="alternate" hreflang="${language}" href="${escape(origin+path)}">
+<link rel="alternate" hreflang="${language==='en'?'vi':'en'}" href="${escape(origin+alternatePath)}">`:''}
 <meta property="og:url" content="${escape(origin+path)}">
 <meta property="og:image" content="${escape(origin+image)}">
 <meta property="og:image:alt" content="${escape(title)}">
@@ -40,7 +43,7 @@ ${origin?`<link rel="canonical" href="${escape(origin+path)}">
 <meta name="twitter:image" content="${escape(origin+image)}">`:''}`;
 }
 
-const gameLinks = (kinds:GameKind[]) => `<ul class="public-games">${kinds.map(kind=>`<li><a href="${gamePage(kind)}">${escapeHtml(META[kind].name)}</a></li>`).join('')}</ul>`;
+const gameLinks = (kinds:GameKind[], language:Language='vi') => `<ul class="public-games">${kinds.map(kind=>`<li><a href="${guidePath(gamePage(kind),language)}">${escapeHtml(translate(language,META[kind].name))}</a></li>`).join('')}</ul>`;
 const appLink = (kind:GameKind, ranked=false) => `/?game=${kind}${ranked?'&amp;mode=ranked':''}`;
 const homeContent = `<div class="sanco-boot-screen" role="status" aria-live="polite">
   <div class="sanco-boot-card">
@@ -67,9 +70,9 @@ const lessonContent=`<main class="public-page"><nav><a href="/">Sân Cờ</a></n
 ${(['chess','xiangqi'] as const).map(kind=>`<section><h2>${META[kind].name}</h2><ol>${LESSONS[kind].map(lesson=>`<li><h3><a href="/bi-kip?mon=${kind==='chess'?'co-vua':'co-tuong'}&amp;chuong=${lesson.id}">${escapeHtml(lesson.title)}</a></h3><p>${escapeHtml(lesson.summary)} ${escapeHtml(lesson.tip)}</p></li>`).join('')}</ol></section>`).join('')}
 </main>`;
 
-function pageShell(head:string, content:string){
+function pageShell(head:string, content:string, language:Language='vi'){
   return `<!doctype html>
-<html lang="vi"><head><meta charset="UTF-8">
+<html lang="${language}"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="theme-color" content="#21180f">
 <link rel="icon" href="/thumbs/sanco-brand.jpg" type="image/jpeg">
@@ -126,9 +129,9 @@ function gameContent(kind:GameKind, origin:string){
   return {
     info:{path,title:`${title} – Đấu Bạn Bè, Bot AI & Luật Chơi | Sân Cờ`,description,image:`/thumbs/${kind}.jpg`},
     ldJson,
-    content:`<main class="public-page"><nav aria-label="Điều hướng"><a href="/">Sân Cờ</a> <span aria-hidden="true">›</span> ${escapeHtml(name)}</nav>
+    content:`<main class="public-page"><nav aria-label="Điều hướng"><a href="/?lang=vi">Sân Cờ</a> <span aria-hidden="true">›</span> ${escapeHtml(name)} <a class="public-language" lang="en" hreflang="en" href="${guidePath(gamePage(kind),'en')}">English</a></nav>
 <header class="public-hero"><div><h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle)}</p><p class="public-detail">${escapeHtml(short)}</p>
-<div class="public-actions"><a class="public-cta" href="${appLink(kind)}">Chơi với máy</a><a class="public-cta secondary" href="${appLink(kind,true)}">Đấu xếp hạng</a><a class="public-cta secondary" href="/?game=${kind}&amp;mode=friends">Chơi với bạn</a></div></div>
+<div class="public-actions"><a class="public-cta" href="${appLink(kind)}&amp;lang=vi">Chơi với máy</a><a class="public-cta secondary" href="${appLink(kind,true)}&amp;lang=vi">Đấu xếp hạng</a><a class="public-cta secondary" href="/?game=${kind}&amp;mode=friends&amp;lang=vi">Chơi với bạn</a></div></div>
 <img src="/thumbs/${kind}.jpg" width="384" height="384" alt="${escapeHtml(name)}" fetchpriority="high"></header>
 <h2>Luật ${escapeHtml(name)} trên Sân Cờ</h2><p>${escapeHtml(RULE_TEXT[kind])}</p>
 ${kind==='chess'||kind==='xiangqi'?`<p><a href="/bi-kip?mon=${kind==='chess'?'co-vua':'co-tuong'}">Xem bí kíp và thế ${escapeHtml(name)} minh họa</a></p>`:''}
@@ -139,19 +142,44 @@ ${kind==='monopoly'?'<p>Trên điện thoại, xoay ngang khi vào bàn để xe
   };
 }
 
+function englishGamePage(kind:GameKind, origin:string, indexable:boolean) {
+  const viPath=gamePage(kind), path=guidePath(viPath,'en');
+  const game=META[kind], name=translate('en',game.name);
+  const title=`Play ${name} Online for Free | Sân Cờ`;
+  const description=`${translate('en',game.subtitle)} Play against AI, create a room for friends, or join a ranked match.`;
+  const image=`/thumbs/${kind}.jpg`;
+  const related=GAME_KINDS.filter(game=>game!==kind).slice(0,6);
+  const content=`<main class="public-page">
+<nav aria-label="Navigation"><a href="/?lang=en">Sân Cờ</a> <span aria-hidden="true">›</span> ${escapeHtml(name)} <a class="public-language" lang="vi" hreflang="vi" href="${viPath}">Tiếng Việt</a></nav>
+<header class="public-hero"><div><h1>${escapeHtml(name)}</h1><p>${escapeHtml(translate('en',game.subtitle))}</p><p class="public-detail">${escapeHtml(translate('en',game.short))}</p>
+<div class="public-actions">
+  <a class="public-cta" href="${appLink(kind)}&amp;lang=en">Play against AI</a>
+  <a class="public-cta secondary" href="${appLink(kind,true)}&amp;lang=en">Ranked play</a>
+  <a class="public-cta secondary" href="/?game=${kind}&amp;mode=friends&amp;lang=en">Play with friends</a>
+</div></div><img src="${image}" width="384" height="384" alt="${escapeHtml(name)}" fetchpriority="high"></header>
+<h2>How to play ${escapeHtml(name)}</h2><p>${escapeHtml(translate('en',RULE_TEXT[kind]))}</p>
+${kind==='chess'||kind==='xiangqi'?`<p><a href="/bi-kip?mon=${kind==='chess'?'co-vua':'co-tuong'}&amp;lang=en">Explore ${escapeHtml(name)} lessons and examples</a></p>`:''}
+<h2>Explore more games</h2>${gameLinks(related,'en')}
+</main>`;
+  return pageShell(meta({path,title,description,image},origin,indexable,'en',viPath),content,'en');
+}
+
 export function publicPages(origin:string, publish:boolean):Plugin{
   const indexable = Boolean(origin && publish);
   const files = new Map<string,{body:string;type:string}>();
   const add=(path:string,body:string,type='text/html; charset=utf-8')=>files.set(path,{body,type});
   for(const kind of GAME_KINDS){
     const game=gameContent(kind, indexable ? origin : '');
-    add(`${game.info.path}.html`,pageShell(`${meta(game.info,origin,indexable)}\n${game.ldJson}`,game.content));
+    const alternatePath=guidePath(game.info.path,'en');
+    add(`${game.info.path}.html`,pageShell(`${meta(game.info,origin,indexable,'vi',alternatePath)}\n${game.ldJson}`,game.content));
+    add(`${alternatePath}.html`,englishGamePage(kind,origin,indexable));
   }
   add('/404.html',pageShell(meta({...home,path:'/404',title:'Không tìm thấy trang | Sân Cờ'},'',false),
     '<main class="public-page"><h1>Không tìm thấy trang</h1><p>Đường dẫn này không có trên Sân Cờ.</p><a class="public-cta" href="/">Về trang chủ</a></main>'));
   add('/robots.txt',`User-agent: *\nAllow: /\n${indexable?`Sitemap: ${origin}/sitemap.xml\n`:''}`,'text/plain; charset=utf-8');
   if(indexable){
-    const urls=['/','/bi-kip',...GAME_KINDS.map(gamePage)].map(path=>`  <url><loc>${escapeHtml(origin+path)}</loc></url>`);
+    const guidePaths=GAME_KINDS.flatMap(kind=>[gamePage(kind),guidePath(gamePage(kind),'en')]);
+    const urls=['/','/bi-kip',...guidePaths].map(path=>`  <url><loc>${escapeHtml(origin+path)}</loc></url>`);
     add('/sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`,'application/xml; charset=utf-8');
   }
   return {
@@ -168,7 +196,7 @@ export function publicPages(origin:string, publish:boolean):Plugin{
       server.middlewares.use((req,res,next)=>{
         const path=new URL(req.url||'/','http://localhost').pathname;
         const file=files.get(path)||files.get(`${path}.html`);
-        if(!file&&!path.startsWith('/choi/'))return next();
+        if(!file&&!path.startsWith('/choi/')&&!path.startsWith('/en/choi/'))return next();
         const response=file||files.get('/404.html')!;
         res.statusCode=file?200:404;
         res.setHeader('Content-Type',response.type);
