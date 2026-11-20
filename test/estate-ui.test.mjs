@@ -176,3 +176,32 @@ test('Purchase glows every changed tile, stays across unrelated snapshots and ex
   const startup=structuredClone(initial);startup.started=false;await render(PartyBoard,{...props,gameKey:'new-game',state:startup});
   await render(PartyBoard,{...props,gameKey:'new-game',state:acquired});assert.equal(document.querySelectorAll('[data-glow-lot]').length,0);
 });
+
+test('Minimalist fullscreen Monopoly opens in fit tabletop space and zooms onto the moving piece during walk',async()=>{
+  localStorage.setItem('sc-party-view','2d');
+  const g=game(2),initial=structuredClone(g.party);
+  initial.players[0].position=0;initial.players[1].position=0;
+  const props={kind:'monopoly',mySide:'R',turn:'R',legal:[{from:null,to:-1,action:'roll'}],enabled:true,gameKey:'zoom-walk-test',animate:true,immersive:true,lastDie:null,rollKey:'',rolls:[]};
+  await render(PartyBoard,{...props,state:initial});
+  const surface=()=>document.querySelector('.estate-board-surface');
+  assert.equal(surface().getAttribute('data-board-size'),'0','Fullscreen Monopoly opens showing the whole board with breathing space');
+  assert.ok(document.querySelector('.estate-board-viewport.is-fit'));
+  assert.equal(document.querySelector('.estate-tutorial'),null,'No cluttered tutorial card inside minimalist fullscreen HUD');
+  assert.equal(surface().getAttribute('data-walking-zoom'),null);
+
+  // Trigger a 5-step roll: while dice rolls (t=0..820ms), no walk zoom yet
+  const rolled=structuredClone(initial);
+  rolled.players[0].position=5;rolled.stage='end';rolled.dice=5;rolled.diceValues=[2,3];
+  await render(PartyBoard,{...props,state:rolled,lastDie:2,rollKey:'0:500',rolls:[{key:'0:500',value:2,faces:[2,3],side:'R'}]});
+  assert.equal(surface().getAttribute('data-walking-zoom'),null,'Do not zoom before dice finishes rolling');
+
+  // After dice settles (t=960ms), piece is walking -> board zooms smoothly into the moving piece!
+  await act(async()=>new Promise(resolve=>setTimeout(resolve,960)));
+  assert.equal(surface().getAttribute('data-walking-zoom'),'true','Board must zoom onto moving piece while walking');
+  assert.match(surface().style.transform,/scale\(1\.82\)/);
+
+  // After walk finishes, board glides back out to full view
+  await act(async()=>new Promise(resolve=>setTimeout(resolve,850)));
+  assert.equal(surface().getAttribute('data-walking-zoom'),null,'Board zooms back out once piece lands');
+  assert.equal(surface().style.transform,'');
+});

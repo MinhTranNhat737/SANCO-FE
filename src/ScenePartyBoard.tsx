@@ -37,9 +37,14 @@ export default function ScenePartyBoard(props:Props){
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.setClearColor(0,0);mount.appendChild(renderer.domElement);
     renderer.domElement.setAttribute('aria-hidden','true');renderer.domElement.style.touchAction='none';
     const scene=new T.Scene(),camera=new T.OrthographicCamera(-8,8,8,-8,.1,90),controls=new OrbitControls(camera,renderer.domElement);
-    controls.target.set(0,.22,0);controls.enablePan=false;controls.enableDamping=true;controls.dampingFactor=.13;controls.minPolarAngle=.035;controls.maxPolarAngle=Math.PI/3;controls.minZoom=.8;controls.maxZoom=1.65;
+    controls.target.set(0,.22,0);controls.enablePan=false;controls.enableDamping=true;controls.dampingFactor=.13;controls.minPolarAngle=.035;controls.maxPolarAngle=Math.PI/3;controls.minZoom=.8;controls.maxZoom=2.0;
     let dirty=true,closed=false,lastFrame=0,frame=0;
-    const markDirty=()=>{dirty=true;};controls.addEventListener('change',markDirty);
+    let followActive=false,followReturning=false,baseZoom=1,userInterruptedCamera=false;
+    const baseTarget=new T.Vector3(0,SURFACE,0),desiredTarget=new T.Vector3(0,SURFACE,0),targetDelta=new T.Vector3();
+    const markDirty=()=>{dirty=true;};
+    const onControlStart=()=>{userInterruptedCamera=true;followReturning=false;};
+    controls.addEventListener('change',markDirty);
+    controls.addEventListener('start',onControlStart);
     const ambient=new T.HemisphereLight('#fff3d5','#1d392c',.9);scene.add(ambient);
     const key=new T.DirectionalLight('#fff2cf',1.6);key.position.set(-6,12,7);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-8;key.shadow.camera.right=8;key.shadow.camera.top=8;key.shadow.camera.bottom=-8;key.shadow.bias=-.0004;key.shadow.normalBias=.025;key.shadow.radius=3;scene.add(key);
     const fill=new T.DirectionalLight('#c4e0d5',.45);fill.position.set(7,5,-7);scene.add(fill);
@@ -182,7 +187,7 @@ export default function ScenePartyBoard(props:Props){
       dirty=true;
     }
     function fit(){const w=Math.max(1,mount.clientWidth),h=Math.max(1,mount.clientHeight),aspect=w/h,size=Math.max(11.1,11.1/aspect);if(vietnam){const gl=renderer.getContext(),limit=Math.min(renderer.capabilities.maxTextureSize,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));renderer.setPixelRatio(estatePixelRatio(w,h,window.devicePixelRatio||1,limit));}camera.left=-size*aspect/2;camera.right=size*aspect/2;camera.top=size/2;camera.bottom=-size/2;camera.updateProjectionMatrix();renderer.setSize(w,h,false);dirty=true;}
-    function resetCamera(){camera.zoom=1;camera.up.set(0,1,0);camera.position.set(0,live.current.topView?22:17,live.current.topView?.001:10);controls.target.set(0,SURFACE,0);camera.lookAt(controls.target);fit();controls.update();dirty=true;}
+    function resetCamera(){followActive=false;followReturning=false;userInterruptedCamera=false;baseZoom=1;camera.zoom=1;camera.up.set(0,1,0);camera.position.set(0,live.current.topView?22:17,live.current.topView?.001:10);controls.target.set(0,SURFACE,0);camera.lookAt(controls.target);fit();controls.update();dirty=true;}
     controller.current={sync,camera:resetCamera,appearance:(theme)=>{const face=gameTable.getObjectByName('table-playing-surface') as T.Mesh<T.PlaneGeometry,T.MeshBasicMaterial>;const previous=face.material.map;face.material.map=boardTexture(props.kind,props.state.edition,theme);face.material.needsUpdate=true;previous?.dispose();(felt.material as T.MeshStandardMaterial).color.set(theme==='light'?'#d8dfce':'#112b21');dirty=true;}};resetCamera();sync();
     const resize=new ResizeObserver(fit);resize.observe(mount);
     const ray=new T.Raycaster(),cursor=new T.Vector2(),gesture=new BoardGesture();
@@ -309,6 +314,38 @@ export default function ScenePartyBoard(props:Props){
         }
       }
       for(const piece of pieces.values())if(piece.route.length){moving=true;if(activeThrow||pendingDrop||pendingRolls.length>0||time<piece.started)continue;const target=piece.route[0],t=Math.min(1,(time-piece.started)/(piece.route.length>2?100:180)),ease=t*t*(3-2*t);piece.node.position.set(T.MathUtils.lerp(piece.from.x,target.x,ease),SURFACE+Math.sin(t*Math.PI)*.16,T.MathUtils.lerp(piece.from.z,target.z,ease));if(t===1){piece.route.shift();piece.from.copy(piece.node.position);piece.started=time;}}
+      const walkingPiece=props.kind==='monopoly'&&!activeThrow&&!pendingDrop&&pendingRolls.length===0
+        ?[...pieces.values()].find(pc=>pc.route.length>0&&time>=pc.started)
+        :null;
+      if(walkingPiece){
+        if(!followActive){followActive=true;followReturning=false;userInterruptedCamera=false;baseZoom=camera.zoom;}
+        desiredTarget.set(walkingPiece.node.position.x,SURFACE,walkingPiece.node.position.z);
+        targetDelta.copy(desiredTarget).sub(controls.target).multiplyScalar(.16);
+        controls.target.add(targetDelta);
+        camera.position.add(targetDelta);
+        const goalZoom=Math.max(baseZoom,1.75);
+        camera.zoom+=(goalZoom-camera.zoom)*.14;
+        camera.updateProjectionMatrix();
+        moving=true;
+      }else if(followActive){
+        followActive=false;
+        if(!userInterruptedCamera)followReturning=true;
+      }
+      if(followReturning&&!userInterruptedCamera){
+        targetDelta.copy(baseTarget).sub(controls.target).multiplyScalar(.12);
+        controls.target.add(targetDelta);
+        camera.position.add(targetDelta);
+        camera.zoom+=(baseZoom-camera.zoom)*.12;
+        if(controls.target.distanceTo(baseTarget)<.015&&Math.abs(camera.zoom-baseZoom)<.01){
+          targetDelta.copy(baseTarget).sub(controls.target);
+          controls.target.copy(baseTarget);
+          camera.position.add(targetDelta);
+          camera.zoom=baseZoom;
+          followReturning=false;
+        }
+        camera.updateProjectionMatrix();
+        moving=true;
+      }
       if(heldDice.active){
         const shakeX=Math.sin(time*.028)*.08,shakeY=Math.cos(time*.034)*.05,shakeZ=Math.sin(time*.024)*.07;
         const holdPos=new T.Vector3(heldDice.point.x+shakeX,heldDice.point.y+shakeY,heldDice.point.z+shakeZ);
@@ -350,7 +387,7 @@ export default function ScenePartyBoard(props:Props){
       if(dirty||moving){renderer.render(scene,camera);dirty=false;}
     }
     frame=requestAnimationFrame(render);
-    return()=>{closed=true;if(live.current.grabRef)live.current.grabRef.current=null;cancelAnimationFrame(frame);resize.disconnect();controls.removeEventListener('change',markDirty);controls.dispose();renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('webglcontextlost',lost);window.removeEventListener('pointermove',winMove);window.removeEventListener('pointerup',winUp);controller.current=null;live.current.onAnimatingChange?.(false);live.current.onHoldChange?.(false);dispose(scene);environment?.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();};
+    return()=>{closed=true;if(live.current.grabRef)live.current.grabRef.current=null;cancelAnimationFrame(frame);resize.disconnect();controls.removeEventListener('change',markDirty);controls.removeEventListener('start',onControlStart);controls.dispose();renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('webglcontextlost',lost);window.removeEventListener('pointermove',winMove);window.removeEventListener('pointerup',winUp);controller.current=null;live.current.onAnimatingChange?.(false);live.current.onHoldChange?.(false);dispose(scene);environment?.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();};
   },[props.kind,props.gameKey]);
   useEffect(()=>{controller.current?.sync();},[props.state,props.enabled,props.legal,props.mySide,props.animate,props.lastDie,props.rollKey,props.selectedCell,props.justPurchasedLot,props.justPurchasedKey,props.justPurchasedLots,props.auctionLot,props.tileFx]);
   useEffect(()=>{controller.current?.appearance(boardTheme);},[boardTheme]);

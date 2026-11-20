@@ -61,11 +61,11 @@ const randomFace=()=>{
   return Math.floor(Math.random()*6)+1;
 };
 
-export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=false,onMove,gameKey='preview',animate=true,lastDie=null,rollKey='',rolls=[],onAnimatingChange,immersive=false,hudActions,hudMenu,hudStatus,onExit}:{kind:GameKind;state:PartyState;mySide:string;turn?:string;playerNames?:Record<string,string>;legal?:PracticeMove[];enabled?:boolean;onMove?:(move:PracticeMove)=>void;gameKey?:string;animate?:boolean;lastDie?:number|null;rollKey?:string;rolls?:DiceRoll[];onAnimatingChange?:(busy:boolean)=>void;immersive?:boolean;hudActions?:ReactNode;hudMenu?:ReactNode;hudStatus?:ReactNode;onExit?:()=>void}){
+export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=false,onMove,gameKey='preview',animate=true,lastDie=null,rollKey='',rolls=[],onAnimatingChange,immersive=false,hudPlayers,hudActions,hudMenu,hudStatus,onExit}:{kind:GameKind;state:PartyState;mySide:string;turn?:string;playerNames?:Record<string,string>;legal?:PracticeMove[];enabled?:boolean;onMove?:(move:PracticeMove)=>void;gameKey?:string;animate?:boolean;lastDie?:number|null;rollKey?:string;rolls?:DiceRoll[];onAnimatingChange?:(busy:boolean)=>void;immersive?:boolean;hudPlayers?:ReactNode;hudActions?:ReactNode;hudMenu?:ReactNode;hudStatus?:ReactNode;onExit?:()=>void}){
   const [boardTheme]=useBoardTheme();
   const [view,setView]=useState<'3d'|'2d'>(()=>typeof window!=='undefined'&&'WebGLRenderingContext' in window&&localStorage.getItem('sc-party-view')!=='2d'?'3d':'2d'),[top,setTop]=useState(kind==='monopoly'),[reset,setReset]=useState(0),[failed,setFailed]=useState(false);
   const [hudToolsTarget,setHudToolsTarget]=useState<HTMLDivElement|null>(null);
-  const [animPhase,setAnimPhase]=useState<'idle'|'dice'|'walk'>('idle'),[holding,setHolding]=useState(false),[selectedCell,setSelectedCell]=useState<number|null>(null);
+  const [animPhase,setAnimPhase]=useState<'idle'|'dice'|'walk'>('idle'),[walkingSide,setWalkingSide]=useState<string|null>(null),[holding,setHolding]=useState(false),[selectedCell,setSelectedCell]=useState<number|null>(null);
   const [flatHold,setFlatHold]=useState<{x:number;y:number;d1:number;d2:number}|null>(null);
   const [flatRoll,setFlatRoll]=useState<{fromX:number;fromY:number;d1:number;d2:number}|null>(null);
   const [displayPos,setDisplayPos]=useState<Record<string,number>>(()=>Object.fromEntries(state.players.map(p=>[p.side,p.position])));
@@ -116,6 +116,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     syncDisplayPos(Object.fromEntries(state.players.map(p=>[p.side,p.position])));
     setFlatRoll(null);
     setAnimPhase('idle');
+    setWalkingSide(null);
     onAnimatingChange?.(false);
     setPurchaseFx(null);
     setFeaturedQueue([]);
@@ -139,12 +140,15 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       onAnimatingChange?.(false);
       return;
     }
-    const needsWalk=targetState.players.some(p=>(displayPosRef.current[p.side]??p.position)!==p.position);
-    if(!needsWalk){
+    const movingPlayers=targetState.players.filter(p=>(displayPosRef.current[p.side]??p.position)!==p.position);
+    if(!movingPlayers.length){
+      setWalkingSide(null);
       setAnimPhase('idle');
       onAnimatingChange?.(false);
       return;
     }
+    const primaryMover=movingPlayers.find(p=>p.side===targetState.movement?.side)||movingPlayers.find(p=>p.side===turn)||movingPlayers[0];
+    setWalkingSide(primaryMover.side);
     setAnimPhase('walk');
     walkTimerRef.current=setInterval(()=>{
       const latest=latestStateRef.current;
@@ -170,6 +174,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       syncDisplayPos(next);
       if(done){
         if(walkTimerRef.current){clearInterval(walkTimerRef.current);walkTimerRef.current=null;}
+        setWalkingSide(null);
         setAnimPhase('idle');
         onAnimatingChange?.(false);
       }
@@ -355,11 +360,19 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     ?{...state,players:state.players.map(p=>({...p,position:displayPos[p.side]??p.position}))}
     :state;
   const flat=()=>vietnam?<VietnamEstateBoard state={visual2DState} mySide={mySide} selected={inspect} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)} justPurchasedLot={purchaseFx?.lot??null} justPurchasedKey={purchaseFx?.key||0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy?null:state.auction?.lot??null} tileFx={tileFx}/>:<FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i=>setSelectedCell(prev=>prev===i?null:i)}/>;
-  const choose=(v:'3d'|'2d')=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setAnimPhase('idle');onAnimatingChange?.(false);setView(v);localStorage.setItem('sc-party-view',v);};
-  const fallback=()=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setAnimPhase('idle');onAnimatingChange?.(false);setFailed(true);setView('2d');};
+  const choose=(v:'3d'|'2d')=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setWalkingSide(null);setAnimPhase('idle');onAnimatingChange?.(false);setView(v);localStorage.setItem('sc-party-view',v);};
+  const fallback=()=>{stopFlatTimers();setFlatRoll(null);syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p=>[p.side,p.position])));setWalkingSide(null);setAnimPhase('idle');onAnimatingChange?.(false);setFailed(true);setView('2d');};
   const buyerName=purchaseFx?(playerNames?.[purchaseFx.side]||SIDE_NAMES[purchaseFx.side]||purchaseFx.side):'';
   const sellerName=purchaseFx?.fromSide?(playerNames?.[purchaseFx.fromSide]||SIDE_NAMES[purchaseFx.fromSide]||purchaseFx.fromSide):'';
   const boughtCell=purchaseFx?VN_CELLS[purchaseFx.lot]:null;
+  const activeMoverSide=animPhase==='walk'?(walkingSide||state.movement?.side||turn||null):null;
+  const movingPosition=activeMoverSide?(displayPos[activeMoverSide]??state.players.find(p=>p.side===activeMoverSide)?.position??null):null;
+  const hudDiceBadge=fullscreen&&faces.length>0&&!holding&&!isDiceRolling
+    ?<div className="estate-hud-dice" role="status" aria-live="polite">
+      <div className="estate-hud-dice-pips">{faces.map((v,i)=><PipDie key={i} value={v}/>)}</div>
+      <span><strong>{`Đi ${total} ô`}</strong>{faces[0]===faces[1]&&<small>Đôi · thêm lượt</small>}</span>
+    </div>
+    :null;
 
   const boardToolbar=<div className="party-table-toolbar"><span className="party-material-label">{kind==='ludo'?'CÁ NGỰA':'TỶ PHÚ'}<small>{kind==='monopoly'?'Một vòng · Chạm ô để xem giá':view==='3d'?'Bộ cờ Sân Cờ':'Mặt bàn'}</small></span><div className="board-view-options"><BoardAppearance/><div role="group" aria-label="Kiểu bộ cờ"><button className={view==='3d'?'selected':''} disabled={failed} aria-pressed={view==='3d'} onClick={()=>choose('3d')}><Box size={15}/>3D</button><button className={view==='2d'?'selected':''} aria-pressed={view==='2d'} onClick={()=>choose('2d')}><Layers size={15}/>2D</button></div></div></div>;
   const cameraBar=view==='3d'&&<div className="party-camera-bar"><span role="status">{holding?'Thả chuột để xúc xắc lăn trên bàn':isDiceRolling?'Xúc xắc đang lăn…':animPhase==='walk'?'Đang di chuyển…':kind==='monopoly'?'Bấm vào ô để xem · Kéo xoay':'Kéo xoay · Cuộn/chụm để zoom'}</span><button aria-pressed={top} onClick={()=>{setTop(!top);setReset(v=>v+1);}}><Layers size={15}/>{top?'Góc nghiêng':'Từ trên'}</button><button aria-label="Đặt lại góc nhìn bàn cờ" onClick={()=>{setTop(kind==='monopoly');setReset(v=>v+1);}}><RotateCcw size={15}/></button></div>;
@@ -370,7 +383,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
     {vietnam&&!fullscreen&&<EstateTutorial state={state} mySide={mySide} turn={turn} busy={isBoardBusy} live={animate}/>}
     {!fullscreen&&boardToolbar}
     <div className="party-stage-wrap" ref={stageRef}>
-      {vietnam?<EstateBoardViewport position={state.players.find(player=>player.side===mySide)?.position??0} busy={isBoardBusy} view={view} topView={top} immersive={fullscreen} toolsTarget={hudToolsTarget} onFocusPiece={()=>{setTop(true);setReset(value=>value+1);}}>{renderedBoard}</EstateBoardViewport>:renderedBoard}
+      {vietnam?<EstateBoardViewport position={state.players.find(player=>player.side===mySide)?.position??0} movingPosition={movingPosition} isWalking={animPhase==='walk'} busy={isBoardBusy} view={view} topView={top} immersive={fullscreen} toolsTarget={hudToolsTarget} onFocusPiece={()=>{setTop(true);setReset(value=>value+1);}}>{renderedBoard}</EstateBoardViewport>:renderedBoard}
       {vietnam&&!isBoardBusy&&purchaseFx&&boughtCell&&<div key={purchaseFx.key} className="estate-purchase-banner" role="status" aria-live="polite" style={{'--owner-color':COLORS[purchaseFx.side]||'#d7a431'} as React.CSSProperties}>
         <span className="estate-purchase-icon">{purchaseFx.source==='auction'?<Gavel size={15}/>:<Trophy size={15}/>}</span>
         <span><strong>{buyerName}</strong> {purchaseFx.source==='auction'?'thắng đấu giá':purchaseFx.source==='buyout'?'đã mua lại':purchaseFx.source==='transfer'?'nhận chuyển nhượng':'đã mua'} <strong>{boughtCell.name}</strong>{purchaseFx.source==='buyout'&&sellerName?` từ ${sellerName}`:''}{purchaseFx.lots.length>1&&` và ${purchaseFx.lots.length-1} ô khác`}{purchaseFx.price>0&&<> · <em>{cash(purchaseFx.price)}</em></>}</span>
@@ -419,7 +432,7 @@ export function PartyBoard({kind,state,mySide,turn,playerNames,legal=[],enabled=
       </div>
     </div>
     {!fullscreen&&cameraBar}
-    {fullscreen&&<EstateFullscreenHud title={cash(state.players.find(player=>player.side===mySide)?.cash||0)} status={hudStatus||(isBoardBusy?'Đang di chuyển…':turn===mySide?'Lượt của bạn':'Đang chờ lượt')} actions={hudActions} inspector={inspector} decision={decision} attention={selectedCell!==null?'lot:'+selectedCell:['buy','buyout','auction','debt','deal'].includes(state.stage)?state.stage:''} onExit={onExit} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget}/><EstateTutorial state={state} mySide={mySide} turn={turn} busy={isBoardBusy} live={animate}/>{hudMenu}</>}/> }
+    {fullscreen&&<EstateFullscreenHud title={cash(state.players.find(player=>player.side===mySide)?.cash||0)} status={hudStatus||(isBoardBusy?'Đang di chuyển…':turn===mySide?'Lượt của bạn':'Đang chờ lượt')} diceBadge={hudDiceBadge} players={hudPlayers} actions={hudActions} inspector={inspector} decision={decision} attention={selectedCell!==null?'lot:'+selectedCell:['buy','buyout','auction','debt','deal'].includes(state.stage)?state.stage:''} onExit={onExit} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget}/>{hudMenu}</>}/> }
     {failed&&!fullscreen&&<span className="party-fallback-note" role="status">Đang dùng bàn 2D trên thiết bị này.</span>}
   </div>;
   return fullscreen?createPortal(boardContent,document.body):boardContent;
