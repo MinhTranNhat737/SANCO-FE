@@ -328,28 +328,18 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     crest.castShadow=false;crest.raycast=()=>{};
     root.add(cellGroup);
 
-    // 2. Tiered 3D Building (Level 1..5) + top-down readable level badge (C1..C4 / ★KS)
+    // 2. Tiered 3D Building (Level 1..5) with upward-facing rooftop level badge (C1..C4 / ★KS)
     const lvl=state.houses[i]||0;
     if(lvl>0){
       const b=house(lvl,side);
-      const baseScale=vietnam?.84:1.25;
+      // Scale keeps each tier clearly progressively larger while never overflowing adjacent square tiles
+      const baseScale=vietnam?(.68-Math.max(0,lvl-2)*.02):1.25;
       b.scale.setScalar(baseScale);
       const buildPt=estateWorld(vietnam?[bounds.x+bounds.width/2,bounds.y+bounds.height*.62]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2],size);
       b.position.set(buildPt.x,SURFACE+.014,buildPt.z);
       b.rotation.y=-edgeIdx*Math.PI/2;
       b.traverse(node=>{node.raycast=()=>{};});
       root.add(b);
-      if(vietnam&&typeof document!=='undefined'){
-        try{
-          const tagTex=labelTexture(lvl===5?'★KS':`C${lvl}`,lvl===5?'#d97706':ownerColor,'#ffffff',192,108,"'Be Vietnam Pro','Segoe UI',Arial,sans-serif");
-          const tag=new T.Mesh(new T.PlaneGeometry(tileSpan*.52,tileSpan*.3),new T.MeshBasicMaterial({map:tagTex,toneMapped:false,depthTest:true}));
-          tag.rotation.x=-Math.PI/2;
-          const tagPt=estateWorld([bounds.x+bounds.width*.72,bounds.y+bounds.height*.18],size);
-          tag.position.set(tagPt.x,SURFACE+.034,tagPt.z);
-          tag.raycast=()=>{};
-          root.add(tag);
-        }catch{/* Headless fallback */}
-      }
     }
   });
   return root;
