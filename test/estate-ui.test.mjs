@@ -35,10 +35,10 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   const g=game(8);
   await render(PartyBoard,{kind:'monopoly',state:g.party,mySide:'R',turn:'R',legal:[],enabled:false,animate:false});
   const lots=[...document.querySelectorAll('[data-cell-index]')];assert.equal(lots.length,48);
-  for(const lot of lots){
-    const rect=lot.querySelector('rect');assert.equal(rect.getAttribute('width'),rect.getAttribute('height'));
-    assert.match(lot.getAttribute('transform'),/scale\(1\)/);
-  }
+  const cornerRect=lots[0].querySelector('rect'),sideRect=lots[1].querySelector('rect');
+  assert.equal(Number(cornerRect.getAttribute('width')),Number(cornerRect.getAttribute('height')),'Corner lot must be square');
+  assert.ok(Number(cornerRect.getAttribute('width'))>Number(sideRect.getAttribute('width'))*2,'Corners are wider than side slots');
+  assert.ok(Number(sideRect.getAttribute('height'))>Number(sideRect.getAttribute('width'))*2,'Side slots are deeper rectangular cards');
   const surface=()=>document.querySelector('.estate-board-surface');
   assert.equal(surface().style.width,'1560px','Large mode must enlarge the actual board');
   const viewport=document.querySelector('.estate-board-viewport');
@@ -50,7 +50,7 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   assert.equal(viewport.scrollLeft,0);assert.equal(viewport.scrollTop,0);
   await click(button('Phóng to'));assert.equal(surface().style.width,'1560px');
   await click(button('Thu nhỏ'));assert.equal(surface().style.width,'1300px');
-  const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.equal(court.getAttribute('width'),'660');
+  const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.ok(Number(court.getAttribute('width'))<560,'Center court is more compact to give tiles more space');
   await click(lots[3]);
   assert.match(document.querySelector('.estate-inspector').textContent,new RegExp(VN_CELLS[3].name));
   assert.equal(document.querySelector('[data-cell-index="3"]').getAttribute('aria-pressed'),'true');
@@ -204,4 +204,26 @@ test('Minimalist fullscreen Monopoly opens in fit tabletop space and zooms onto 
   await act(async()=>new Promise(resolve=>setTimeout(resolve,850)));
   assert.equal(surface().getAttribute('data-walking-zoom'),null,'Board zooms back out once piece lands');
   assert.equal(surface().style.transform,'');
+});
+
+test('Fullscreen HUD suppresses duplicate buy/auction buttons and supports resizing via separator handle',async()=>{
+  localStorage.setItem('sc-party-view','2d');
+  localStorage.removeItem('sc-estate-hud-width');
+  const g=game(2),p=g.party;
+  p.property[1]=null;p.players[0].position=1;p.stage='buy';
+  const legal=[{from:null,to:1,action:'buy'},{from:null,to:-1,action:'auction'},{from:null,to:-1,action:'skip_buy'}];
+  await render(PartyBoard,{
+    kind:'monopoly',state:p,mySide:'R',turn:'R',legal,enabled:true,animate:false,immersive:true,onMove:()=>{},
+    hudActions:createElement(Controls,{state:p,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:()=>{}})
+  });
+  // Decision card renders once; EstateControls does NOT duplicate Buy / Auction / Skip buttons below it
+  assert.equal(document.querySelectorAll('.estate-buy-center').length,1);
+  assert.equal(document.querySelector('.estate-primary-actions'),null,'No duplicate decision buttons in EstateControls');
+  const hud=document.querySelector('.estate-game-hud');
+  const resizer=document.querySelector('.estate-hud-resizer[role="separator"]');
+  assert.ok(resizer,'HUD must provide a resize separator');
+  assert.equal(hud.style.width,'276px');
+  await act(async()=>{resizer.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));});
+  assert.equal(hud.style.width,'296px');
+  assert.equal(localStorage.getItem('sc-estate-hud-width'),'296');
 });

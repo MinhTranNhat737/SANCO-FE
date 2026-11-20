@@ -9,13 +9,21 @@ export const LUDO_SAFE=[0,8,13,21,26,34,39,47];
 export const groupOf=(i:number)=>Math.floor(PROPERTY_SPACES.indexOf(i)/2);
 export function estateCell(index:number,size=6){const edge=size-1;return index<=edge?[edge,edge-index]:index<=edge*2?[edge*2-index,0]:index<=edge*3?[0,index-edge*2]:[index-edge*3,edge];}
 export function estateGridCell(index:number,size=6){return estateCell(index,size);}
-// Both renderers, hit testing, pieces and effects share equal square lots.
+// Classic Monopoly proportions for the 48-lot Vietnam board: largest square corners,
+// deeper rectangular property cards, and a more compact center court.
 export function estateBounds(index:number,size=6,extent=600){
-  const [row,col]=estateGridCell(index,size),step=extent/size;
-  return {x:col*step,y:row*step,width:step,height:step};
+  const edge=size-1,sides=size-2;
+  const corner=size>=13?extent*0.165:extent/size;
+  const step=(extent-corner*2)/sides;
+  const [row,col]=estateGridCell(index,size);
+  const x=col===0?0:col===edge?extent-corner:corner+(col-1)*step;
+  const y=row===0?0:row===edge?extent-corner:corner+(row-1)*step;
+  const width=col===0||col===edge?corner:step;
+  const height=row===0||row===edge?corner:step;
+  return {x,y,width,height};
 }
 export function estateCenterBounds(size=6,extent=600){
-  const inset=extent/size;
+  const inset=size>=13?extent*0.165:extent/size;
   return {x:inset,y:inset,width:extent-inset*2,height:extent-inset*2};
 }
 // Render the board's shorter side at 2K, within the GPU's drawing-buffer limit.

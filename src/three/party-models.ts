@@ -110,9 +110,13 @@ export function table(kind:string,textures={wood:woodTexture,board:boardTexture,
     VN_CELLS.forEach(c=>{
       const lm=PROVINCE_LANDMARKS[c.name];
       if(!lm)return;
-      const [r,col]=estateGridCell(c.index,13),b=estateBounds(c.index,13),pt=worldPoint([b.x+b.width/2,b.y+b.height*.67]);
+      const [r,col]=estateGridCell(c.index,13),b=estateBounds(c.index,13);
+      const horiz=b.width>b.height*1.2;
+      const pt=worldPoint(horiz
+        ?[col===0?b.x+b.width*.74:b.x+b.width*.26,b.y+b.height*.5]
+        :[b.x+b.width*.5,r===12?b.y+b.height*.59:b.y+b.height*.47]);
       const mon=landmarkMonument(lm.kind,lm.accent);
-      mon.scale.setScalar(1.08);
+      mon.scale.setScalar(.74);
       mon.position.set(pt.x,SURFACE+.005,pt.z);
       const edgeIdx=r===12?0:col===0?1:r===0?2:3;
       mon.rotation.y=-edgeIdx*Math.PI/2;
@@ -326,9 +330,12 @@ export function estateAssets(state:{property:(string|null)[];houses:number[];edi
     const lvl=state.houses[i]||0;
     if(lvl>0){
       const b=house(lvl,side);
-      const baseScale=vietnam?.65:1.25;
+      const baseScale=vietnam?.58:1.25;
       b.scale.setScalar(baseScale);
-      const buildPt=worldPoint(vietnam?[bounds.x+bounds.width/2,bounds.y+bounds.height*.67]:[bounds.x+bounds.width/2,bounds.y+bounds.height/2]);
+      const horiz=bounds.width>bounds.height*1.2;
+      const buildPt=worldPoint(vietnam
+        ?(horiz?[c===0?bounds.x+bounds.width*.74:bounds.x+bounds.width*.26,bounds.y+bounds.height*.5]:[bounds.x+bounds.width*.5,r===edgeCount?bounds.y+bounds.height*.59:bounds.y+bounds.height*.47])
+        :[bounds.x+bounds.width/2,bounds.y+bounds.height/2]);
       b.position.set(buildPt.x,SURFACE+.01,buildPt.z);
       b.rotation.y=-edgeIdx*Math.PI/2;
       b.traverse(node=>{node.raycast=()=>{};});

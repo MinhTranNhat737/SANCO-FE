@@ -9,6 +9,7 @@ import {ArrowLeft,ArrowRight,BookOpen,Bot,Box,Check,ChevronLeft,ChevronRight,Che
 import {api,ApiError} from './api';
 import {mergeLive,gameAction} from './live';
 import {PartyBoard,PartyControls,previewParty,COLORS,COLOR_NAMES} from './PartyBoard';
+import VietnamEstateBoard from './VietnamEstateBoard';
 import {META,LEVELS,GAME_KINDS,RULE_TEXT,isPlacement,isParty,moveRequest,previewBoard,sideSymbol,CHESS_LABELS,CHESS_NAMES,X_LABELS,pieceName,squareName,type Difficulty,type GameKind,type PracticeGame,type PracticeMove,type PracticeSummary} from './practice-types';
 import type {User} from './types';
 import './practice.css';
@@ -87,6 +88,7 @@ export default function Practice({initialKind,initialRanked=false,user,socket,on
   const activeSide=game?.humanSide||(side==='second'?meta.second:meta.first);
   const result=game?.result;
   const estateImmersive=kind==='monopoly'&&game?.party?.edition==='vn-v2';
+  const estateSetup=kind==='monopoly'&&!game;
   const estatePlayerNames=game?Object.fromEntries((game.party?.players||[]).map((p,idx)=>[p.side,p.side===game.humanSide?(user?.name||'Bạn'):(game.bot?.name||(game.party!.players.length>2?`Bot ${idx}`:'Bot'))])):undefined;
   const estateHudPlayers=estateImmersive&&game?.party?<div className="party-roster party-roster-vertical">{game.party.players.map((p,idx)=>{
     const isMe=p.side===game.humanSide,isTurn=game.phase==='playing'&&game.turn===p.side;
@@ -99,7 +101,7 @@ export default function Practice({initialKind,initialRanked=false,user,socket,on
       </div>
     </article>;
   })}</div>:undefined;
-  const estateHudActions=<>{game?.party&&!replay&&<section className="panel party-action-panel"><PartyControls kind={kind} state={game.party} mySide={game.humanSide} legal={game.legal} enabled={canMove} animating={visualBusy} onMove={move=>action('move',move)}/></section>}{estateImmersive&&error&&<div className="error-box" role="alert">{error}</div>}{estateImmersive&&game&&replay&&<div className="estate-replay-tools"><input type="range" min={0} max={game.moves.length} value={step??0} aria-label="Chọn nước xem lại" onChange={e=>setStep(+e.target.value)}/><button className="button" onClick={()=>setStep(null)}>Về ván hiện tại</button></div>}</>;
+  const estateHudActions=<>{game?.party&&!replay&&<section className="panel party-action-panel"><PartyControls kind={kind} state={game.party} mySide={game.humanSide} legal={game.legal} enabled={canMove} animating={visualBusy} suppressDecision={kind==='monopoly'} onMove={move=>action('move',move)}/></section>}{estateImmersive&&error&&<div className="error-box" role="alert">{error}</div>}{estateImmersive&&game&&replay&&<div className="estate-replay-tools"><input type="range" min={0} max={game.moves.length} value={step??0} aria-label="Chọn nước xem lại" onChange={e=>setStep(+e.target.value)}/><button className="button" onClick={()=>setStep(null)}>Về ván hiện tại</button></div>}</>;
   const estateHudMenu=<>
 
       {!game?<section className="panel practice-setup"><h2>Thiết lập</h2><div className="rank-mode-options" aria-label="Chế độ chơi"><button className={!ranked?'selected':''} aria-pressed={!ranked} onClick={()=>setRanked(false)}>Luyện tập</button><button className={ranked?'selected':''} aria-pressed={ranked} onClick={()=>setRanked(true)}>Đấu rank</button></div>{ranked?<><p className="rank-mode-note">{rating?`Bạn: ${rating.elo} Elo · ${rating.rank}`:'Elo riêng cho môn này'}<br/>Bên quân ngẫu nhiên. Không đi lại. Rời ván quá 5 phút tính thua.</p><label>Đối thủ<select value={botId} onChange={e=>setBotId(e.target.value)}><option value="">Tự chọn gần Elo của bạn</option>{bots.map(bot=><option key={bot.id} value={bot.id}>{bot.name} · BOT {bot.elo} Elo</option>)}</select></label><p className="rank-mode-note">{bots.length?`Elo bot là ước lượng nội bộ (${Math.min(...bots.map(bot=>bot.elo)).toLocaleString('vi-VN')}–${Math.max(...bots.map(bot=>bot.elo)).toLocaleString('vi-VN')}).`:'Elo bot là ước lượng nội bộ.'}</p></>:<><label className="setup-label">Độ khó</label><div className="difficulty-options">{(['easy','medium','hard'] as Difficulty[]).map((value,i)=><button key={value} className={difficulty===value?'selected':''} aria-pressed={difficulty===value} onClick={()=>setDifficulty(value)}><span className="level-bars">{[0,1,2].map(n=><i key={n} className={n<=i?'filled':''}/>)}</span>{LEVELS[value].name}</button>)}</div><label className="setup-label">Bên quân</label><div className="side-options">{['first','second','random'].map(value=><button className={side===value?'selected':''} key={value} aria-pressed={side===value} onClick={()=>{setSide(value);setFlipped(kind!=='connect4'&&value==='second');}}><span className={`setup-stone setup-${value}`}>{value==='random'?'?':sideSymbol(kind,value==='first'?meta.first:meta.second)}</span><strong>{value==='first'?meta.firstName:value==='second'?meta.secondName:'Ngẫu nhiên'}</strong></button>)}</div></>}{!ranked&&['chess','xiangqi'].includes(kind)&&difficulty==='hard'&&<p className="rank-mode-note">Khó · Ưu tiên nước mạnh nhất, tính sâu khoảng 3 giây/nước. Chọn Đấu rank để thử các bot 2.200–3.200 Elo nội bộ.</p>}{kind==='monopoly'&&<><label>Số người (gồm bạn và bot)<select aria-label="Số người Tỷ phú" value={ranked?2:estateCapacity} disabled={ranked} onChange={event=>setEstateCapacity(+event.target.value)}>{[2,3,4,5,6,7,8].map(count=><option key={count} value={count}>{count} người · {count-1} bot</option>)}</select></label><EstateModePicker count={ranked?2:estateCapacity} value={estateMode} onChange={setEstateMode}/></>}<button className="button full practice-start" disabled={busy||!user} onClick={start}>{busy?<LoaderCircle size={18} className="spin"/>:<Bot size={18}/>}Chơi<ArrowRight size={17}/></button></section>
@@ -107,6 +109,35 @@ export default function Practice({initialKind,initialRanked=false,user,socket,on
       <button className="practice-rule-button" onClick={()=>setDialog('rules')}><BookOpen size={17}/><span>Luật {meta.name}</span><ChevronRight size={16}/></button>
       {game&&<details className="panel practice-moves compact-moves"><summary>Nước đi <span>{game.moves.length}</span></summary>{game.moves.length?<div className="moves-list">{game.moves.map((move,index)=><button key={index} className={step===index+1?'move-selected':''} onClick={()=>{setStep(index+1);setSelected(null);setPending(null);}}><span>{index+1}.</span><span className={`move-side side-${move.side}`}>{kind==='commander'?sideSymbol(kind,move.side):isPlacement(kind)?sideSymbol(kind,move.side):kind==='chess'?CHESS_LABELS[move.piece]:X_LABELS[move.piece]}</span><strong>{move.label}</strong><span>{move.side===game.humanSide?'Bạn':'Bot'}</span></button>)}</div>:<div className="moves-empty"><span>× ○</span><p>Chưa có nước đi</p></div>}</details>}
     </>;
+  if(estateSetup){
+    return <div data-board-theme={boardTheme} className="estate-setup-shell">
+      <MobileOrientation kind={kind} onBack={onBack}/>
+      <div className="estate-setup-bg" aria-hidden="true">
+        <VietnamEstateBoard state={previewParty('monopoly')} mySide="R" selected={-1} onSelect={()=>{}}/>
+      </div>
+      <div className="estate-setup-center">
+        <section className="estate-setup-glass practice-setup">
+          <div className="estate-setup-top">
+            <button type="button" className="text-button" onClick={onBack}><ArrowLeft size={16}/>Chọn cờ</button>
+            <button type="button" className="text-button" onClick={()=>setDialog('rules')}><BookOpen size={15}/>Luật</button>
+          </div>
+          <h1 className="estate-setup-title">{meta.name}</h1>
+          {error&&<div className="error-box" role="alert">{error}</div>}
+          <div className="rank-mode-options" aria-label="Chế độ chơi">
+            <button className={!ranked?'selected':''} aria-pressed={!ranked} onClick={()=>setRanked(false)}>Luyện tập</button>
+            <button className={ranked?'selected':''} aria-pressed={ranked} onClick={()=>setRanked(true)}>Đấu rank</button>
+          </div>
+          {ranked
+            ?<><p className="rank-mode-note">{rating?`Bạn: ${rating.elo} Elo · ${rating.rank}`:'Elo riêng cho môn này'}<br/>Bên quân ngẫu nhiên. Không đi lại.</p><label>Đối thủ<select value={botId} onChange={e=>setBotId(e.target.value)}><option value="">Tự chọn gần Elo của bạn</option>{bots.map(bot=><option key={bot.id} value={bot.id}>{bot.name} · BOT {bot.elo} Elo</option>)}</select></label></>
+            :<><label className="setup-label">Độ khó</label><div className="difficulty-options">{(['easy','medium','hard'] as Difficulty[]).map((value,i)=><button key={value} className={difficulty===value?'selected':''} aria-pressed={difficulty===value} onClick={()=>setDifficulty(value)}><span className="level-bars">{[0,1,2].map(n=><i key={n} className={n<=i?'filled':''}/>)}</span>{LEVELS[value].name}</button>)}</div><label className="setup-label">Bên quân</label><div className="side-options">{['first','second','random'].map(value=><button className={side===value?'selected':''} key={value} aria-pressed={side===value} onClick={()=>{setSide(value);setFlipped(false);}}><span className={`setup-stone setup-${value}`}>{value==='random'?'?':sideSymbol(kind,value==='first'?meta.first:meta.second)}</span><strong>{value==='first'?meta.firstName:value==='second'?meta.secondName:'Ngẫu nhiên'}</strong></button>)}</div></>}
+          <label>Số người (gồm bạn và bot)<select aria-label="Số người Tỷ phú" value={ranked?2:estateCapacity} disabled={ranked} onChange={event=>setEstateCapacity(+event.target.value)}>{[2,3,4,5,6,7,8].map(count=><option key={count} value={count}>{count} người · {count-1} bot</option>)}</select></label>
+          <EstateModePicker count={ranked?2:estateCapacity} value={estateMode} onChange={setEstateMode}/>
+          <button className="button full practice-start" disabled={busy||!user} onClick={start}>{busy?<LoaderCircle size={18} className="spin"/>:<Bot size={18}/>}Chơi<ArrowRight size={17}/></button>
+        </section>
+      </div>
+      {dialog==='rules'&&<Dialog title={`Luật luyện tập ${meta.name}.`} onClose={()=>setDialog(null)}><div className="practice-full-rules"><p>{RULE_TEXT[kind]}</p></div><button className="button full" onClick={()=>setDialog(null)}><Check size={17}/>Đã hiểu</button></Dialog>}
+    </div>;
+  }
   return <div inert={estateImmersive} data-board-theme={boardTheme} className={`practice-workspace practice-${kind} ${game?'board-unified-play':''}`}>
     <MobileOrientation kind={kind} onBack={onBack}/><div className="practice-breadcrumb"><button className="text-button" onClick={onBack}><ArrowLeft size={16}/>Chọn cờ</button><span><Bot size={14}/>{game?.ranked?'Xếp hạng · Không đi lại':'Không tính giờ'}</span></div>
     <div className="practice-heading"><h1>{ranked?'Đấu xếp hạng':'Chơi với máy'}</h1></div>
