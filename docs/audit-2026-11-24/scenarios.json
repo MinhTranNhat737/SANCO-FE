@@ -1,0 +1,53 @@
+{
+  "online": {
+    "seconds": 32,
+    "moves": 2,
+    "httpRequests": 4,
+    "networkRequests": 2,
+    "browserCacheHits": 2,
+    "paths": {
+      "/thumbs/sanco-brand.jpg": 2,
+      "/api/rooms/:id": 2
+    },
+    "actionPosts": 0,
+    "sentSocketFrames": 8
+  },
+  "malformed": {
+    "packets": 100,
+    "roomGetsIncludingScheduledPolls": 1
+  },
+  "outage": {
+    "seconds": 20,
+    "allPagesRequests": 4,
+    "affectedPageRequests": 4,
+    "affectedPaths": {
+      "/socket.io/": 4
+    },
+    "restored": true
+  },
+  "backendOutage": {
+    "seconds": 20,
+    "attemptedRequests": 12,
+    "paths": {
+      "/socket.io/": 8,
+      "/api/rooms/:id": 4
+    },
+    "restored": true
+  },
+  "multitab": {
+    "tabs": 3,
+    "requestsOnTwoSwitches": 1,
+    "hidden": [
+      false,
+      false,
+      false
+    ]
+  },
+  "leave": {
+    "seconds": 33,
+    "roomGetsForLeftPage": 0
+  },
+  "logout": {
+    "revokedStatus": 401
+  }
+}

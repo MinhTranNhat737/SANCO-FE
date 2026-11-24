@@ -1,14 +1,19 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import {devDiagnostics} from './dev-diagnostics';
-import {publicPages, siteOrigin} from './scripts/public-pages';
+import {devDiagnostics} from './dev-diagnostics.ts';
+import {publicPages, siteOrigin} from './scripts/public-pages.ts';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import {apiOrigin} from './src/api-origin.ts';
 
 export default defineConfig(({command, mode}) => {
   const env=loadEnv(mode,process.cwd(),'');
+  const backend=apiOrigin(env.VITE_API_URL||'');
+  if(command==='build'&&env.VERCEL_ENV&&!backend)throw new Error('Vercel has no /api or Socket.IO proxy. Set VITE_API_URL to the HTTPS backend origin.');
+  if(command==='build'&&env.VERCEL_ENV&&(!backend.startsWith('https://')||backend===`https://${env.VERCEL_PROJECT_PRODUCTION_URL}`))throw new Error('Vercel requires a separate HTTPS backend origin.');
   const productionHost=env.VERCEL_ENV==='production' && env.VERCEL_PROJECT_PRODUCTION_URL;
   const origin=siteOrigin(env.SITE_URL || (productionHost ? `https://${productionHost}` : 'https://www.sanco.games'));
+  if(command==='build'&&env.VERCEL_ENV&&backend===origin)throw new Error('VITE_API_URL points back to this Vercel frontend; use the backend origin.');
   const httpsKey = env.DEV_HTTPS_KEY, httpsCert = env.DEV_HTTPS_CERT;
   if (command === 'serve' && Boolean(httpsKey) !== Boolean(httpsCert)) {
     throw new Error('Set both DEV_HTTPS_KEY and DEV_HTTPS_CERT for local HTTPS.');

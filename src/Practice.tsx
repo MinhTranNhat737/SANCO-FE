@@ -8,7 +8,8 @@ import {lazy,Suspense,useEffect,useId,useRef,useState,type ReactNode} from 'reac
 import type {Socket} from 'socket.io-client';
 import {ArrowLeft,ArrowRight,BookOpen,Bot,Box,Check,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,Flag,History,Layers,LoaderCircle,Minus,Plus,Rotate3D,RotateCcw,Undo2,UserRound,X} from 'lucide-react';
 import {api,ApiError} from './api';
-import {mergeLive,gameAction} from './live';
+import {createLiveReceiver,gameAction} from './live';
+import {startPolling} from './network-policy';
 import {PartyBoard,PartyControls,previewParty,COLORS,COLOR_NAMES} from './PartyBoard';
 import VietnamEstateBoard from './VietnamEstateBoard';
 import {META,LEVELS,GAME_KINDS,RULE_TEXT,isPlacement,isParty,moveRequest,previewBoard,sideSymbol,CHESS_LABELS,CHESS_NAMES,X_LABELS,pieceName,squareName,type Difficulty,type GameKind,type PracticeGame,type PracticeMove,type PracticeSummary} from './practice-types';
@@ -42,7 +43,11 @@ export default function Practice({initialKind,initialRanked=false,user,socket,on
   const gameRef=useRef<PracticeGame|null>(null),boardRef=useRef<HTMLDivElement>(null),stageRef=useRef<HTMLDivElement>(null),seenUser=useRef<string|null>(null);
   const meta=META[kind],replay=step!==null;
   const setActive=(next:PracticeGame)=>{gameRef.current=next;setGame(next);setKind(next.kind);setDifficulty(next.difficulty);setRanked(!!next.ranked);setFlipped(next.kind!=='connect4'&&next.humanSide===META[next.kind].second);setZoom(next.kind==='commander'?1.38:(next.kind==='chess'||next.kind==='xiangqi')?1.18:1.08);setStep(null);setSelected(null);setPending(null);setError('');window.history.replaceState(null,'',`?practice=${next.id}`);};
-  const receive=(packet:PracticeGame)=>{if(gameRef.current?.id!==packet.id)return;const next=mergeLive(gameRef.current,packet);if(next){gameRef.current=next;setGame(next);}else api(`/practice/${packet.id}`).then(d=>{gameRef.current=d.game;setGame(d.game);}).catch(()=>{});};
+  const receiver=useRef<ReturnType<typeof createLiveReceiver<PracticeGame>>|null>(null);
+  const actionPending=useRef(false);
+  useEffect(()=>()=>{gameRef.current=null;},[]);
+  if(!receiver.current)receiver.current=createLiveReceiver<PracticeGame>({current:()=>gameRef.current,apply:next=>{gameRef.current=next;setGame(next);},load:async id=>(await api('/practice/'+encodeURIComponent(id))).game,error:e=>setError(e instanceof Error?e.message:'Invalid live snapshot')});
+  const receive=(packet:PracticeGame,recover=true)=>receiver.current!(packet,recover);
   const list=async()=>{try{const data=await api('/practice');setRecent(data.games);}catch(e){setError(e instanceof Error?e.message:'Không tải được ván luyện tập.');}};
   const open=async(id:string)=>{setBusy(true);setError('');try{const data=await api(`/practice/${id}`);setActive(data.game);}catch(e){setError(e instanceof Error?e.message:'Không mở được ván.');}finally{setBusy(false);}};
   useEffect(()=>{
@@ -55,9 +60,13 @@ export default function Practice({initialKind,initialRanked=false,user,socket,on
   useEffect(()=>{if(!socket)return;const closed=(payload:{id?:string;message?:string})=>{if(payload?.id)setRecent(prev=>prev.filter(g=>g.id!==payload.id));if(gameRef.current?.id===payload?.id){gameRef.current=null;setGame(null);setStep(null);setSelected(null);setPending(null);setNotice(payload?.message||'Bàn đã bị hủy và xóa do không hoạt động quá 5 phút.');window.history.replaceState(null,'','/');}};socket.on('practice',receive);socket.on('practice-closed',closed);return()=>{socket.off('practice',receive);socket.off('practice-closed',closed);};},[socket]);
   useEffect(()=>{
     if(!game)return;const id=game.id;let stopped=false;
-    const tick=async()=>{if(document.hidden)return;try{const data=await api(`/practice/${id}`);if(!stopped)receive(data.game);}catch(e){if(stopped)return;if(e instanceof ApiError&&e.status===401)setError('Phiên đã hết hạn. Hãy đăng nhập lại.');else if(e instanceof ApiError&&(e.status===404||e.status===410)){gameRef.current=null;setGame(null);setNotice(e.message||'Bàn đã bị hủy và xóa do không hoạt động quá 5 phút.');window.history.replaceState(null,'','/');void list();}}};
-    const timer=setInterval(tick,socket?.connected?30000:game.thinking?1500:5000);socket?.on('connect',tick);return()=>{stopped=true;clearInterval(timer);socket?.off('connect',tick);};
-  },[game?.id,game?.thinking,socket,socket?.connected]);
+    const poll=startPolling(async()=>{try{const data=await api('/practice/'+encodeURIComponent(id));if(!stopped)await receive(data.game,false);}
+      catch(e){if(!stopped){if(e instanceof ApiError&&e.status===401)setError(e.message);
+        else if(e instanceof ApiError&&[403,404,410].includes(e.status)){gameRef.current=null;setGame(null);setNotice(e.message);window.history.replaceState(null,'','/');void list();}}throw e;}
+    },{delay:()=>socket?.connected?30000:gameRef.current?.thinking?1500:5000});
+    socket?.on('connect',poll.wake);
+    return()=>{stopped=true;poll.stop();socket?.off('connect',poll.wake);};
+  },[game?.id,socket]);
   useEffect(()=>{setSelected(null);setPending(null);setPromotion(null);setNotice('');},[game?.id,game?.version]);
   useEffect(()=>{if(game?.phase==='finished')void list();},[game?.phase]);
   useEffect(()=>{const pop=()=>{const id=new URL(window.location.href).searchParams.get('practice');if(id)void open(id);};window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);},[]);
@@ -69,11 +78,11 @@ export default function Practice({initialKind,initialRanked=false,user,socket,on
   function chooseKind(next:GameKind){if(next===kind)return;setKind(next);if(isParty(next))setView('2d');gameRef.current=null;setGame(null);setSelected(null);setPending(null);setPromotion(null);setStep(null);setError('');setNotice('');setFlipped(false);window.history.replaceState(null,'','/');}
   async function start(){if(!user||busy)return;setBusy(true);setError('');setNotice('');try{const data=await api('/practice',{kind,difficulty,side,ranked,...(kind==='monopoly'?{estateMode,capacity:ranked?2:estateCapacity}:{}),...(ranked&&botId?{botId}:{})});setActive(data.game);await list();}catch(e){setError(e instanceof Error?e.message:'Chưa bắt đầu được ván.');}finally{setBusy(false);}}
   async function action(action:string,move?:PracticeMove){
-    const current=gameRef.current;if(!current||busy)return;setBusy(true);setError('');
+    const current=gameRef.current;if(!current||busy||actionPending.current)return;actionPending.current=true;setBusy(true);setError('');
     const body={actionId:crypto.randomUUID(),version:current.version,...moveRequest(move||{from:null,to:-1}),action};
     try{const data=await gameAction(socket,'practice',current.id,body);receive(data.game);setDialog(null);setPromotion(null);setSelected(null);setPending(null);if(action==='undo'){setStep(null);setNotice('Đã trở về trước nước đi gần nhất của bạn.');}}
     catch(e){setError(e instanceof Error?e.message:'Không thực hiện được thao tác.');try{const data=await api(`/practice/${current.id}`);receive(data.game);}catch{}}
-    finally{setBusy(false);}
+    finally{actionPending.current=false;setBusy(false);}
   }
   function prepare(move:PracticeMove){setPromotion(null);if(confirm){setPending(move);setNotice(t('Đã chọn {0}. Bấm xác nhận để đi quân.', squareName(kind,move.to)));}else void action('move',move);}
   function pick(index:number){

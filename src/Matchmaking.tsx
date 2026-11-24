@@ -2,6 +2,7 @@ import { languageTag, t } from './language.ts';
 import {useEffect,useId,useRef,useState} from 'react';
 import {ArrowRight,Bot,ChevronDown,LoaderCircle,RotateCcw,Search,Trophy} from 'lucide-react';
 import {api,ApiError} from './api';
+import {startPolling} from './network-policy';
 import {GAME_KINDS,META,type GameKind} from './practice-types';
 import {rankName,POOL_LABELS,type MatchPreset,type MatchTicket,type Rating} from './rating-types';
 import type {Room,User} from './types';
@@ -71,18 +72,18 @@ export default function Matchmaking({initialKind,initialPool,user,onMatch,onBot,
       if(!mounted.current||id!==request.current)return;
       updateTicket(next);
       return next;
-    }catch(error){if(mounted.current&&id===request.current)report(error);}
+    }catch(error){if(mounted.current&&id===request.current)report(error);if(action==='poll')throw error;}
     finally{if(mounted.current&&id===request.current&&action!=='poll'){submitting.current=false;setBusy(false);}}
   }
 
   useEffect(()=>{
     if(ticket.status!=='searching'||busy)return;
-    const timer=setInterval(async()=>{
-      if(document.hidden||polling.current)return;
+    const poll=startPolling(async()=>{
+      if(polling.current)return;
       polling.current=true;
       try{await send('poll');}finally{polling.current=false;}
-    },1800);
-    return ()=>clearInterval(timer);
+    },{delay:()=>1800});
+    return()=>poll.stop();
   },[ticket.status,busy]);
 
   const roomId=ticket.status==='matched'?ticket.roomId:null;

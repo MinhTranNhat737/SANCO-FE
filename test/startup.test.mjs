@@ -14,7 +14,7 @@ import {matchPresets} from '../../be/src/matchmaking.js';
 
 let vite,cache,dom,root,App,Boundary,createRoot,previewBoard,user;
 let CommanderBoard,MobileOrientation;
-const socketModule=`export function io(){return {connected:false,on(){return this},off(){return this},emit(){return this},timeout(){return this},emitWithAck(){return Promise.resolve({})},disconnect(){}}}`;
+const socketModule=`export function io(){return {io:{on(){return this}},connected:false,on(){return this},off(){return this},emit(){return this},timeout(){return this},emitWithAck(){return Promise.resolve({})},disconnect(){}}}`;
 const json=data=>new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
 const roomFor=(kind,capacity,ranked=false)=>{const owner={id:user.id,name:user.name,mark:boardSide(kind),ready:false,rematch:false},party=['ludo','monopoly'].includes(kind),cap=party?(capacity||4):2;return publicRoom({id:'ABCD1234',kind,ranked,version:0,duration:300000,createdAt:Date.now(),owner,guest:null,...(party?{players:[owner],capacity:cap}:{}),game:newGame(300000,'round-one',kind,cap)},user.id,Date.now());};
 before(async()=>{

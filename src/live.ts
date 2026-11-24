@@ -1,6 +1,6 @@
 import type {Socket} from 'socket.io-client';
 import {api,ApiError} from './api';
-export {mergeLive} from './live-state';
+export {mergeLive,createLiveReceiver} from './live-state';
 export async function gameAction(socket:Socket|null,type:'room'|'practice',id:string,body:object){
   if(socket?.connected){
     try{
@@ -10,6 +10,5 @@ export async function gameAction(socket:Socket|null,type:'room'|'practice',id:st
     }catch(error){if(error instanceof ApiError)throw error;}
   }
   // Reuse actionId on timeout: durable receipts make a socket/HTTP race safe.
-  try{return await api(`/${type==='room'?'rooms':'practice'}/${id}/actions`,body);}
-  catch(error){if(error instanceof TypeError)return api(`/${type==='room'?'rooms':'practice'}/${id}/actions`,body);throw error;}
+  return api(`/${type==='room'?'rooms':'practice'}/${id}/actions`,body);
 }

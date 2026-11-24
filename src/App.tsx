@@ -3,7 +3,8 @@ import { lazy, Suspense, useState, useEffect, useRef, useId, type ReactNode, typ
 import { io, type Socket } from 'socket.io-client';
 import { ArrowRight, ArrowUpRight, BookOpen, Check, CheckCheck, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleHelp, Clock3, Copy, DoorOpen, Eye, EyeOff, Flag, Handshake, History, Home, Leaf, Link2, LoaderCircle, LockKeyhole, LogOut, Menu, MessageCircle, Plus, RotateCcw, Send, ShieldCheck, Sparkles, UserRound, Volume2, VolumeX, Wifi, WifiOff, X as Close } from 'lucide-react';
 import { api, API, ApiError } from './api';
-import {mergeLive,gameAction} from './live';
+import {createLiveReceiver,gameAction} from './live';
+import {SOCKET_POLICY,startPolling} from './network-policy';
 import type { Room, User, AuthProviders } from './types';
 import { Bot } from 'lucide-react';
 import {META,RULE_TEXT,GAME_KINDS,isParty,moveRequest,type GameKind,type PracticeMove} from './practice-types';
@@ -86,7 +87,18 @@ export default function App() {
   useEffect(() => { setError(''); }, [modal]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 5000); return () => clearTimeout(t); }, [toast]);
   const notifyError = (e: unknown) => setError(e instanceof Error ? e.message : 'Không thực hiện được thao tác.');
-  const acceptRoom=(packet:Room)=>{if(roomRef.current?.id!==packet.id||archivedRef.current)return;const next=mergeLive(roomRef.current,packet);if(next){roomRef.current=next;setRoom(next);}else if(roomRef.current?.id===packet.id)api('/rooms/'+packet.id).then(d=>acceptRoom(d.room)).catch(notifyError);};
+  const receiver=useRef<ReturnType<typeof createLiveReceiver<Room>>|null>(null);
+  const actionPending=useRef(false);
+  useEffect(()=>()=>{roomRef.current=null;},[]);
+  if(!receiver.current)receiver.current=createLiveReceiver<Room>({current:()=>archivedRef.current?null:roomRef.current,apply:next=>{roomRef.current=next;setRoom(next);},load:async id=>(await api('/rooms/'+encodeURIComponent(id))).room,error:notifyError});
+  const acceptRoom=(packet:Room,recover=true)=>receiver.current!(packet,recover);
+  const watched=useRef('');
+  const watchCurrent=()=>{
+    const s=socket.current,current=roomRef.current;
+    if(!s?.connected||!current||archivedRef.current)return;
+    const key=s.id+':'+current.id;if(watched.current===key)return;watched.current=key;
+    s.timeout(5000).emit('watch-room',current.id,(error:Error|null,data:any)=>{if(error){watched.current='';return;}if(data?.room)void acceptRoom(data.room);});
+  };
   async function refreshLists() {
     try { const [a, b] = await Promise.all([api('/rooms?summary=1'), api('/history?summary=1')]); setRecent(a.rooms); setMatches(b.matches); } catch (e) { notifyError(e); }
   }
@@ -118,11 +130,20 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     void refreshLists();
-    const s = io(API || window.location.origin, { withCredentials:true,transports:['websocket','polling'],tryAllTransports:true,reconnectionDelay:400,reconnectionDelayMax:3000,timeout:10000 }); socket.current = s;
-    s.on('connect', () => { setConnected(true); if (roomRef.current && !archivedRef.current) { s.timeout(5000).emit('watch-room',roomRef.current.id,(error:Error|null,data:any)=>{if(!error&&data?.room)acceptRoom(data.room);}); } });
-    const ping=async()=>{if(!s.connected)return;const started=performance.now();try{await s.timeout(4000).emitWithAck('net-ping');setLatency(Math.round(performance.now()-started));}catch{setLatency(null);}};s.on('connect',ping);const pingTimer=setInterval(ping,15000);void ping();
-    s.on('disconnect', () => {setConnected(false);setLatency(null);}); s.on('connect_error', () => setConnected(false));
-    s.on('room', (next: Room) => { if (!archivedRef.current && roomRef.current?.id === next.id) acceptRoom(next); });
+    const s = io(API || window.location.origin, SOCKET_POLICY); socket.current = s;
+    let exhausted=false,authExpired=false,retryAt=0;
+    s.io.on('reconnect_failed',()=>{exhausted=true;retryAt=Date.now()+60000;});
+    // After a bounded batch, retry only after a quiet minute. A long outage can
+    // recover realtime without a reload; tab/online wakeups still obey the cap.
+    const recovery=startPolling(async()=>{if(exhausted&&!authExpired&&!s.connected&&Date.now()>=retryAt){exhausted=false;s.connect();}},{delay:()=>60000});
+    s.on('connect', () => { setConnected(true);watchCurrent(); });
+    const ping=async()=>{if(!s.connected||document.hidden)return;const started=performance.now();try{await s.timeout(4000).emitWithAck('net-ping');setLatency(Math.round(performance.now()-started));}catch{setLatency(null);}};s.on('connect',ping);const pingTimer=setInterval(ping,15000);void ping();
+    s.on('disconnect', reason => {setConnected(false);setLatency(null);if(reason==='io server disconnect')authExpired=true;});
+    s.on('connect_error', (error:any) => {setConnected(false);
+      if([401,403].includes(error.data?.status)){authExpired=true;s.disconnect();setError(error.message);}
+      else if(!s.active){exhausted=true;retryAt=Date.now()+60000;}
+    });
+    s.on('room', (next: Room) => { if (!archivedRef.current && next?.id && roomRef.current?.id === next.id) void acceptRoom(next); });
     s.on('room-closed', (payload: { id?: string; message?: string }) => {
       if (payload?.id) setRecent(prev => prev.filter(r => r.id !== payload.id));
       if (!archivedRef.current && roomRef.current?.id === payload?.id) {
@@ -133,14 +154,20 @@ export default function App() {
         setToast(payload?.message || 'Bàn đã bị hủy và xóa do không hoạt động quá 5 phút.');
       }
     });
-    return () => {clearInterval(pingTimer);s.disconnect();socket.current=null;};
-  }, [user?.id, user?.account]);
+    return () => {recovery.stop();clearInterval(pingTimer);s.disconnect();socket.current=null;};
+  }, [user]);
   useEffect(() => {
     if (!room || archived) return;
-    socket.current?.timeout(5000).emit('watch-room',room.id,(error:Error|null,data:any)=>{if(!error&&data?.room)acceptRoom(data.room);});
-    const t = setInterval(() => { api(`/rooms/${room.id}`).then(d => acceptRoom(d.room)).catch(e => { if (e instanceof ApiError && e.status === 401) setError('Phiên đã hết hạn. Hãy đăng nhập lại.'); else if (e instanceof ApiError && (e.status === 404 || e.status === 410)) { roomRef.current = null; setRoom(null); setPage('rooms'); history.replaceState(null, '', '/'); setToast(e.message || 'Bàn đã bị hủy và xóa do không hoạt động quá 5 phút.'); } }); }, connected?30000:5000);
-    return () => clearInterval(t);
+    const id=room.id;let stopped=false;
+    const poll=startPolling(async()=>{
+      try{const data=await api('/rooms/'+encodeURIComponent(id));if(!stopped)await acceptRoom(data.room,false);}
+      catch(e){if(!stopped){if(e instanceof ApiError&&e.status===401)setError(e.message);
+        else if(e instanceof ApiError&&[403,404,410].includes(e.status)){roomRef.current=null;setRoom(null);setPage('rooms');history.replaceState(null,'','/');setToast(e.message);}}
+        throw e;}
+    },{delay:()=>socket.current?.connected?30000:5000});
+    return()=>{stopped=true;poll.stop();};
   }, [room?.id,archived,connected]);
+  useEffect(()=>{watchCurrent();},[room?.id,archived]);
   useEffect(() => {
     const onPop = () => {
       const url=new URL(window.location.href), link=publicGameLink(url);
@@ -222,8 +249,8 @@ export default function App() {
     } catch (e) { notifyError(e); } finally { setBusy(false); }
   }
   async function act(action: string, move?: number|PracticeMove) {
-    if (!room || busy || archived) return;
-    setBusy(true); setError('');
+    if (!room || busy || archived || actionPending.current) return;
+    actionPending.current=true;setBusy(true); setError('');
     const body = { actionId: crypto.randomUUID(), version: room.version, ...(typeof move==='number'?{cell:move}:move?moveRequest(move):{}), action };
     try {
       const data=await gameAction(socket.current,'room',room.id,body);
@@ -241,7 +268,7 @@ export default function App() {
           checkmate: data.room.game.phase === 'finished' && data.room.game.result?.reason === 'checkmate',
         });
       }
-    } catch (e) { notifyError(e); try { const data = await api(`/rooms/${room.id}`); acceptRoom(data.room); } catch {} } finally { setBusy(false); }
+    } catch (e) { notifyError(e); try { const data = await api(`/rooms/${room.id}`); await acceptRoom(data.room,false); } catch {} } finally { actionPending.current=false;setBusy(false); }
   }
   const nav = [{page:'matchmaking' as Page,label:t('Tìm trận'),icon:Swords},{page:'rankings' as Page,label:t('Xếp hạng'),icon:Trophy},{ page: 'home' as Page, label: t('Chơi cờ'), icon: Home }, { page: 'practice' as Page, label: t('Chơi với máy'), icon: Bot }, { page: 'rooms' as Page, label: t('Phòng của tôi'), icon: DoorOpen }, { page: 'history' as Page, label: t('Lịch sử'), icon: History }, { page: 'rules' as Page, label: t('Luật'), icon: BookOpen }];
   const errorBox = error ? <div className="error-box" role="alert">{t(error)}</div> : null;
