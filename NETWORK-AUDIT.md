@@ -68,19 +68,20 @@ FE `src/request-diagnostics.ts:1` đếm theo nhóm endpoint, xóa query và ID 
 
 ## Số đo và kiểm thử
 
-Môi trường: Windows, Node 24.20.0, Chrome headless, production build, backend HTTP + Socket.IO với PGlite tách biệt. Cùng toolchain build cho các mốc Git để so sánh code ứng dụng. Dữ liệu chỉ là tài khoản/ván test; không kết nối DB production. HTTP dưới đây là request trình duyệt quan sát, không cộng frame WebSocket. Chi tiết: [browser.json](docs/audit-2026-11-24/browser.json), [scenarios.json](docs/audit-2026-11-24/scenarios.json).
+Môi trường: Windows, Node 24.20.0, Chrome headless, production build, backend HTTP + Socket.IO với PGlite tách biệt. Cùng toolchain build cho các mốc Git để so sánh code ứng dụng; đây không phải bundle CDN lưu lại từ ngày triển khai. Dữ liệu chỉ là tài khoản/ván test; không kết nối DB production. `loadCount` gồm lượt tải tài nguyên từ cache trình duyệt. `networkRequests` dùng Chrome DevTools Protocol để trừ cache; không cộng frame WebSocket. Request ra mạng ở localhost vẫn không phải số CDN production. Chi tiết: [browser.json](docs/audit-2026-11-24/browser.json), [scenarios.json](docs/audit-2026-11-24/scenarios.json).
 
 | Kịch bản | Trước sửa | Sau sửa hoặc kết quả đo |
 | --- | --- | --- |
-| Tải home, viewport 1440×1000, cache mới | `bf59ae6`: 50 HTTP; `4815172`: 50 HTTP | 50 HTTP. Mỗi bản có 4 API, 15 request font ngoài origin, 35 request cùng origin; handshake WebSocket được theo dõi riêng, không nằm trong 50. |
+| Tải home, viewport 1440×1000, cache mới | `bf59ae6`: 48 ra mạng + 2 cache; `4815172`: 49 ra mạng + 1 cache | 49 ra mạng + 1 cache. Mỗi bản có 4 API và 15 request font ngoài origin. Request cùng origin thực: 33 trước 20/11, 34 ở deployment và bản sửa; handshake WebSocket được theo dõi riêng. |
 | Home để yên ít nhất 300 giây thực | Cả hai mốc: 0 HTTP mới | 0 HTTP mới; thời gian đo bản sửa 300.011 ms. Không tái hiện storm từ home. |
 | Một stream thiếu move history | Code `4815172`: 1.000 GET rồi test cắt | Test hồi quy: một recovery đang chạy; snapshot liên tục lỗi chỉ được tối đa 3 lần tự phục hồi. |
 | 100 packet lỗi liên tiếp trong Chrome | Chưa đo bản cũ trong Chrome | Số GET thực tế và poll trùng thời điểm nằm trong scenarios.json; không tăng theo số packet. Unit test xác nhận một recovery. |
 | Backend chậm 12 giây | Interval có thể phát tick mới khi request cũ còn chờ | Test fake timer tiến 12 giây: chỉ một lần gọi trong khi Promise chưa hoàn tất. |
 | Outage 300 giây mô phỏng | Nhịp phòng 5 giây: khoảng 60 tick, tính từ cấu hình, không phải số đo production | Test backoff: tối đa 10 lần gọi, không overlap; Retry-After 120 giây không sinh thêm timer thứ hai. |
-| Chơi online thực | Nhịp khỏe mạnh vốn là 30 giây | Browser thực hiện hai nước đi, không POST action HTTP khi socket khỏe; counts theo path ở scenarios.json. Bộ test online chạy 16 loại, 127 nước đi, 0 lỗi. |
-| Mất mạng 20 giây rồi bật lại | Chưa có benchmark browser cũ tương đương | Browser cắt transport và offline context, tự kết nối lại sau phục hồi; count riêng tab ảnh hưởng nằm trong scenarios.json. |
-| Chuyển/mở nhiều tab | Mỗi tab có socket và poll riêng | Ba tab, hai lần chuyển; đo request và document.hidden trong scenarios.json. Unit test riêng xác nhận hidden dừng poll. Giữ socket ở các tab để không mất cập nhật nước đi. |
+| Chơi online thực | Nhịp khỏe mạnh vốn là 30 giây | Hai nước đi trong 32 giây: 2 GET room thực ra mạng cho hai tab, 2 lượt ảnh brand dùng cache trình duyệt, 0 POST action HTTP, 8 frame socket gửi đi. Bộ test online chạy 16 loại, 127 nước đi, 0 lỗi. |
+| Mất mạng 20 giây rồi bật lại | Chưa có benchmark browser cũ tương đương | Tab offline có 4 lần thử /socket.io, không poll API khi navigator báo offline; tự kết nối lại khi phục hồi. |
+| Backend thực dừng 20 giây rồi mở lại | Chưa có benchmark browser cũ tương đương | Dừng HTTP listener khi navigator vẫn online: tổng hai tab thử 8 /socket.io và 4 GET room; listener mở lại và realtime tự khôi phục. Đây là request thử trong lúc không có server, không phải request được CDN/backend phục vụ. |
+| Chuyển/mở nhiều tab | Mỗi tab có socket và poll riêng | Ba tab, hai lần chuyển, quan sát 1 request trong cửa sổ đo, không tăng thành chuỗi. Chrome headless báo cả ba document.hidden=false nên phép đo này không chứng minh tab ẩn thực; unit test riêng xác nhận hidden dừng poll. Giữ socket ở các tab để không mất cập nhật nước đi. |
 | Rời phòng | Response về muộn từng có thể thay state practice | Không mở lại bởi packet muộn; tab đã rời không GET phòng trong 33 giây. |
 | Logout/hết hạn | Poll 401 vẫn tiếp tục | 401 dừng scheduler, Socket.IO báo terminal 401; logout thực trả 401 khi đọc phòng bằng phiên đã thu hồi. |
 | ACK bị mất, retry nước đi | SQL đã có receipts và version | Test socket→HTTP giữ actionId, chỉ một HTTP fallback; test online gửi lại 127 hành động qua HTTP, không tăng số nước đi/version. |
