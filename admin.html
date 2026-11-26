@@ -9,14 +9,14 @@
     <link rel="icon" type="image/jpeg" href="/thumbs/sanco-brand.jpg">
     <style>
       html,body{margin:0;min-height:100%;background:#101713;color:#e8f0eb;font-family:system-ui,sans-serif}
-      .ad-bootstrap{max-width:480px;margin:12vh auto;padding:32px;border:1px solid #3d533e;border-radius:16px;background:#1a291f;text-align:center;line-height:1.7}
-      .ad-bootstrap h1{font-size:24px;margin:12px 0}.ad-bootstrap p{color:#bdcebd}.ad-bootstrap button{padding:12px 20px;border:0;border-radius:8px;background:#afd9a7;color:#122519;font:inherit;cursor:pointer}.ad-bootstrap a{color:#b3dcb2;display:block;margin-top:16px}
-      @media(max-width:540px){.ad-bootstrap{margin:8vh 16px;padding:24px}}
+      .sanco-admin-bootstrap{max-width:480px;margin:12vh auto;padding:32px;border:1px solid #3d533e;border-radius:16px;background:#1a291f;text-align:center;line-height:1.7}
+      .sanco-admin-bootstrap h1{font-size:24px;margin:12px 0}.sanco-admin-bootstrap p{color:#bdcebd}.sanco-admin-bootstrap button{padding:12px 20px;border:0;border-radius:8px;background:#afd9a7;color:#122519;font:inherit;cursor:pointer}.sanco-admin-bootstrap a{color:#b3dcb2;display:block;margin-top:16px}
+      @media(max-width:540px){.sanco-admin-bootstrap{margin:8vh 16px;padding:24px}}
     </style>
   </head>
   <body>
-    <div id="root"><main class="ad-bootstrap"><strong>SÂN CỜ</strong><h1>Trang quản trị</h1><p role="status">Đang tải trang quản trị…</p></main></div>
-    <noscript><p class="ad-bootstrap">Bật JavaScript trong trình duyệt để mở trang quản trị.</p></noscript>
+    <div id="root"><main class="sanco-admin-bootstrap"><strong>SÂN CỜ</strong><h1>Trang quản trị</h1><p role="status">Đang tải trang quản trị…</p></main></div>
+    <noscript><p class="sanco-admin-bootstrap">Bật JavaScript trong trình duyệt để mở trang quản trị.</p></noscript>
     <script>
       (() => {
         const root = document.getElementById('root');
@@ -24,7 +24,7 @@
         const recover = () => {
           if (failed || root.hasAttribute('data-admin-mounted')) return;
           failed = true;
-          const panel = document.createElement('main'); panel.className = 'ad-bootstrap'; panel.setAttribute('role','alert');
+          const panel = document.createElement('main'); panel.className = 'sanco-admin-bootstrap'; panel.setAttribute('role','alert');
           const title = document.createElement('h1'); title.textContent = 'Chưa tải được trang quản trị';
           const message = document.createElement('p'); message.textContent = 'Kết nối bị gián đoạn hoặc trình duyệt đang giữ bản cũ. Tải lại để mở phiên bản mới nhất.';
           const retry = document.createElement('button'); retry.textContent = 'Tải lại trang quản trị'; retry.onclick = () => { const url = new URL(location.href); url.searchParams.set('reload',String(Date.now())); location.replace(url.href); };

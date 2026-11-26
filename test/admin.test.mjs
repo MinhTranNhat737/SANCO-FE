@@ -82,6 +82,19 @@ test('Overview uses real statistics and navigation supports pagination and filte
   const last = requests.filter(r=>r.path==='/api/admin/users').at(-1);assert.equal(last.params.get('status'),'suspended');assert.equal(last.params.get('page'),'1');
   await click(button('Chỉnh sửa')); const toggles=document.querySelectorAll('dialog input[type="checkbox"]');assert.equal(toggles[0].disabled,true);assert.equal(toggles[1].disabled,true);
 });
+
+test('Generic advertising filters do not hide the admin navigation or dashboard data',async()=>{
+  const filters=document.createElement('style');filters.textContent='.ad-main,.ad-sidebar,.ad-card{display:none!important}';document.head.append(filters);
+  const previousContainer=document.createElement('div');previousContainer.className='ad-main';document.body.append(previousContainer);
+  assert.equal(window.getComputedStyle(previousContainer).display,'none','The filter must reproduce the previous hidden dashboard');previousContainer.remove();
+  await render();
+  for(const selector of ['.sanco-admin-main','.sanco-admin-sidebar','.sanco-admin-card','.sanco-admin-stats']){
+    const element=document.querySelector(selector);assert.ok(element,selector);assert.notEqual(window.getComputedStyle(element).display,'none',selector);
+  }
+  assert.match(document.querySelector('.sanco-admin-stats').textContent,/42/);
+  await click(button('Người dùng'));assert.match(document.querySelector('tbody').textContent,/admin@example.test/);
+  assert.notEqual(window.getComputedStyle(document.querySelector('.sanco-admin-data')).display,'none');
+});
 test('Report review retains edits after a failed save and successfully retries', async () => {
   await render();await click(button('Góp ý & báo cáo'));await click(button('Xử lý'));
   assert.match(document.querySelector('dialog').textContent,/Góp ý đầy đủ/);
@@ -92,8 +105,8 @@ test('Report review retains edits after a failed save and successfully retries',
   failure=false;await submit(document.querySelector('dialog form'));assert.equal(document.querySelector('dialog'),null);assert.equal(report.status,'resolved');assert.match(document.body.textContent,/Đã lưu xử lý góp ý/);
 });
 test('Site configuration writes actual booleans and returns a success state', async () => {
-  await render();await click(button('Cấu hình website'));const toggles=document.querySelectorAll('.ad-settings input[type="checkbox"]');
-  await click(toggles[0]);await submit(document.querySelector('.ad-settings'));
+  await render();await click(button('Cấu hình website'));const toggles=document.querySelectorAll('.sanco-admin-settings input[type="checkbox"]');
+  await click(toggles[0]);await submit(document.querySelector('.sanco-admin-settings'));
   assert.equal(settings.registration_enabled,false);assert.equal(settings.rooms_enabled,true);assert.match(document.body.textContent,/Đã lưu cấu hình website/);
 });
 test('Losing backend admin permission removes the dashboard immediately', async () => {
