@@ -6,7 +6,7 @@ import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BoardGesture } from './three/board-gesture.ts';
-import { PARTY_SIDES, MONOPOLY_SIDES, PARTY_COLORS, ludoCell, worldPoint, ludoRoute, estatePoint, estateBounds, estateBoardSize, estateWorld, estatePixelRatio, estateIndexAt, VN_SQUARE, type EstateLayout, type EstateSize } from './three/party-layout.ts';
+import { PARTY_SIDES, MONOPOLY_SIDES, PARTY_COLORS, ludoCell, worldPoint, ludoRoute, estatePoint, estateBounds, estateBoardSize, estateWorld, estatePixelRatio, estateIndexAt, VN_RECT, type EstateLayout, type EstateSize } from './three/party-layout.ts';
 import { SURFACE, table, horse, estateToken, estateAssets, occupiedCallouts, dice, diceRotation, tabletopProps, dispose } from './three/party-models.ts';
 import { playWoodStepSound } from './sound-effects';
 import { DiceRollQueue, sampleDiceThrow, randomThrowVariant, THROW_DURATION, type DiceRoll, type DiceThrowVariant } from './three/dice-motion.ts';
@@ -52,7 +52,7 @@ export default function ScenePartyBoard(props: Props) {
     const fill = new T.DirectionalLight('#c4e0d5', .45); fill.position.set(7, 5, -7); scene.add(fill);
     let environment: T.WebGLRenderTarget | undefined;
     try { const pmrem = new T.PMREMGenerator(renderer), room = new RoomEnvironment(); environment = pmrem.fromScene(room, .04); scene.environment = environment.texture; scene.environmentIntensity = .35; room.dispose(); pmrem.dispose(); } catch {/* Directional lighting remains available on low-end devices. */ }
-    const vietnam = props.kind === 'monopoly' && props.state.edition === 'vn-v2', estateSize: EstateSize = vietnam ? (props.layout ?? VN_SQUARE) : 6, trackLength = vietnam ? 48 : 20, boardDims = estateBoardSize(estateSize), boardW = boardDims.width / 60, boardD = boardDims.height / 60;
+    const vietnam = props.kind === 'monopoly' && props.state.edition === 'vn-v2', estateSize: EstateSize = vietnam ? (props.layout ?? VN_RECT) : 6, trackLength = vietnam ? 48 : 20, boardDims = estateBoardSize(estateSize), boardW = boardDims.width / 60, boardD = boardDims.height / 60;
     const staticItems = new T.Group(); const gameTable = table(props.kind, { wood: woodTexture, board: (kind, edition) => boardTexture(kind, edition, boardTheme, estateSize), label: labelTexture }, props.state.edition, estateSize); staticItems.add(gameTable); scene.add(staticItems);
     const felt = new T.Mesh(new T.CircleGeometry(24, 80), new T.MeshStandardMaterial({ color: '#112b21', roughness: 1 })); felt.rotation.x = -Math.PI / 2; felt.position.y = -.33; felt.receiveShadow = true; staticItems.add(felt);
     if (props.kind === 'monopoly') { const propsRoot = tabletopProps(); if (vietnam) propsRoot.scale.set(.62, 1, .62); staticItems.add(propsRoot); }

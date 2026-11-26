@@ -2,9 +2,9 @@ import { t } from './language.ts';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Scan, LocateFixed } from 'lucide-react';
-import { estateBounds, estateBoardSize, VN_SQUARE, type EstateLayout } from './three/party-layout.ts';
+import { estateBounds, estateBoardSize, VN_RECT, type EstateLayout } from './three/party-layout.ts';
 
-export default function EstateBoardViewport({ children, position, movingPosition = null, isWalking = false, busy, view, topView, onFocusPiece, immersive = false, toolsTarget, layout = VN_SQUARE }: { children: ReactNode; position: number; movingPosition?: number | null; isWalking?: boolean; busy: boolean; view: '2d' | '3d'; topView: boolean; onFocusPiece: () => void; immersive?: boolean; toolsTarget?: HTMLElement | null; layout?: EstateLayout }) {
+export default function EstateBoardViewport({ children, position, movingPosition = null, isWalking = false, busy, view, topView, onFocusPiece, immersive = false, toolsTarget, layout = VN_RECT }: { children: ReactNode; position: number; movingPosition?: number | null; isWalking?: boolean; busy: boolean; view: '2d' | '3d'; topView: boolean; onFocusPiece: () => void; immersive?: boolean; toolsTarget?: HTMLElement | null; layout?: EstateLayout }) {
   const [size, setSize] = useState(() => immersive ? 0 : 1560);
   const viewport = useRef<HTMLDivElement>(null);
   const lastFocus = useRef('');

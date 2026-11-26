@@ -15,7 +15,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'rea
 import { Box, Layers, RotateCcw, Dice5, Flag, Gavel, Trophy } from 'lucide-react';
 import { moveRequest, type EstateEvent, type GameKind, type PartyState, type PracticeMove } from './practice-types';
 import Board3DBoundary from './Board3DBoundary';
-import { PARTY_SIDES as SIDES, PARTY_COLORS as COLORS, CITIES, GROUP_COLORS, LUDO_PATH as PATH, LUDO_SAFE as SAFE, groupOf, estateCell as ring, bestVnLayout, VN_SQUARE, type EstateLayout } from './three/party-layout.ts';
+import { PARTY_SIDES as SIDES, PARTY_COLORS as COLORS, CITIES, GROUP_COLORS, LUDO_PATH as PATH, LUDO_SAFE as SAFE, groupOf, estateCell as ring, bestVnLayout, VN_RECT, type EstateLayout } from './three/party-layout.ts';
 import './party.css';
 export { COLORS, CITIES };
 const ScenePartyBoard = lazy(() => import('./ScenePartyBoard'));
@@ -95,9 +95,9 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
   const seenPartyRef = useRef(partySig);
 
   const vietnam = kind === 'monopoly' && isVietnam(state), fullscreen = vietnam && immersive;
-  const [vnLayout, setVnLayout] = useState<EstateLayout>(VN_SQUARE);
+  const [vnLayout, setVnLayout] = useState<EstateLayout>(VN_RECT);
   useEffect(() => {
-    if (!fullscreen) { setVnLayout(VN_SQUARE); return; }
+    if (!fullscreen) { setVnLayout(VN_RECT); return; }
     const measure = () => {
       const el = stageRef.current;
       const w = el?.clientWidth || 0, h = el?.clientHeight || 0;

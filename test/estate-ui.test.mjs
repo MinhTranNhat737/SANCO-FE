@@ -50,7 +50,7 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   assert.equal(button('Thu nhỏ'),undefined,'Zoom-out button removed from menu');
   await click(button('Toàn bàn'));assert.ok(document.querySelector('.estate-board-viewport.is-fit'));
   assert.equal(viewport.scrollLeft,0);assert.equal(viewport.scrollTop,0);
-  const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.equal(court.getAttribute('width'),'660');
+  const court=document.querySelector('.vn-estate-flat .board-svg-center');assert.equal(court.getAttribute('width'),'900');
   const callout=document.querySelector('.vn-occupied-callout[data-callout-cell="0"]');
   assert.ok(callout,'Occupied tile pops out a side callout label so standing tokens never hide the tile name');
   assert.match(callout.textContent,/Xuất phát/);
@@ -321,10 +321,10 @@ test('Fullscreen board locks Xuất phát, Thăm tù, Nghỉ chân and Vào tù 
     const stage=document.querySelector('.party-stage-wrap');
     Object.defineProperties(stage,{clientWidth:{get:()=>stageW,configurable:true},clientHeight:{get:()=>stageH,configurable:true}});
     await act(async()=>{observers.forEach(o=>o.trigger());});
-    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'13x13');
+    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'17x9');
     const edgeRect=document.querySelector('[data-cell-index="1"] rect');
     const edgeArea=Number(edgeRect.getAttribute('width'))*Number(edgeRect.getAttribute('height'));
-    for(const idx of [0,12,24,36]){
+    for(const idx of [0,16,24,40]){
       const lot=document.querySelector(`[data-cell-index="${idx}"]`);
       assert.equal(lot.getAttribute('data-corner'),'true',`Corner ${idx} must be at a physical corner`);
       const r=lot.querySelector('rect'),w=Number(r.getAttribute('width')),h=Number(r.getAttribute('height'));
@@ -333,11 +333,11 @@ test('Fullscreen board locks Xuất phát, Thăm tù, Nghỉ chân and Vào tù 
     }
     assert.match(document.querySelector('[data-cell-index="0"]').textContent,/\+500 tr/);
     assert.match(document.querySelector('[data-cell-index="24"]').textContent,/\+100 tr/);
-    // Collapse HUD -> stays 13x13 so all 4 special tiles remain locked in the 4 corners!
+    // Collapse HUD -> stays 17x9 widescreen rectangle with all 4 special tiles locked in the 4 corners!
     await click(document.querySelector('[aria-label="Thu gọn HUD"]'));
     stageW=1920;stageH=1080;
     await act(async()=>{observers.forEach(o=>o.trigger());});
-    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'13x13');
+    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'17x9');
   }finally{
     globalThis.ResizeObserver=OrigRO;
   }

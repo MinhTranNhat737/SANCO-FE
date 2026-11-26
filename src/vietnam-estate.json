@@ -10,17 +10,17 @@
   "specials": {
     "0": {"name":"Xuất phát","type":"start"},
     "4": {"name":"Quỹ cộng đồng","type":"community"},
-    "6": {"name":"Ga Lào Cai","type":"station","price":350},
-    "9": {"name":"Thuế thu nhập","type":"tax","amount":200},
-    "12": {"name":"Thăm tù","type":"jail"},
-    "15": {"name":"Điện quốc gia","type":"utility","price":300},
-    "18": {"name":"Ga Hà Nội","type":"station","price":350},
+    "8": {"name":"Ga Lào Cai","type":"station","price":350},
+    "12": {"name":"Thuế thu nhập","type":"tax","amount":200},
+    "16": {"name":"Thăm tù","type":"jail"},
+    "20": {"name":"Ga Hà Nội","type":"station","price":350},
     "24": {"name":"Nghỉ chân","type":"rest"},
-    "27": {"name":"Cơ hội","type":"chance"},
-    "30": {"name":"Ga Đà Nẵng","type":"station","price":350},
-    "33": {"name":"Nước sạch","type":"utility","price":300},
-    "36": {"name":"Vào tù","type":"gotojail"},
-    "39": {"name":"Thuế tài sản","type":"tax","amount":150},
-    "42": {"name":"Ga Sài Gòn","type":"station","price":350}
+    "28": {"name":"Cơ hội","type":"chance"},
+    "31": {"name":"Điện quốc gia","type":"utility","price":300},
+    "34": {"name":"Ga Đà Nẵng","type":"station","price":350},
+    "37": {"name":"Nước sạch","type":"utility","price":300},
+    "40": {"name":"Vào tù","type":"gotojail"},
+    "43": {"name":"Thuế tài sản","type":"tax","amount":150},
+    "45": {"name":"Ga Sài Gòn","type":"station","price":350}
   }
 }

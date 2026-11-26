@@ -18,22 +18,23 @@ export type EstateLayout={cols:number;rows:number;unit:number};
 export type EstateSize=number|EstateLayout;
 export const VN_TILE=600/13;
 /**
- * Corner/depth ratio (1.48x edge width): makes the 4 corner squares (Xuất phát, Thăm tù,
- * Nghỉ chân, Vào tù) the biggest tiles on the board while keeping edge tiles comfortably proportioned.
+ * Corner/depth ratio (1.44x edge width): makes the 4 corner squares (Xuất phát #0, Thăm tù #16,
+ * Nghỉ chân #24, Vào tù #40) the biggest tiles on the 17x9 widescreen rectangular board.
  */
-export const VN_CORNER_RATIO=1.48;
+export const VN_CORNER_RATIO=1.44;
 const VN_LAYOUTS:Record<number,EstateLayout>=Object.fromEntries([13,14,15,16,17,18].map(cols=>[cols,Object.freeze({cols,rows:26-cols,unit:VN_TILE})]));
-export function vnLayout(cols=13):EstateLayout{return VN_LAYOUTS[Math.max(13,Math.min(18,Math.round(cols)))];}
+export function vnLayout(cols=17):EstateLayout{return VN_LAYOUTS[Math.max(13,Math.min(18,Math.round(cols)))];}
 export const VN_SQUARE=vnLayout(13);
+export const VN_RECT=vnLayout(17);
 function cornerRatio(size:EstateSize){const l=estateLayout(size);return l.cols+l.rows>=20?VN_CORNER_RATIO:1;}
 /** Lot size (screen px) each Vietnam layout would get inside a width x height area. */
 export function vnTileSize(layout:EstateLayout,width:number,height:number,margin=.3){
   const extra=2*(VN_CORNER_RATIO-1);
   return Math.min(width/(layout.cols+extra+margin),height/(layout.rows+extra+margin));
 }
-/** Always keep the 13x13 ring so Xuất phát (0), Thăm tù (12), Nghỉ chân (24) and Vào tù (36) stay locked to the 4 largest corners. */
+/** Always use the 17x9 widescreen rectangle so tiles are maximally large AND Xuất phát (0), Thăm tù (16), Nghỉ chân (24), Vào tù (40) stay locked to the 4 largest corners. */
 export function bestVnLayout(_width:number,_height:number):EstateLayout{
-  return VN_SQUARE;
+  return VN_RECT;
 }
 export function estateLayout(size:EstateSize=6):EstateLayout{return typeof size==='number'?(size===13?VN_SQUARE:{cols:size,rows:size,unit:600/size}):size;}
 export function estateBoardSize(size:EstateSize=6,extent=600){

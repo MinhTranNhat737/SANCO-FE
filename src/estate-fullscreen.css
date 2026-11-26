@@ -256,7 +256,7 @@ body:has(.estate-immersive) #root :is(.sidebar,.topbar,.footer),body:has(.estate
   position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;overflow:hidden;
 }
 .estate-setup-bg .vn-estate-flat {
-  width:min(94vw,94dvh);max-width:none;aspect-ratio:1;
+  width:min(96vw,calc(94dvh * 1.81));max-width:none;aspect-ratio:1.81;
   filter:blur(7px) brightness(.44) saturate(.88);
   transform:scale(1.04);opacity:.92;border-radius:14px;overflow:hidden;
 }

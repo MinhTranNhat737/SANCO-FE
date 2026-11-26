@@ -83,14 +83,15 @@ test('All adaptive 48-lot widescreen layouts (13x13..18x8) keep exact square til
     const usedArea=bounds.reduce((sum,b)=>sum+b.width*b.height,0),center=estateCenterBounds(layout);
     assert.ok(Math.abs(usedArea+center.width*center.height-board.width*board.height)<1e-6);
   }
-  // bestVnLayout always preserves the 13x13 ring so Xuất phát (0), Thăm tù (12), Nghỉ chân (24), Vào tù (36) stay locked to the 4 largest corners
-  for(const [w,h] of [[1660,1080],[1920,1080],[2560,1080],[390,844]]){
+  // bestVnLayout uses the 17x9 widescreen rectangle so tiles are maximally large AND Xuất phát (0), Thăm tù (16), Nghỉ chân (24), Vào tù (40) stay locked to the 4 largest corners
+  for(const [w,h] of [[1660,1080],[1920,1080],[2560,1080],[844,390]]){
     const layout=bestVnLayout(w,h);
-    assert.equal(layout.cols,13);assert.equal(layout.rows,13);
-    for(const cornerIdx of [0,12,24,36]){
+    assert.equal(layout.cols,17);assert.equal(layout.rows,9);
+    for(const cornerIdx of [0,16,24,40]){
       assert.equal(isEstateCorner(cornerIdx,layout),true,`Index ${cornerIdx} (${VN_CELLS[cornerIdx].name}) must sit at a corner`);
       const cb=estateBounds(cornerIdx,layout),eb=estateBounds(1,layout);
       assert.ok(cb.width*cb.height>eb.width*eb.height*1.4,'The 4 corner tiles must be significantly larger than every edge tile');
     }
+    assert.ok(vnTileSize(layout,1660,950)>vnTileSize(VN_SQUARE,1660,950)*1.3,'17x9 tiles must be >30% larger linearly than 13x13 on widescreen');
   }
 });

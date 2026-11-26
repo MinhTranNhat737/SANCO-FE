@@ -218,7 +218,7 @@ function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme,layout:Estat
   const stripDepth=Math.min(14,Math.max(10,Math.round(board.unit*.27)));
   VN_CELLS.forEach(c=>{
     const b=estateBounds(c.index,layout),w=b.width,h=b.height;
-    const physCorner=isEstateCorner(c.index,layout),specialCorner=c.index%12===0;
+    const physCorner=isEstateCorner(c.index,layout),specialCorner=['start','jail','rest','gotojail'].includes(c.type);
     const edge=estateEdge(c.index,layout),vertical=edge===1||edge===3;
     const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:c.type==='station'?'#475569':c.type==='utility'?'#b45309':c.type==='tax'?'#7f1d1d':'#4b5563';
     const price=own?String(c.price):c.type==='start'?'+500 tr':c.type==='rest'?'+100 tr':c.type==='tax'?'−'+c.amount:'';

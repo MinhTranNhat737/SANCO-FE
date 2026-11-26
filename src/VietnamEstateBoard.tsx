@@ -1,7 +1,7 @@
 import { t } from './language.ts';
 import type { PartyState, PracticeMove } from './practice-types';
 import { VN_CELLS, VN_GROUP_COLORS, SIDE_NAMES, cash, estateRent, ownable } from './estate-data';
-import { estateBounds, estateCenterBounds, estateBoardSize, estateEdge, isEstateCorner, estateTitleLines, VN_SQUARE, PARTY_COLORS, CITIES, GROUP_COLORS, groupOf, type EstateLayout } from './three/party-layout.ts';
+import { estateBounds, estateCenterBounds, estateBoardSize, estateEdge, isEstateCorner, estateTitleLines, VN_RECT, PARTY_COLORS, CITIES, GROUP_COLORS, groupOf, type EstateLayout } from './three/party-layout.ts';
 import { PROVINCE_LANDMARKS, type LandmarkKind } from './vietnam-landmarks';
 import { useId } from 'react';
 import './estate.css';
@@ -329,7 +329,7 @@ function FlatPlayerToken({ cx, cy, side, cell, index, isMine, isTurn, compact = 
   </g>;
 }
 
-export default function VietnamEstateBoard({ state, mySide, selected, onSelect, layout = VN_SQUARE, justPurchasedLot = null, justPurchasedKey = 0, justPurchasedLots, auctionLot = null, tileFx = null }: { state: PartyState; mySide: string; selected: number; onSelect: (index: number) => void; layout?: EstateLayout; justPurchasedLot?: number | null; justPurchasedKey?: number; justPurchasedLots?: number[]; auctionLot?: number | null; tileFx?: { lot: number; type: string; amount: number; key: number } | null }) {
+export default function VietnamEstateBoard({ state, mySide, selected, onSelect, layout = VN_RECT, justPurchasedLot = null, justPurchasedKey = 0, justPurchasedLots, auctionLot = null, tileFx = null }: { state: PartyState; mySide: string; selected: number; onSelect: (index: number) => void; layout?: EstateLayout; justPurchasedLot?: number | null; justPurchasedKey?: number; justPurchasedLots?: number[]; auctionLot?: number | null; tileFx?: { lot: number; type: string; amount: number; key: number } | null }) {
   const activePlayers = state.players.filter(v => v.active);
   const turnSide = (state as { turn?: string }).turn;
   const glowId = useId().replaceAll(':', '');
@@ -353,7 +353,7 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
     </g>
     {VN_CELLS.map(c => {
       const cell = bounds(c.index), w = cell.width, h = cell.height, owned = state.property[c.index], lvl = state.houses[c.index] || 0;
-      const physCorner = isEstateCorner(c.index, layout), specialCorner = c.index % 12 === 0, edge = estateEdge(c.index, layout), vertical = edge === 1 || edge === 3;
+      const physCorner = isEstateCorner(c.index, layout), specialCorner = ['start', 'jail', 'rest', 'gotojail'].includes(c.type), edge = estateEdge(c.index, layout), vertical = edge === 1 || edge === 3;
       const rows = estateTitleLines(c.name, true), occupied = occupiedByCell.has(c.index);
       const color = owned ? TOKEN_STYLES[owned]?.fill || PARTY_COLORS[owned] : '#111827';
       const accent = c.group !== undefined ? CLASSIC_GROUP_COLORS[c.group] || VN_GROUP_COLORS[c.group] : c.type === 'station' ? '#475569' : c.type === 'utility' ? '#b45309' : c.type === 'tax' ? '#b91c1c' : '#64748b';
