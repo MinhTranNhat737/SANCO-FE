@@ -14,6 +14,8 @@ npm run admin:grant -- owner@example.com
 
 Dashboard có các mục Tổng quan, Người dùng, Phòng chơi, Lịch sử ván đấu, Luyện tập, Góp ý & báo cáo, Cấu hình website và Nhật ký quản trị. Danh sách hỗ trợ tìm kiếm, bộ lọc phù hợp, phân trang 20 bản ghi và xuất CSV của trang hiện tại. Nút Làm mới tải dữ liệu mới nhất. Hủy phòng và thu hồi phiên có hộp xác nhận; khóa tài khoản yêu cầu lý do. Giao diện dùng được trên desktop và điện thoại; bảng rộng có thanh cuộn ngang.
 
+Mục Người dùng, tổng số người dùng và số trực tuyến chỉ tính tài khoản đã đăng ký. Guest là phiên chơi tạm, không nằm trong danh sách này và được backend tự dọn khi hết phiên; khách vẫn có thể chơi và đăng ký từ phiên đang dùng.
+
 Thông báo do admin lưu xuất hiện ở trang chơi cờ khi người dùng tải lại trang. Việc tạm dừng đăng ký mới và tạo phòng/tìm trận mới được backend thực thi. Không có tài khoản/mật khẩu admin mặc định. Liên kết quản trị ở thanh bên chỉ xuất hiện khi API trả về `user.admin=true`; API tiếp tục kiểm tra quyền độc lập.
 
 Kiểm tra:
