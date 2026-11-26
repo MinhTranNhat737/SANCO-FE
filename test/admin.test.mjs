@@ -59,6 +59,13 @@ test('A regular account sees the access gate and never requests admin data', asy
   assert.match(document.body.textContent,/chưa có quyền quản trị/);
   assert.ok(!requests.some(r=>r.path.startsWith('/api/admin')));
 });
+
+test('Admin login accepts provisioned passwords shorter than the registration minimum', async () => {
+  user={...admin,admin:false,account:false};await render();
+  const password = document.querySelector('input[autocomplete="current-password"]');
+  password.value='Short123!';assert.equal(password.minLength,1);assert.equal(password.checkValidity(),true);
+  password.value='';assert.equal(password.checkValidity(),false);
+});
 test('Overview uses real statistics and navigation supports pagination and filters', async () => {
   await render(); assert.match(document.body.textContent,/42/); assert.match(document.body.textContent,/PostgreSQL test/);
   await click(button('Người dùng')); assert.ok(document.querySelector('table'));assert.match(document.body.textContent,/admin@example.test/);

@@ -136,6 +136,7 @@ test('Guest can reach registration and login (with Google/Facebook) and must sig
   await click(header.querySelector('.account-button'));
   assert.equal(document.querySelector('[role="dialog"] h2').textContent,'Đăng nhập');
   assert.ok(document.querySelector('input[autocomplete="current-password"]'));
+  assert.equal(document.querySelector('input[autocomplete="current-password"]').minLength,1);
 });
 test('Home mounts, loads the session and opens the chess room without a blank render',async()=>{
   await act(async()=>root.render(createElement(Boundary,null,createElement(App))));await settle();
