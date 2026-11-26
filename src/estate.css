@@ -149,8 +149,40 @@
 .estate-fx-close{width:24px;height:24px;border-radius:999px;background:#ffffff10;border:1px solid #ffffff20;color:#e8dec8;display:grid;place-items:center;cursor:pointer}
 .estate-fx-close:hover{background:#ffffff22}
 
-.estate-card-scene{width:min(340px,92%)}
-.estate-card-front{display:flex;flex-direction:column;gap:12px;padding:15px 17px;border-radius:14px;background:#1b1611f7;border:1px solid #d4b87266;box-shadow:0 18px 40px #000a;color:#f5efe0;animation:simpleCardIn .2s ease}
+.estate-card-scene{width:min(356px,93%);display:flex;flex-direction:column;align-items:center;gap:12px}
+.estate-card-draw{perspective:1200px}
+.estate-deck-origin{position:relative;width:118px;height:46px;display:grid;place-items:center;animation:deckOriginPulse .95s cubic-bezier(.22,1,.36,1) both}
+.estate-deck-stack-layer{position:absolute;inset:0;border-radius:9px;background:#e8dcc0;border:1px solid #967b4d}
+.estate-deck-stack-layer.l3{transform:translate(5px,5px);opacity:.55}
+.estate-deck-stack-layer.l2{transform:translate(2.5px,2.5px);opacity:.8}
+.estate-deck-stack-top{position:relative;width:100%;height:100%;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid #e9c976;box-shadow:0 10px 24px #0009;color:#fff7dc}
+.deck-chance .estate-deck-stack-top{background:linear-gradient(140deg,#b42b38,#7d1924)}
+.deck-community .estate-deck-stack-top{background:linear-gradient(140deg,#1f7a5c,#134b39)}
+.estate-deck-stack-top b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#ffffff1f;border:1px solid #fde68a88;font-size:13px;color:#fde68a}
+.estate-deck-stack-top small{font-size:11px;font-weight:900;letter-spacing:1.1px}
+@keyframes deckOriginPulse{0%{opacity:0;transform:translateY(-10px) scale(.9)}35%{opacity:1;transform:translateY(3px) scale(1.04)}100%{opacity:.92;transform:translateY(0) scale(.96)}}
+
+.estate-card-static{width:100%}
+.estate-card-flipper{position:relative;width:100%;transform-style:preserve-3d;animation:estateCardDrawFlip 1.02s cubic-bezier(.22,1,.36,1) both}
+.deck-chance .estate-card-flipper{--draw-from-x:-64px}
+.deck-community .estate-card-flipper{--draw-from-x:64px}
+@keyframes estateCardDrawFlip{
+  0%{opacity:0;transform:translate3d(var(--draw-from-x,-64px),-72px,-90px) scale(.44) rotateZ(-9deg) rotateY(180deg)}
+  38%{opacity:1;transform:translate3d(0,-6px,28px) scale(1.05) rotateZ(-2deg) rotateY(180deg)}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)}
+}
+.estate-card-back{position:absolute;inset:0;border-radius:14px;padding:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);display:grid;place-items:center;border:2px solid #e9c976;box-shadow:0 22px 48px #000b}
+.deck-chance .estate-card-back{background:radial-gradient(circle at 50% 35%,#c73645,#7b1622 78%)}
+.deck-community .estate-card-back{background:radial-gradient(circle at 50% 35%,#248263,#124534 78%)}
+.estate-card-back-frame{width:100%;height:100%;min-height:132px;border-radius:10px;border:1.5px dashed #fde68a99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff7dc}
+.estate-card-back-emblem{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#ffffff1c;border:1.5px solid #fde68a;font-size:23px;font-weight:900;color:#fde68a}
+.estate-card-back-frame strong{font-size:16px;letter-spacing:1.4px;font-weight:900}
+.estate-card-back-frame small{font-size:11px;color:#f3e5bd;opacity:.9}
+
+.estate-card-front{position:relative;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;gap:12px;padding:15px 17px;border-radius:14px;background:#1b1611f7;border:1px solid #d4b87266;box-shadow:0 18px 40px #000a;color:#f5efe0}
+.estate-card-static .estate-card-front{animation:simpleCardIn .2s ease}
+.estate-card-shine{position:absolute;inset:-40% -60%;pointer-events:none;background:linear-gradient(115deg,transparent 42%,#fff6cc38 50%,transparent 58%);transform:translateX(-80%);animation:cardShineSweep 1.25s .45s ease-out forwards}
+@keyframes cardShineSweep{0%{transform:translateX(-80%)}100%{transform:translateX(85%)}}
 .deck-chance .estate-card-front{border-top:3px solid #d94862}
 .deck-community .estate-card-front{border-top:3px solid #22996e}
 .estate-card-front-top{width:100%;display:flex;align-items:center;justify-content:space-between}
@@ -165,6 +197,42 @@
 .estate-card-amount{font-size:13.5px;font-weight:800;padding:2px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
 .estate-card-amount.pos{background:#10b98126;color:#86efac}
 .estate-card-amount.neg{background:#ef444426;color:#fca5a5}
+
+/* Prominent Full-Group Build Button + Interactive ? Help Modal */
+.estate-group-build-btn{background:linear-gradient(135deg,#16a34a,#0d9488)!important;border-color:#86efac88!important;color:#fffef5!important;font-weight:800!important;gap:6px;box-shadow:0 6px 18px #0d948844}
+.estate-group-build-btn:hover:not(:disabled){filter:brightness(1.07);border-color:#bbf7d0!important}
+.party-table-toolbar .estate-help-trigger{width:30px;height:30px;border-radius:999px;display:grid;place-items:center;font-weight:900;font-size:14px;color:#fce7a8;background:#d8b35a24;border:1px solid #e8c76c88;cursor:pointer;flex-shrink:0}
+.party-table-toolbar .estate-help-trigger:hover{background:#d8b35a40;border-color:#fde047}
+
+.estate-help-backdrop{position:fixed;inset:0;z-index:2100;background:#090806ba;backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px;animation:fxStageFade .18s ease}
+.estate-help-modal{width:min(620px,96vw);max-height:min(86dvh,680px);display:flex;flex-direction:column;border-radius:16px;background:linear-gradient(165deg,#211a12 0%,#14100b 100%);border:1px solid #e5c67866;box-shadow:0 28px 70px #000d;color:#f5ebd6;overflow:hidden;text-align:left}
+.estate-help-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:15px 18px 12px;border-bottom:1px solid #e5c67826}
+.estate-help-kicker{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:#ebd18a;margin-bottom:3px}
+.estate-help-head h3{margin:0;font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#fff6dc}
+.estate-help-live-hint{padding:9px 18px;background:#d8b35a17;border-bottom:1px solid #e5c67824;font-size:12px;line-height:1.45;color:#f3e5c2}
+.estate-help-live-hint strong{color:#fde047;margin-right:4px}
+.estate-help-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:10px 18px 0}
+.estate-help-tabs button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:6px 10px;border-radius:9px;border:1px solid #c9ab6b33;background:#ffffff08;color:#d8ccb4;font-size:12px;font-weight:700;cursor:pointer}
+.estate-help-tabs button.is-active{background:#d8b35a2b;border-color:#f2d27b;color:#fff6d6}
+.estate-help-body{padding:14px 18px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.estate-help-rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.estate-help-card{padding:12px 13px;border-radius:11px;background:#ffffff07;border:1px solid #e5c67829}
+.estate-help-card strong{display:block;font-size:13px;color:#fce293;margin-bottom:5px}
+.estate-help-card p{margin:0;font-size:12px;line-height:1.55;color:#dcd1ba}
+.estate-help-btn-list{display:flex;flex-direction:column;gap:8px}
+.estate-help-btn-row{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:11px;background:#ffffff07;border:1px solid #e5c67826}
+.estate-help-btn-icon{width:34px;height:34px;border-radius:9px;background:#d8b35a24;border:1px solid #e8c76c55;color:#fde68a;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+.estate-help-btn-row strong{display:block;font-size:13px;color:#fff3cf;margin-bottom:3px}
+.estate-help-btn-row p{margin:0;font-size:12px;line-height:1.5;color:#d6cab2}
+.estate-help-faq{display:flex;flex-direction:column;gap:8px}
+.estate-help-search{display:flex;align-items:center;gap:8px;padding:0 11px;min-height:38px;border-radius:9px;background:#0e0b08;border:1px solid #8a7348;color:#d6cab2}
+.estate-help-search input{flex:1;min-width:0;border:0;background:none;color:#fff6dc;font-size:12.5px;outline:none}
+.estate-help-qa{border-radius:10px;background:#ffffff07;border:1px solid #e5c67829;padding:10px 13px}
+.estate-help-qa summary{cursor:pointer;font-size:12.5px;font-weight:700;color:#fce6a6;line-height:1.4}
+.estate-help-qa p{margin:8px 0 0;font-size:12px;line-height:1.55;color:#dcd1ba}
+.estate-help-empty{margin:8px 0;font-size:12px;color:#bfb299;text-align:center}
+@media(max-width:600px){.estate-help-rules-grid{grid-template-columns:1fr}.estate-help-tabs{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.estate-card-flipper,.estate-deck-origin,.estate-card-shine{animation:none!important;transform:none!important}}
 
 /* Simple Jail Notice Card */
 .estate-jail-card{width:min(330px,92%);padding:15px 17px;border-radius:14px;background:#1c1313f7;border:1px solid #d96b6b66;border-top:3px solid #dc2626;box-shadow:0 18px 40px #000a;color:#f8e6e6;display:flex;flex-direction:column;gap:8px;animation:simpleCardIn .2s ease}

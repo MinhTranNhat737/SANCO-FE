@@ -160,10 +160,10 @@ test('Trading an undeveloped owned lot is allowed when a different owner has bui
   await click(button('Xác nhận'));assert.deepEqual(sent[0].details.give,[1]);vietnamMove(g,{...sent[0],action:sent[0].command},()=>1);
 });
 
-test('Tutorial walks seven steps, persists completion, reopens and tracks authoritative stages',async()=>{
+test('Tutorial walks five steps, persists completion, reopens and tracks authoritative stages',async()=>{
   const g=game(),props={state:g.party,mySide:'R',turn:'R',busy:false,live:true};
   await render(Tutorial,props);assert.match(document.querySelector('.estate-tutorial-lesson h3').textContent,/1\./);assert.equal(button('Trước').disabled,true);
-  for(let i=0;i<6;i++)await click(button('Tiếp'));assert.match(document.querySelector('.estate-tutorial-lesson h3').textContent,/7\./);
+  for(let i=0;i<4;i++)await click(button('Tiếp'));assert.match(document.querySelector('.estate-tutorial-lesson h3').textContent,/5\./);
   await click(button('Đã hiểu'));assert.equal(document.querySelector('.estate-tutorial-lesson'),null);assert.equal(localStorage.getItem('sc-estate-tutorial-v3'),'done');
   await click(button('Hướng dẫn'));assert.ok(document.querySelector('.estate-tutorial-lesson'));
   for(const stage of ['roll','buy','buyout','end','auction','deal','debt']){
@@ -306,10 +306,8 @@ test('Building progression from Level 1 to Level 5 Hotel renders distinct 2D/3D 
 
   let prev3DMeshes=0,prev3DMaxY=0;
   for(let level=1;level<=5;level++){
-    for(const idx of group0){
-      vietnamMove(g,{action:'build',to:idx,from:null,details:{}},()=>1);
-      assert.equal(p.houses[idx],level,`Lot ${idx} must reach level ${level}`);
-    }
+    vietnamMove(g,{action:'build',to:group0[0],from:null,details:{}},()=>1);
+    for(const idx of group0)assert.equal(p.houses[idx],level,`Lot ${idx} must reach level ${level} together`);
     await render(PartyBoard,{kind:'monopoly',state:p,mySide:'R',turn:'R',legal:[],enabled:false,animate:false,immersive:true});
     const target=group0[0];
     const cell=document.querySelector(`[data-cell-index="${target}"]`);
@@ -418,4 +416,62 @@ test('Audio synthesis drives hardwood board impacts and dramatic Xiangqi capture
   }finally{
     window.AudioContext=prevAC;
   }
+});
+
+test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help modal, and 3D card-draw flip animation work end-to-end',async()=>{
+  localStorage.setItem('sc-party-view','2d');
+  const {vietnamLegal}=await import('../../be/src/vietnam-estate.js');
+  const g=game(2),p=g.party;
+  const group0=VN_CELLS.filter(c=>c.type==='property'&&c.group===0).map(c=>c.index);
+  for(const idx of group0)p.property[idx]='R';
+  const sent=[];
+  const legal=vietnamLegal(g);
+  await render(PartyBoard,{
+    kind:'monopoly',state:p,mySide:'R',turn:'R',legal,enabled:true,animate:true,immersive:true,
+    onMove:m=>sent.push(m),
+    hudActions:createElement(Controls,{state:p,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
+  });
+
+  // 1. Tile #4 is Khí vận and #28 is Cơ hội; 2D center court displays both CƠ HỘI and KHÍ VẬN decks
+  assert.match(document.querySelector('[data-cell-index="4"]').textContent,/Khí vận/);
+  assert.doesNotMatch(document.querySelector('[data-cell-index="4"]').textContent,/Quỹ cộng đồng|Quỹ chung/);
+  assert.match(document.querySelector('[data-cell-index="28"]').textContent,/Cơ hội/);
+  const decks=[...document.querySelectorAll('.vn-center-deck')].map(el=>el.textContent);
+  assert.equal(decks.length,2);
+  assert.ok(decks.some(t=>t.includes('CƠ HỘI'))&&decks.some(t=>t.includes('KHÍ VẬN')));
+
+  // 2. Full-group build button appears right in primary HUD actions and sends 'build'
+  const buildBtn=document.querySelector('.estate-group-build-btn');
+  assert.ok(buildBtn,'Owning a full color group immediately surfaces Xây cả dãy button');
+  assert.match(buildBtn.textContent,/Xây cả dãy/);
+  await click(buildBtn);
+  assert.equal(sent[0].command,'build');
+
+  // 3. Clicking '?' button opens the interactive Help modal with Rules, Buttons and FAQ tabs
+  const helpBtn=document.querySelector('.estate-help-trigger');
+  assert.ok(helpBtn,'HUD header displays the ? help trigger');
+  await click(helpBtn);
+  const modal=document.querySelector('.estate-help-modal');
+  assert.ok(modal,'Clicking ? opens EstateHelpModal');
+  assert.match(modal.textContent,/Chơi đến bao giờ hết tiền/);
+  await click([...modal.querySelectorAll('[role="tab"]')][1]);
+  assert.match(modal.textContent,/Xây cả dãy/);
+  await click([...modal.querySelectorAll('[role="tab"]')][2]);
+  assert.ok(modal.querySelectorAll('.estate-help-qa').length>=5);
+  await click(modal.querySelector('[aria-label="Đóng hướng dẫn"]'));
+  assert.equal(document.querySelector('.estate-help-modal'),null);
+
+  // 4. Landing on Khí vận / Cơ hội triggers the 3D deck-draw & card-flip animation
+  const withCard=structuredClone(p);
+  withCard.eventSeq=1;
+  withCard.events=[{id:1,at:Date.now(),type:'card',deck:'community',card:1,side:'R',title:'Quỹ hỗ trợ phát triển',reason:'Thẻ Khí vận: nhận thưởng 200 triệu',amount:200,lot:4}];
+  await render(PartyBoard,{
+    kind:'monopoly',state:withCard,mySide:'R',turn:'R',legal,enabled:true,animate:true,immersive:true,
+    onMove:m=>sent.push(m),
+    hudActions:createElement(Controls,{state:withCard,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
+  });
+  assert.ok(document.querySelector('.estate-card-draw.deck-community'),'Card draw stage renders with Khí vận deck class');
+  assert.ok(document.querySelector('.estate-deck-origin'),'Source deck stack renders');
+  assert.ok(document.querySelector('.estate-card-flipper .estate-card-back'),'3D card back renders for flip animation');
+  assert.match(document.querySelector('.estate-card-flipper .estate-card-front').textContent,/Rút bài · Khí vận/);
 });

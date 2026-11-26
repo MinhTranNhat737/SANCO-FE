@@ -17,10 +17,10 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
   const nameOf=(side:string)=>playerNames?.[side]||SIDE_NAMES[side]||side;
 
   const cardIcon=(card?:number)=>{
-    if(card===1)return <Coins size={20}/>;
-    if(card===2)return <Wrench size={20}/>;
-    if(card===3)return <KeyRound size={20}/>;
-    if(card===4)return <Flag size={20}/>;
+    if(card===1||card===7||card===9)return <Coins size={20}/>;
+    if(card===2||card===11)return <Wrench size={20}/>;
+    if(card===3||card===12)return <KeyRound size={20}/>;
+    if(card===4||card===10)return <Flag size={20}/>;
     if(card===5)return <LockKeyhole size={20}/>;
     return <Undo2 size={20}/>;
   };
@@ -55,29 +55,47 @@ export default function EstateEventOverlay({featured,toasts,playerNames,onDismis
       })}
     </div>}
 
-    {/* 2. Simple, Clean Card Reveal (Cơ Hội / Khí Vận) */}
+    {/* 2. Vivid 3D Deck-Draw & Flip Reveal (Cơ hội / Khí vận) */}
     {featured&&(featured.type==='card'||featured.type==='market')&&<div className="estate-fx-stage" role="status" aria-live="polite" onClick={onDismissFeatured}>
-      <div key={featured.id} className={`estate-card-scene deck-${featured.deck||'chance'}`} onClick={e=>e.stopPropagation()}>
-        <div className="estate-card-front">
-          <div className="estate-card-front-top">
-            <span className="estate-card-deck-pill">{featured.type==='market'?t('Thị trường'):featured.deck==='community'?t('Khí vận'):t('Cơ hội')}</span>
-            <button type="button" className="estate-fx-close" aria-label={t('Đóng thẻ')} onClick={onDismissFeatured}><X size={14}/></button>
-          </div>
-          <div className="estate-card-head">
-            <span className="estate-card-icon-ring">{featured.type==='market'?<Landmark size={20}/>:cardIcon(featured.card)}</span>
-            <div>
-              <h3 className="estate-card-title">{t(featured.title ?? '')}</h3>
-              <p className="estate-card-desc">{systemMessage(featured.reason)}</p>
+      <div key={featured.id} className={`estate-card-scene ${featured.type==='card'?'estate-card-draw':''} deck-${featured.deck||'chance'}`} onClick={e=>e.stopPropagation()}>
+        {featured.type==='card'&&<div className="estate-deck-origin" aria-hidden="true">
+          <span className="estate-deck-stack-layer l3"/>
+          <span className="estate-deck-stack-layer l2"/>
+          <span className="estate-deck-stack-top">
+            <b>{featured.deck==='community'?'★':'?'}</b>
+            <small>{featured.deck==='community'?t('KHÍ VẬN'):t('CƠ HỘI')}</small>
+          </span>
+        </div>}
+        <div className={featured.type==='card'?'estate-card-flipper':'estate-card-static'}>
+          {featured.type==='card'&&<div className="estate-card-back" aria-hidden="true">
+            <div className="estate-card-back-frame">
+              <span className="estate-card-back-emblem">{featured.deck==='community'?'★':'?'}</span>
+              <strong>{featured.deck==='community'?t('KHÍ VẬN'):t('CƠ HỘI')}</strong>
+              <small>{t('Rút thẻ từ bộ bài')}</small>
             </div>
-          </div>
-          <div className="estate-card-footer">
-            <span className="estate-card-player">
-              <i style={{background:PARTY_COLORS[featured.side]||'#d7a431'}}/>
-              {featured.type==='market'?t('Áp dụng toàn bàn'):nameOf(featured.side)}
-            </span>
-            {featured.amount!==0&&<span className={`estate-card-amount ${featured.amount>0?'pos':'neg'}`}>
-              {featured.amount>0?`+${cash(featured.amount)}`:`−${cash(Math.abs(featured.amount))}`}
-            </span>}
+          </div>}
+          <div className="estate-card-front">
+            <span className="estate-card-shine" aria-hidden="true"/>
+            <div className="estate-card-front-top">
+              <span className="estate-card-deck-pill">{featured.type==='market'?t('Thị trường'):featured.deck==='community'?t('Rút bài · Khí vận'):t('Rút bài · Cơ hội')}</span>
+              <button type="button" className="estate-fx-close" aria-label={t('Đóng thẻ')} onClick={onDismissFeatured}><X size={14}/></button>
+            </div>
+            <div className="estate-card-head">
+              <span className="estate-card-icon-ring">{featured.type==='market'?<Landmark size={20}/>:cardIcon(featured.card)}</span>
+              <div>
+                <h3 className="estate-card-title">{t(featured.title ?? '')}</h3>
+                <p className="estate-card-desc">{systemMessage(featured.reason)}</p>
+              </div>
+            </div>
+            <div className="estate-card-footer">
+              <span className="estate-card-player">
+                <i style={{background:PARTY_COLORS[featured.side]||'#d7a431'}}/>
+                {featured.type==='market'?t('Áp dụng toàn bàn'):nameOf(featured.side)}
+              </span>
+              {featured.amount!==0&&<span className={`estate-card-amount ${featured.amount>0?'pos':'neg'}`}>
+                {featured.amount>0?`+${cash(featured.amount)}`:`−${cash(Math.abs(featured.amount))}`}
+              </span>}
+            </div>
           </div>
         </div>
       </div>

@@ -73,7 +73,7 @@ export function estatePixelRatio(width:number,height:number,deviceRatio=1,maxSiz
   return Math.min(Math.max(Math.min(deviceRatio,2),2048/Math.min(w,h)),maxSize/Math.max(w,h));
 }
 export function estateTitleLines(name:string,narrow=false){
-  const short:Record<string,string>={'Quỹ cộng đồng':'Quỹ chung','Điện quốc gia':'Điện lực'};
+  const short:Record<string,string>={'Điện quốc gia':'Điện lực'};
   const label=short[name]||name;
   if(narrow&&label.length>8){
     const words=label.split(' ');

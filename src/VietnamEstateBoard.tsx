@@ -5,7 +5,7 @@ import { estateBounds, estateCenterBounds, estateBoardSize, estateEdge, isEstate
 import { PROVINCE_LANDMARKS, type LandmarkKind } from './vietnam-landmarks';
 import { useId } from 'react';
 import './estate.css';
-import { estateBuildCost, estateSalary } from './estate-rules';
+import { estateBuildCost, estateGroupBuildPlan, estateSalary } from './estate-rules';
 
 const TYPE_LABELS: Record<string, string> = {
   property: 'Tỉnh / Thành phố',
@@ -13,8 +13,8 @@ const TYPE_LABELS: Record<string, string> = {
   utility: 'Công trình tiện ích',
   start: 'Ô Xuất phát',
   tax: 'Ô Thuế',
-  chance: 'Thẻ Cơ hội',
-  community: 'Quỹ Khí vận',
+  chance: 'Ô Cơ hội',
+  community: 'Ô Khí vận',
   gotojail: 'Vào Trại giam',
   jail: 'Trại giam / Thăm tù',
   rest: 'Bến nghỉ chân'
@@ -71,6 +71,9 @@ export function EstateInspector({
   if (!c) return null;
   const houses = state.houses[selected] || 0, mortgaged = Boolean(state.mortgaged?.[selected]);
   const accent = c.group !== undefined ? VN_GROUP_COLORS[c.group] : '#a39c78';
+  const groupLots = c.type === 'property' ? VN_CELLS.filter(v => v.type === 'property' && v.group === c.group) : [];
+  const groupUnitCost = groupLots.reduce((sum, v) => sum + estateBuildCost(state, v.buildCost), 0);
+  const groupPlan = estateGroupBuildPlan(state, selected);
   const currentPos = state.players.find(p => p.active && legal.some(m => (m.action || m.command) === 'buy'))?.position;
   const cellMoves = legal.filter(m => {
     const act = m.action || m.command || '';
@@ -80,7 +83,7 @@ export function EstateInspector({
   const actionLabels: Record<string, string> = {
     buy: `Mua ${c.name} (${cash(c.price)})`,
     auction: 'Mở đấu giá',
-    build: `Xây nhà (${cash(estateBuildCost(state, c.buildCost))})`,
+    build: groupPlan ? `Xây cả dãy → ${groupPlan.targetLevel === 5 ? '★KS' : `C${groupPlan.targetLevel}`} (${cash(groupPlan.cost)})` : `Xây cả dãy (${cash(groupUnitCost)})`,
     mortgage: `Thế chấp (+${cash(Math.floor(c.price / 2))})`,
     redeem: `Chuộc đất (${cash(Math.ceil(c.price * .55))})`,
     sell_building: 'Bán nhà',
@@ -107,7 +110,7 @@ export function EstateInspector({
         <div className="estate-fact-grid">
           <span>Giá mua<strong>{cash(c.price)}</strong></span>
           <span>Thuê hiện tại<strong>{mortgaged ? '0 (Thế chấp)' : owner ? cash(estateRent(state, selected)) : 'Chưa có chủ'}</strong></span>
-          {c.buildCost > 0 && <span>Giá xây dựng<strong>{cash(estateBuildCost(state, c.buildCost))} / cấp</strong></span>}
+          {c.buildCost > 0 && <span>Xây cả dãy ({groupLots.length} ô)<strong>{cash(groupPlan ? groupPlan.cost : groupUnitCost)} / cấp</strong></span>}
           <span>Thế chấp / Chuộc<strong>{cash(Math.floor(c.price / 2))} / {cash(Math.ceil(c.price * .55))}</strong></span>
         </div>
         {c.type === 'property' && c.rent.length >= 6 && <div className="estate-rent-tiers">
@@ -118,10 +121,11 @@ export function EstateInspector({
           <span>4 nhà: <b>{cash(c.rent[4])}</b></span>
           <span>Khách sạn: <b>{cash(c.rent[5])}</b></span>
         </div>}
+        {c.type === 'property' && <p className="estate-special-note">Đủ trọn dãy màu ({groupLots.map(v => v.name).join(', ')}) sẽ được xây nhà đồng loạt cả dãy.</p>}
         {state.market && <p className="estate-special-note">Thị trường: {state.market.description}. Tiền thuê hiện tại đã áp dụng hệ số; bảng cấp nhà là giá cơ bản.</p>}
         {c.type === 'station' && <p className="estate-special-note">Tiền thuê cơ bản theo số bến/ga cùng chủ: 1 ga 50 tr · 2 ga 100 tr · 3 ga 200 tr · 4 ga 400 tr.</p>}
         {c.type === 'utility' && <p className="estate-special-note">Sở hữu 1 tiện ích: thuê = 5× tổng 2 xúc xắc · Sở hữu đủ 2 tiện ích: thuê = 12× tổng 2 xúc xắc.</p>}
-      </> : <p className="estate-special-note">{c.type === 'start' ? `Đi qua hoặc dừng tại Xuất phát nhận +${estateSalary(state)} triệu.` : c.type === 'tax' ? `Nộp ngân sách nhà nước ${cash(c.amount || 0)}.` : c.type === 'gotojail' ? 'Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.' : c.type === 'jail' ? 'Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).' : c.type === 'rest' ? 'Dừng tại ô Nghỉ chân nhận thưởng +100 triệu.' : 'Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.'}</p>}
+      </> : <p className="estate-special-note">{c.type === 'start' ? `Đi qua hoặc dừng tại Xuất phát nhận +${estateSalary(state)} triệu.` : c.type === 'tax' ? `Nộp ngân sách nhà nước ${cash(c.amount || 0)}.` : c.type === 'gotojail' ? 'Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.' : c.type === 'jail' ? 'Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).' : c.type === 'rest' ? 'Dừng tại ô Nghỉ chân nhận thưởng +100 triệu.' : c.type === 'chance' ? 'Dừng tại ô Cơ hội để rút 1 lá bài từ chồng bài Cơ hội đỏ.' : 'Dừng tại ô Khí vận để rút 1 lá bài từ chồng bài Khí vận ngọc.'}</p>}
     </div>
     {enabled && cellMoves.length > 0 && <div className="estate-card-actions">
       {cellMoves.map(m => { const act = m.action || m.command || ''; return <button key={act + ':' + m.to} type="button" className="button button-small" onClick={() => onAction?.(m)}>{actionLabels[act] || act}</button>; })}
@@ -203,14 +207,14 @@ function SvgLandmark({ cx, cy, kind, accent }: { cx: number; cy: number; kind: L
 function SpecialCellArt({ type, name, cx, cy }: { type: string; name: string; cx: number; cy: number }) {
   if (type === 'chance') {
     return <g aria-hidden="true">
-      <text x={cx} y={cy + 8} textAnchor="middle" fontSize="24" fontWeight="900" fill="#e63946" stroke="#111" strokeWidth=".7">?</text>
+      <rect x={cx - 8} y={cy - 9} width="16" height="20" rx="2.6" fill="#9e3b2e" stroke="#f5d57a" strokeWidth="1.2" transform={`rotate(-8 ${cx} ${cy})`} />
+      <text x={cx} y={cy + 6} textAnchor="middle" fontSize="15" fontWeight="900" fill="#fde68a">?</text>
     </g>;
   }
   if (type === 'community') {
     return <g aria-hidden="true">
-      <rect x={cx - 9} y={cy - 4} width="18" height="11" rx="2" fill="#38bdf8" stroke="#111" strokeWidth="1.1" />
-      <path d={`M${cx - 10} ${cy - 4}Q${cx} ${cy - 10} ${cx + 10} ${cy - 4}Z`} fill="#facc15" stroke="#111" strokeWidth="1.1" />
-      <rect x={cx - 2} y={cy - 5} width="4" height="5" rx="1" fill="#facc15" stroke="#111" strokeWidth=".8" />
+      <rect x={cx - 8} y={cy - 9} width="16" height="20" rx="2.6" fill="#1e6b52" stroke="#f5d57a" strokeWidth="1.2" transform={`rotate(8 ${cx} ${cy})`} />
+      <text x={cx} y={cy + 5.5} textAnchor="middle" fontSize="13.5" fontWeight="900" fill="#fde68a">★</text>
     </g>;
   }
   if (type === 'station') {
@@ -329,6 +333,18 @@ function FlatPlayerToken({ cx, cy, side, cell, index, isMine, isTurn, compact = 
   </g>;
 }
 
+function CenterCardDeck({ x, y, angle, label, emblem, fill }: { x: number; y: number; angle: number; label: string; emblem: string; fill: string }) {
+  return <g className="vn-center-deck" transform={`translate(${x} ${y}) rotate(${angle})`} aria-hidden="true">
+    <rect x="-46" y="-60" width="92" height="120" rx="10" fill="#00000022" transform="translate(5 6)" />
+    <rect x="-46" y="-60" width="92" height="120" rx="9" fill="#e7dcc0" stroke="#927748" strokeWidth="1.3" transform="translate(3 3)" />
+    <rect x="-46" y="-60" width="92" height="120" rx="9" fill={fill} stroke="#d4af37" strokeWidth="2.4" />
+    <rect x="-39" y="-53" width="78" height="106" rx="6" fill="none" stroke="#f7e3a388" strokeWidth="1.2" strokeDasharray="4 2.5" />
+    <circle cx="0" cy="-12" r="20" fill="#ffffff18" stroke="#f7e3a3aa" strokeWidth="1.3" />
+    <text x="0" y="-4" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fde68a">{emblem}</text>
+    <text x="0" y="34" textAnchor="middle" fontSize="12.5" fontWeight="900" letterSpacing="1" fill="#fffbeb">{label}</text>
+  </g>;
+}
+
 export default function VietnamEstateBoard({ state, mySide, selected, onSelect, layout = VN_RECT, justPurchasedLot = null, justPurchasedKey = 0, justPurchasedLots, auctionLot = null, tileFx = null }: { state: PartyState; mySide: string; selected: number; onSelect: (index: number) => void; layout?: EstateLayout; justPurchasedLot?: number | null; justPurchasedKey?: number; justPurchasedLots?: number[]; auctionLot?: number | null; tileFx?: { lot: number; type: string; amount: number; key: number } | null }) {
   const activePlayers = state.players.filter(v => v.active);
   const turnSide = (state as { turn?: string }).turn;
@@ -346,6 +362,8 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
     <defs><filter id={glowId} x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4" /></filter></defs>
     <rect className="board-svg-base" width={board.width} height={board.height} fill="#fff" stroke="#111827" strokeWidth="3" />
     <rect className="board-svg-center" x={center.x} y={center.y} width={center.width} height={center.height} fill="#f5f3eb" stroke="#111827" strokeWidth="2" />
+    <CenterCardDeck x={center.x + center.width * .19} y={my + 2} angle={-11} label={t('CƠ HỘI')} emblem="?" fill="#9e2a2b" />
+    <CenterCardDeck x={center.x + center.width * .81} y={my + 2} angle={11} label={t('KHÍ VẬN')} emblem="★" fill="#1b5e49" />
     <g aria-hidden="true">
       <text className="board-svg-label" x={mx} y={my - 23} textAnchor="middle" fill="#172d24" fontSize="46" fontWeight="900">{t('TỶ PHÚ')}</text>
       <text x={mx} y={my + 15} textAnchor="middle" fill="#475b50" fontSize="24" fontWeight="800">{t('VIỆT NAM')}</text>

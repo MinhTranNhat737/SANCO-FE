@@ -9,7 +9,7 @@
   "provinces": ["Lai Châu","Điện Biên","Sơn La","Cao Bằng","Lạng Sơn","Tuyên Quang","Lào Cai","Thái Nguyên","Phú Thọ","Bắc Ninh","Hưng Yên","Ninh Bình","Quảng Ninh","Thanh Hóa","Nghệ An","Hà Tĩnh","Quảng Trị","Huế","Đà Nẵng","Quảng Ngãi","Gia Lai","Đắk Lắk","Khánh Hòa","Lâm Đồng","Đồng Nai","Tây Ninh","Vĩnh Long","Đồng Tháp","An Giang","Cà Mau","Cần Thơ","Hải Phòng","Hà Nội","TP. Hồ Chí Minh"],
   "specials": {
     "0": {"name":"Xuất phát","type":"start"},
-    "4": {"name":"Quỹ cộng đồng","type":"community"},
+    "4": {"name":"Khí vận","type":"community"},
     "8": {"name":"Ga Lào Cai","type":"station","price":350},
     "12": {"name":"Thuế thu nhập","type":"tax","amount":200},
     "16": {"name":"Thăm tù","type":"jail"},

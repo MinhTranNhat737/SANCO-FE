@@ -7,7 +7,7 @@ const MAX_HUD_WIDTH=460;
 const DEFAULT_HUD_WIDTH=260;
 const clampWidth=(value:number)=>Math.max(MIN_HUD_WIDTH,Math.min(MAX_HUD_WIDTH,Math.round(value)));
 
-export default function EstateFullscreenHud({title,status,diceBadge,players,actions,menu,inspector,decision,attention,onExit}:{title:string;status:ReactNode;diceBadge?:ReactNode;players?:ReactNode;actions:ReactNode;menu:ReactNode;inspector:ReactNode;decision:ReactNode;attention:string;onExit?:()=>void}){
+export default function EstateFullscreenHud({title,status,diceBadge,players,actions,menu,inspector,decision,attention,onExit,onHelp}:{title:string;status:ReactNode;diceBadge?:ReactNode;players?:ReactNode;actions:ReactNode;menu:ReactNode;inspector:ReactNode;decision:ReactNode;attention:string;onExit?:()=>void;onHelp?:()=>void}){
   const [collapsed,setCollapsed]=useState(false);
   const [resizing,setResizing]=useState(false);
   const [width,setWidth]=useState<number>(()=>{
@@ -75,7 +75,10 @@ export default function EstateFullscreenHud({title,status,diceBadge,players,acti
         <strong>{title}</strong>
         <span className="estate-hud-status" role="status">{status}</span>
       </div>
-      <button type="button" aria-label={collapsed?t('Mở HUD'):t('Thu gọn HUD')} aria-expanded={!collapsed} onClick={()=>setCollapsed(value=>!value)}>{collapsed?<ChevronDown size={18}/>:<ChevronUp size={18}/>}</button>
+      <div className="estate-hud-head-btns">
+        {onHelp&&<button type="button" className="estate-help-trigger" aria-label={t('Hướng dẫn cách vận hành và các nút (?)')} title={t('Hướng dẫn cách vận hành và các nút (?)')} onClick={onHelp}>?</button>}
+        <button type="button" aria-label={collapsed?t('Mở HUD'):t('Thu gọn HUD')} aria-expanded={!collapsed} onClick={()=>setCollapsed(value=>!value)}>{collapsed?<ChevronDown size={18}/>:<ChevronUp size={18}/>}</button>
+      </div>
     </header>
     <div className="estate-game-hud-body" hidden={collapsed}>
       {diceBadge}

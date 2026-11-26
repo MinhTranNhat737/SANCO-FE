@@ -363,7 +363,7 @@ export function occupiedCallouts(state: { players: { side: string; position: num
     const c = VN_CELLS[cellIdx]; if (!c) continue;
     const b = estateBounds(cellIdx, layout), edge = estateEdge(cellIdx, layout);
     const lvl = state.houses?.[cellIdx] || 0;
-    const sub = lvl > 0 ? (lvl === 5 ? '★ Khách sạn' : `Nhà cấp ${lvl}`) : (c.price > 0 ? `${c.price} tr` : c.type === 'start' ? '+400 tr' : c.type === 'tax' ? `−${c.amount} tr` : '');
+    const sub = lvl > 0 ? (lvl === 5 ? '★ Khách sạn' : `Nhà cấp ${lvl}`) : (c.price > 0 ? `${c.price} tr` : c.type === 'start' ? '+500 tr' : c.type === 'rest' ? '+100 tr' : c.type === 'tax' ? `−${c.amount} tr` : '');
     let px = b.x + b.width / 2, py = b.y + b.height / 2;
     if (edge === 0) { py = center.y + center.height - halfH - 6; px = Math.max(center.x + halfW + 6, Math.min(center.x + center.width - halfW - 6, px)); }
     else if (edge === 2) { py = center.y + halfH + 6; px = Math.max(center.x + halfW + 6, Math.min(center.x + center.width - halfW - 6, px)); }

@@ -79,11 +79,16 @@
 .estate-hud-head-copy {display:flex;flex-direction:column;gap:1px;min-width:0}
 .estate-game-hud>header strong {font-size:18px;font-weight:800;color:#f3d78e;font-variant-numeric:tabular-nums;line-height:1.15}
 .estate-game-hud .estate-hud-status {font-size:11.5px;line-height:1.3;margin:0;color:#c7bba4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.estate-game-hud>header>button {
+.estate-hud-head-btns {display:flex;align-items:center;gap:6px;flex-shrink:0}
+.estate-game-hud>header button {
   display:grid;place-items:center;width:28px;height:28px;padding:0;flex-shrink:0;
   background:#ffffff08;color:#e4d7be;border:1px solid #c9ab6b33;border-radius:7px;cursor:pointer;
 }
-.estate-game-hud>header>button:hover {background:#ffffff14;border-color:#e4c47566}
+.estate-game-hud>header button:hover {background:#ffffff14;border-color:#e4c47566}
+.estate-game-hud>header button.estate-help-trigger {
+  font-weight:900;font-size:14px;color:#fce7a8;background:#d8b35a22;border-color:#e8c76c77;border-radius:999px;
+}
+.estate-game-hud>header button.estate-help-trigger:hover {background:#d8b35a3d;border-color:#fde047}
 .estate-game-hud-body {
   flex:1;padding:8px 11px 10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
   display:flex;flex-direction:column;gap:7px;

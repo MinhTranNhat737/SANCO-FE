@@ -1,4 +1,5 @@
 import { t } from './language.ts';
+import { VN_CELLS } from './estate-data';
 import type {PartyState} from './practice-types';
 import type {Seat} from './types';
 const SIDES=['R','G','Y','B','P','O','C','K'];
@@ -8,14 +9,30 @@ export function lobbySeats(players:Seat[],sides:string[],capacity:number){
   return order.map(side=>({side,seat:players.find(player=>player.mark===side)||null}));
 }
 
-export function estateModePreview(count:number,mode:'auto'|'classic'){
-  if(mode==='classic')return {name:t('Cổ điển'),description:t('Không chia đất ban đầu, không giới hạn vòng. Bỏ mua sẽ mở đấu giá; còn một người trụ lại thì thắng.')};
-  if(count===2)return {name:t('Đối đầu khởi nghiệp'),description:t('2 lô khởi nghiệp/người · 18 vòng · Thị trường đổi mỗi 3 vòng · Thương lượng và đề nghị giá ngược.')};
-  if(count<=4)return {name:t('Thương trường'),description:t('1 lô khởi nghiệp/người · 24 vòng · Thị trường đổi mỗi 3 vòng · Hợp đồng, đấu giá và 12 loại thẻ.')};
-  return {name:t('Đại hội địa ốc'),description:t('1 lô khởi nghiệp/người · 16 vòng · Thị trường đổi mỗi 2 vòng · Nhịp nhanh cho nhóm đông.')};
+export function estateModePreview(_count:number,mode:'auto'|'classic'){
+  if(mode==='classic')return {name:t('Cổ điển'),description:t('Chơi đến người trụ lại cuối cùng · Đủ 1 dãy ô màu được xây nhà luôn cả dãy · Bỏ mua mở đấu giá · Không trả giá ngược.')};
+  return {name:t('Sáng tạo'),description:t('Chơi đến bao giờ hết tiền · Đủ 1 dãy ô màu được xây nhà luôn cả dãy · Bỏ mua mở đấu giá · Mua lại & thương lượng.')};
 }
 export const estateBuildCost=(state:PartyState,base:number)=>Math.ceil(base*(state.market?.buildPercent??100)/100);
 export const estateSalary=(state:PartyState)=>Math.ceil((state.profile?.salary??500)*(state.market?.salaryPercent??100)/100);
+
+export function estateGroupBuildPlan(state:PartyState,index:number){
+  const c=VN_CELLS[index];
+  if(!c||c.type!=='property')return null;
+  const owner=state.property[c.index];
+  if(!owner)return null;
+  const group=VN_CELLS.filter(v=>v.type==='property'&&v.group===c.group);
+  if(!group.every(v=>state.property[v.index]===owner&&!state.mortgaged?.[v.index]))return null;
+  const minLevel=Math.min(...group.map(v=>state.houses[v.index]||0));
+  if(minLevel>=5)return null;
+  const targetLevel=minLevel+1;
+  const lots=group.filter(v=>(state.houses[v.index]||0)<targetLevel);
+  if(!lots.length)return null;
+  const bank=(state as {bank?:{houses:number;hotels:number}}).bank;
+  if(bank&&(targetLevel===5?bank.hotels<lots.length:bank.houses<lots.length))return null;
+  const cost=lots.reduce((sum,v)=>sum+estateBuildCost(state,v.buildCost),0);
+  return {group,lots,targetLevel,cost};
+}
 
 export function ownershipChanges(previous:(string|null)[],current:(string|null)[],purchase:PartyState['lastPurchase']){
   return current.flatMap((side,lot)=>{

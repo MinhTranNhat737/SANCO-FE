@@ -4,6 +4,7 @@ import EstateControls from './EstateControls';
 import EstateAuctionModal from './EstateAuctionModal';
 import EstateEventOverlay from './EstateEventOverlay';
 import EstateTutorial from './EstateTutorial';
+import EstateHelpModal from './EstateHelpModal';
 import EstateBoardViewport from './EstateBoardViewport';
 import EstateFullscreenHud from './EstateFullscreenHud';
 import { createPortal } from 'react-dom';
@@ -65,6 +66,7 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
   const [boardTheme] = useBoardTheme();
   const [view, setView] = useState<'3d' | '2d'>(() => typeof window !== 'undefined' && 'WebGLRenderingContext' in window && localStorage.getItem('sc-party-view') !== '2d' ? '3d' : '2d'), [top, setTop] = useState(kind === 'monopoly'), [reset, setReset] = useState(0), [failed, setFailed] = useState(false);
   const [hudToolsTarget, setHudToolsTarget] = useState<HTMLDivElement | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [animPhase, setAnimPhase] = useState<'idle' | 'dice' | 'walk'>('idle'), [walkingSide, setWalkingSide] = useState<string | null>(null), [holding, setHolding] = useState(false), [selectedCell, setSelectedCell] = useState<number | null>(null);
   const [flatHold, setFlatHold] = useState<{ x: number; y: number; d1: number; d2: number } | null>(null);
   const [flatRoll, setFlatRoll] = useState<{ fromX: number; fromY: number; d1: number; d2: number } | null>(null);
@@ -250,7 +252,7 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
   const activeFeatured = featuredQueue[0] || null;
   useEffect(() => {
     if (!activeFeatured) return;
-    const duration = activeFeatured.type === 'card' ? 3500 : 3000;
+    const duration = activeFeatured.type === 'card' ? 4400 : 3000;
     const timer = setTimeout(() => setFeaturedQueue(q => q.slice(1)), duration);
     return () => clearTimeout(timer);
   }, [activeFeatured?.id]);
@@ -407,7 +409,7 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
     </div>
     : null;
 
-  const boardToolbar = <div className="party-table-toolbar"><span className="party-material-label">{kind === 'ludo' ? 'CÁ NGỰA' : 'TỶ PHÚ'}<small>{kind === 'monopoly' ? 'Một vòng · Chạm ô để xem giá' : view === '3d' ? 'Bộ cờ Sân Cờ' : 'Mặt bàn'}</small></span><div className="board-view-options"><BoardAppearance /><div role="group" aria-label="Kiểu bộ cờ"><button className={view === '3d' ? 'selected' : ''} disabled={failed} aria-pressed={view === '3d'} onClick={() => choose('3d')}><Box size={15} />3D</button><button className={view === '2d' ? 'selected' : ''} aria-pressed={view === '2d'} onClick={() => choose('2d')}><Layers size={15} />2D</button></div></div></div>;
+  const boardToolbar = <div className="party-table-toolbar"><span className="party-material-label">{kind === 'ludo' ? 'CÁ NGỰA' : 'TỶ PHÚ'}<small>{kind === 'monopoly' ? 'Một vòng · Chạm ô để xem giá' : view === '3d' ? 'Bộ cờ Sân Cờ' : 'Mặt bàn'}</small></span><div className="board-view-options">{vietnam && !fullscreen && <button type="button" className="estate-help-trigger" aria-label="Hướng dẫn cách vận hành và các nút (?)" title="Hướng dẫn cách vận hành và các nút (?)" onClick={() => setHelpOpen(true)}>?</button>}<BoardAppearance /><div role="group" aria-label="Kiểu bộ cờ"><button className={view === '3d' ? 'selected' : ''} disabled={failed} aria-pressed={view === '3d'} onClick={() => choose('3d')}><Box size={15} />3D</button><button className={view === '2d' ? 'selected' : ''} aria-pressed={view === '2d'} onClick={() => choose('2d')}><Layers size={15} />2D</button></div></div></div>;
   const cameraBar = view === '3d' && <div className="party-camera-bar"><span role="status">{holding ? 'Thả chuột để xúc xắc lăn trên bàn' : isDiceRolling ? 'Xúc xắc đang lăn…' : animPhase === 'walk' ? 'Đang di chuyển…' : kind === 'monopoly' ? 'Bấm vào ô để xem · Kéo xoay' : 'Kéo xoay · Cuộn/chụm để zoom'}</span><button aria-pressed={top} onClick={() => { setTop(!top); setReset(v => v + 1); }}><Layers size={15} />{top ? 'Góc nghiêng' : 'Từ trên'}</button><button aria-label="Đặt lại góc nhìn bàn cờ" onClick={() => { setTop(kind === 'monopoly'); setReset(v => v + 1); }}><RotateCcw size={15} /><span>Đặt lại</span></button></div>;
   const inspector = kind === 'monopoly' && selectedCell !== null ? <EstateInspector state={state} selected={selectedCell} onClose={() => setSelectedCell(null)} legal={legal} enabled={enabled} onAction={m => onMove?.(moveRequest(m))} /> : null;
   const decision = vietnam && onMove ? <EstateAuctionModal state={state} mySide={mySide} turn={turn} playerNames={playerNames} legal={legal} enabled={enabled} busy={isBoardBusy} onMove={m => onMove(moveRequest(m))} /> : null;
@@ -466,7 +468,8 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
       </div>
     </div>
     {!fullscreen && cameraBar}
-    {fullscreen && <EstateFullscreenHud title={cash(state.players.find(player => player.side === mySide)?.cash || 0)} status={hudStatus || (isBoardBusy ? 'Đang di chuyển…' : turn === mySide ? 'Lượt của bạn' : 'Đang chờ lượt')} diceBadge={hudDiceBadge} players={hudPlayers} actions={hudActions} inspector={null} decision={centerAuction ? null : decision} attention={['buy', 'buyout', 'debt', 'deal'].includes(state.stage) ? state.stage : ''} onExit={onExit} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget} />{hudMenu}</>} />}
+    {fullscreen && <EstateFullscreenHud title={cash(state.players.find(player => player.side === mySide)?.cash || 0)} status={hudStatus || (isBoardBusy ? 'Đang di chuyển…' : turn === mySide ? 'Lượt của bạn' : 'Đang chờ lượt')} diceBadge={hudDiceBadge} players={hudPlayers} actions={hudActions} inspector={null} decision={centerAuction ? null : decision} attention={['buy', 'buyout', 'debt', 'deal'].includes(state.stage) ? state.stage : ''} onExit={onExit} onHelp={() => setHelpOpen(true)} menu={<>{boardToolbar}{cameraBar}<div ref={setHudToolsTarget} />{hudMenu}</>} />}
+    {vietnam && <EstateHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} state={state} mySide={mySide} turn={turn} busy={isBoardBusy} live={animate} />}
     {failed && !fullscreen && <span className="party-fallback-note" role="status">Đang dùng bàn 2D trên thiết bị này.</span>}
   </div>;
   return fullscreen ? createPortal(boardContent, document.body) : boardContent;
