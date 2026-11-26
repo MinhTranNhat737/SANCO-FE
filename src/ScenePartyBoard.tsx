@@ -7,7 +7,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BoardGesture } from './three/board-gesture.ts';
 import { PARTY_SIDES, MONOPOLY_SIDES, PARTY_COLORS, ludoCell, worldPoint, ludoRoute, estatePoint, estateBounds, estateBoardSize, estateWorld, estatePixelRatio, estateIndexAt, VN_RECT, type EstateLayout, type EstateSize } from './three/party-layout.ts';
-import { SURFACE, table, horse, estateToken, estateAssets, occupiedCallouts, dice, diceRotation, tabletopProps, dispose } from './three/party-models.ts';
+import { SURFACE, table, horse, estateToken, estateAssets, occupiedCallouts, dice, diceRotation, tabletopProps, drawnCard3D, dispose } from './three/party-models.ts';
 import { playWoodStepSound } from './sound-effects';
 import { DiceRollQueue, sampleDiceThrow, randomThrowVariant, THROW_DURATION, type DiceRoll, type DiceThrowVariant } from './three/dice-motion.ts';
 import type { PartyState, PracticeMove } from './practice-types';
@@ -23,6 +23,7 @@ type Props = {
   justPurchasedKey?: number;
   auctionLot?: number | null;
   tileFx?: { lot: number; type: string; amount: number; key: number } | null;
+  cardDraw?: { key: number; deck: 'chance' | 'community'; lot: number } | null;
   onAnimatingChange?: (busy: boolean) => void; onPhaseChange?: (phase: 'idle' | 'dice' | 'walk') => void; onHoldChange?: (holding: boolean) => void; onCellSelect?: (index: number) => void;
   grabRef?: React.MutableRefObject<((e: PointerEvent) => void) | null>;
   projectCellRef?: React.MutableRefObject<((lot: number) => { clientX: number; clientY: number } | null) | null>;
@@ -97,8 +98,35 @@ export default function ScenePartyBoard(props: Props) {
     let calloutRoot = new T.Group(); scene.add(calloutRoot); let calloutKey = '';
     type BurstFx = { group: T.Group; ring: T.Mesh; glow?: T.Mesh; particles: { mesh: T.Mesh; vx: number; vy: number; vz: number }[]; started: number; duration: number };
     const bursts: BurstFx[] = [];
+    type Drawn3DFx = { mesh: T.Group; fromX: number; fromY: number; fromZ: number; fromRotY: number; started: number; duration: number };
+    const drawnCards: Drawn3DFx[] = [];
     let seenPurchaseKey = props.justPurchasedKey || 0;
     let seenTileFxKey = props.tileFx?.key || 0;
+    let seenCardDrawKey = props.cardDraw?.key || 0;
+    function spawnDeckCardDraw(deckType: 'chance' | 'community', now: number) {
+      const scale = vietnam ? .62 : 1;
+      const fromX = (deckType === 'community' ? 1.65 : -1.65) * scale;
+      const fromZ = 1.35 * scale;
+      const fromY = SURFACE + .155;
+      const fromRotY = deckType === 'community' ? -.13 : .14;
+      const cardMesh = drawnCard3D(deckType);
+      cardMesh.scale.setScalar(scale);
+      cardMesh.position.set(fromX, fromY, fromZ);
+      cardMesh.rotation.set(0, fromRotY, 0);
+      scene.add(cardMesh);
+      drawnCards.push({ mesh: cardMesh, fromX, fromY, fromZ, fromRotY, started: now, duration: 1350 });
+
+      const ringGroup = new T.Group();
+      ringGroup.position.set(fromX, SURFACE + .03, fromZ);
+      const ring = new T.Mesh(
+        new T.RingGeometry(.45 * scale, .62 * scale, 32),
+        new T.MeshBasicMaterial({ color: '#fde047', side: T.DoubleSide, transparent: true, opacity: .9, depthWrite: false })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ringGroup.add(ring);
+      scene.add(ringGroup);
+      bursts.push({ group: ringGroup, ring, particles: [], started: now, duration: 950 });
+    }
     function spawnTileBurst(lot: number, primaryColor: string, _secondaryColor: string, now: number) {
       const b = estateBounds(lot, estateSize), pt = estateWorld([b.x + b.width / 2, b.y + b.height / 2], estateSize);
       const group = new T.Group(); group.position.set(pt.x, SURFACE + .022, pt.z);
@@ -157,6 +185,10 @@ export default function ScenePartyBoard(props: Props) {
         const c1 = isGain ? '#10b981' : isCard ? '#f59e0b' : '#ef4444';
         const c2 = isGain ? '#fde047' : isCard ? '#fde047' : '#fb923c';
         spawnTileBurst(p.tileFx.lot, c1, c2, now);
+      }
+      if (props.kind === 'monopoly' && p.animate && !baseline && p.cardDraw && p.cardDraw.key > seenCardDrawKey) {
+        seenCardDrawKey = p.cardDraw.key;
+        spawnDeckCardDraw(p.cardDraw.deck, now);
       }
       const rollWait = activeThrow ? Math.max(0, THROW_DURATION - (now - activeThrow.started)) + pendingRolls.length * THROW_DURATION : 0;
       for (const player of p.state.players) {
@@ -358,6 +390,28 @@ export default function ScenePartyBoard(props: Props) {
           (pt.mesh.material as T.MeshStandardMaterial).opacity = Math.max(0, 1 - dt);
         }
       }
+      for (let i = drawnCards.length - 1; i >= 0; i--) {
+        const dc = drawnCards[i], dt = (time - dc.started) / dc.duration;
+        if (dt >= 1) { scene.remove(dc.mesh); dispose(dc.mesh); drawnCards.splice(i, 1); continue; }
+        moving = true;
+        const slideP = Math.min(1, dt / .45);
+        const liftP = Math.max(0, Math.min(1, (dt - .22) / .58));
+        const easeSlide = 1 - (1 - slideP) ** 3;
+        const easeLift = liftP * liftP * (3 - 2 * liftP);
+        const dir = dc.fromX < 0 ? 1 : -1;
+        dc.mesh.position.set(
+          T.MathUtils.lerp(dc.fromX + dir * .45 * easeSlide, 0, easeLift),
+          dc.fromY + .35 * easeSlide + 1.85 * easeLift,
+          T.MathUtils.lerp(dc.fromZ - .28 * easeSlide, .25, easeLift)
+        );
+        const baseScale = vietnam ? .62 : 1;
+        dc.mesh.scale.setScalar(baseScale * (1 + .55 * easeLift));
+        dc.mesh.rotation.set(
+          -.35 * Math.sin(slideP * Math.PI),
+          T.MathUtils.lerp(dc.fromRotY, 0, easeLift),
+          Math.PI * Math.max(0, Math.min(1, (dt - .48) / .42))
+        );
+      }
       for (const piece of pieces.values()) if (piece.route.length) { moving = true; if (activeThrow || pendingDrop || pendingRolls.length > 0 || time < piece.started) continue; const target = piece.route[0], t = Math.min(1, (time - piece.started) / (piece.route.length > 2 ? 100 : 180)), ease = t * t * (3 - 2 * t); piece.node.position.set(T.MathUtils.lerp(piece.from.x, target.x, ease), SURFACE + Math.sin(t * Math.PI) * .16, T.MathUtils.lerp(piece.from.z, target.z, ease)); if (t === 1) { playWoodStepSound(piece.route.length); piece.route.shift(); piece.from.copy(piece.node.position); piece.started = time; } }
       const walkingPiece = props.kind === 'monopoly' && !activeThrow && !pendingDrop && pendingRolls.length === 0
         ? [...pieces.values()].find(pc => pc.route.length > 0 && time >= pc.started)
@@ -434,7 +488,7 @@ export default function ScenePartyBoard(props: Props) {
     frame = requestAnimationFrame(render);
     return () => { closed = true; if (live.current.grabRef) live.current.grabRef.current = null; if (live.current.projectCellRef) live.current.projectCellRef.current = null; cancelAnimationFrame(frame); resize.disconnect(); controls.removeEventListener('change', markDirty); controls.removeEventListener('start', onControlStart); controls.dispose(); renderer.domElement.removeEventListener('pointerdown', down); renderer.domElement.removeEventListener('pointermove', move); renderer.domElement.removeEventListener('pointerup', up); renderer.domElement.removeEventListener('pointercancel', cancel); renderer.domElement.removeEventListener('webglcontextlost', lost); window.removeEventListener('pointermove', winMove); window.removeEventListener('pointerup', winUp); controller.current = null; live.current.onAnimatingChange?.(false); live.current.onHoldChange?.(false); dispose(scene); environment?.dispose(); key.shadow.dispose(); renderer.dispose(); renderer.domElement.remove(); };
   }, [props.kind, props.gameKey, props.layout?.cols]);
-  useEffect(() => { controller.current?.sync(); }, [props.state, props.enabled, props.legal, props.mySide, props.animate, props.lastDie, props.rollKey, props.selectedCell, props.justPurchasedLot, props.justPurchasedKey, props.justPurchasedLots, props.auctionLot, props.tileFx]);
+  useEffect(() => { controller.current?.sync(); }, [props.state, props.enabled, props.legal, props.mySide, props.animate, props.lastDie, props.rollKey, props.selectedCell, props.justPurchasedLot, props.justPurchasedKey, props.justPurchasedLots, props.auctionLot, props.tileFx, props.cardDraw?.key]);
   useEffect(() => { controller.current?.appearance(boardTheme); }, [boardTheme]);
   useEffect(() => { controller.current?.camera(); }, [props.topView, props.resetKey]);
   return <div className="party-model" ref={host} role="img" aria-label={`Bộ cờ ${props.kind === 'ludo' ? 'Cá ngựa' : props.state.edition === 'vn-v2' ? 'Tỷ phú Việt Nam' : 'Tỷ phú bản cũ'} 3D, bàn gỗ và quân cờ nổi.`} />;

@@ -432,12 +432,17 @@ test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help mo
     hudActions:createElement(Controls,{state:p,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
   });
 
-  // 1. Tile #4 is Khí vận and #28 is Cơ hội with embedded mini-decks right on those 2 tiles
+  // 1. Tile #4 is Khí vận and #28 is Cơ hội with both tile mini-decks AND center-court card decks
   assert.match(document.querySelector('[data-cell-index="4"]').textContent,/Khí vận/);
   assert.doesNotMatch(document.querySelector('[data-cell-index="4"]').textContent,/Quỹ cộng đồng|Quỹ chung/);
   assert.match(document.querySelector('[data-cell-index="28"]').textContent,/Cơ hội/);
   assert.ok(document.querySelector('[data-cell-index="4"] .vn-cell-deck-community'),'Tile #4 Khí vận renders its mini card deck');
   assert.ok(document.querySelector('[data-cell-index="28"] .vn-cell-deck-chance'),'Tile #28 Cơ hội renders its mini card deck');
+  assert.ok(document.querySelector('[data-deck-pile="chance"]'),'2D board renders CƠ HỘI deck pile');
+  assert.ok(document.querySelector('[data-deck-pile="community"]'),'2D board renders KHÍ VẬN deck pile');
+  const {drawnCard3D}=await vite.ssrLoadModule('/src/three/party-models.ts');
+  assert.ok(drawnCard3D('chance').children.length>=4,'3D drawn card mesh builds for Cơ hội');
+  assert.ok(drawnCard3D('community').children.length>=4,'3D drawn card mesh builds for Khí vận');
 
   // 2. Full-group build button appears right in primary HUD actions and sends 'build'
   const buildBtn=document.querySelector('.estate-group-build-btn');
@@ -460,7 +465,7 @@ test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help mo
   await click(modal.querySelector('[aria-label="Đóng hướng dẫn"]'));
   assert.equal(document.querySelector('.estate-help-modal'),null);
 
-  // 4. Landing on Khí vận (#4) and Cơ hội (#28) pulls the card directly out of that tile and reveals its content
+  // 4. Landing on Khí vận (#4) and Cơ hội (#28) renders the physical deck stack ("Bộ thẻ") and slides + flips the top card out
   const stage=document.querySelector('.party-stage-wrap');
   Object.defineProperty(stage,'getBoundingClientRect',{configurable:true,value:()=>({left:0,top:0,width:1000,height:600})});
   Object.defineProperty(document.querySelector('[data-cell-index="4"]'),'getBoundingClientRect',{configurable:true,value:()=>({left:700,top:510,width:60,height:80})});
@@ -477,13 +482,11 @@ test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help mo
   });
   const commDraw=document.querySelector('.estate-card-draw.deck-community');
   assert.ok(commDraw,'Card draw stage renders with Khí vận deck class');
-  assert.equal(commDraw.getAttribute('data-draw-from-lot'),'4','Card draw originates from tile #4 (Khí vận)');
-  assert.equal(commDraw.style.getPropertyValue('--tile-dx'),'230px','Trajectory X points to exact center of tile #4');
-  assert.equal(commDraw.style.getPropertyValue('--tile-dy'),'250px','Trajectory Y points to exact center of tile #4');
-  assert.ok(document.querySelector('.vn-tile-card-pop[data-card-pop-lot="4"]'),'2D board ejects a mini card from tile #4');
-  assert.ok(document.querySelector('.estate-tile-extract-fx[data-extract-lot="4"]'),'Tile #4 extraction beacon renders');
-  assert.ok(document.querySelector('.estate-card-flyer .estate-card-flipper .estate-card-back'),'3D card back renders as it flies out of tile #4');
-  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ ô Khí vận/);
+  assert.ok(document.querySelector('[data-deck-pile="community"].is-drawing .vn-deck-top-slide'),'2D Khí vận deck pile slides its top card out');
+  assert.ok(document.querySelector('.estate-physical-deck'),'Physical 7-layer card deck stack renders');
+  assert.match(document.querySelector('.estate-physical-deck-caption').textContent,/Bộ thẻ Khí vận/);
+  assert.ok(document.querySelector('.estate-card-mover .estate-card-flipper .estate-card-back'),'Top card back renders for slide-from-deck & 3D flip');
+  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ bộ thẻ Khí vận/);
   assert.match(document.querySelector('.estate-card-front').textContent,/Quỹ hỗ trợ phát triển/);
   assert.match(document.querySelector('.estate-card-outcome').textContent,/Nhận \+200 tr/);
   await click(document.querySelector('.estate-card-ok-btn'));
@@ -499,9 +502,8 @@ test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help mo
   });
   const chanceDraw=document.querySelector('.estate-card-draw.deck-chance');
   assert.ok(chanceDraw,'Chance card draw stage renders');
-  assert.equal(chanceDraw.getAttribute('data-draw-from-lot'),'28','Even movement cards originate from tile #28 (Cơ hội)');
-  assert.equal(chanceDraw.style.getPropertyValue('--tile-dx'),'-250px','Trajectory X points to exact center of tile #28');
-  assert.equal(chanceDraw.style.getPropertyValue('--tile-dy'),'-250px','Trajectory Y points to exact center of tile #28');
-  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ ô Cơ hội/);
+  assert.ok(document.querySelector('[data-deck-pile="chance"].is-drawing .vn-deck-top-slide'),'2D Cơ hội deck pile slides its top card out');
+  assert.match(document.querySelector('.estate-physical-deck-caption').textContent,/Bộ thẻ Cơ hội/);
+  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ bộ thẻ Cơ hội/);
   assert.match(document.querySelector('.estate-card-front').textContent,/Tiến thẳng Xuất phát/);
 });

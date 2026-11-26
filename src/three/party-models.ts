@@ -407,6 +407,7 @@ export function tabletopProps() {
   const root = new T.Group(), paper = new T.MeshStandardMaterial({ color: '#efe4c4', roughness: .82 }), brass = gold();
   for (const [x, z, label, color] of [[-1.65, 1.35, 'CƠ HỘI', '#9e3b2e'], [1.65, 1.35, 'KHÍ VẬN', '#285943']] as const) {
     const deck = new T.Group();
+    deck.name = label === 'CƠ HỘI' ? 'vn-3d-deck-chance' : 'vn-3d-deck-community';
     mesh(new RoundedBoxGeometry(1.14, .04, 1.58, 2, .02), brass, deck, 0, .02);
     mesh(new RoundedBoxGeometry(1.05, .13, 1.5, 2, .045), paper, deck, 0, .075);
     const top = mesh(new T.PlaneGeometry(.99, 1.43), new T.MeshStandardMaterial({ map: labelTexture(label, color, '#f7e6b7'), roughness: .7 }), deck, 0, .147);
@@ -426,6 +427,30 @@ export function tabletopProps() {
     stack.position.set(-.52 + i * .21, SURFACE + .018, 2.45 + (i % 2) * .16); root.add(stack);
   }
   root.traverse(node => { node.raycast = () => { }; });
+  return root;
+}
+export function drawnCard3D(deckType: 'chance' | 'community') {
+  const root = new T.Group();
+  const isComm = deckType === 'community';
+  const color = isComm ? '#1f7a5c' : '#b42b38';
+  const label = isComm ? 'KHÍ VẬN' : 'CƠ HỘI';
+  const brass = gold();
+  const paper = new T.MeshStandardMaterial({ color: '#f7eed7', roughness: .55 });
+  mesh(new RoundedBoxGeometry(1.04, .026, 1.48, 2, .012), brass, root, 0, 0, 0);
+  mesh(new RoundedBoxGeometry(.98, .03, 1.42, 2, .01), paper, root, 0, 0, 0);
+  let backMat: T.Material = new T.MeshStandardMaterial({ color, roughness: .45 });
+  let frontMat: T.Material = new T.MeshStandardMaterial({ color: '#241c13', roughness: .5 });
+  if (typeof document !== 'undefined') {
+    try {
+      backMat = new T.MeshBasicMaterial({ map: labelTexture(label, color, '#fde68a', 256, 360), toneMapped: false });
+      frontMat = new T.MeshBasicMaterial({ map: labelTexture(isComm ? '★ THẺ' : '? THẺ', '#241c13', '#fde68a', 256, 360), toneMapped: false });
+    } catch {/* Headless fallback */}
+  }
+  const topFace = mesh(new T.PlaneGeometry(.94, 1.36), backMat, root, 0, .017, 0);
+  topFace.rotation.x = -Math.PI / 2;
+  const bottomFace = mesh(new T.PlaneGeometry(.94, 1.36), frontMat, root, 0, -.017, 0);
+  bottomFace.rotation.x = Math.PI / 2;
+  root.traverse(node => { node.castShadow = true; node.raycast = () => { }; });
   return root;
 }
 export function dispose(root: T.Object3D) { const geometries = new Set<T.BufferGeometry>(), materials = new Set<T.Material>(), textures = new Set<T.Texture>(); root.traverse(node => { if (!(node instanceof T.Mesh)) return; geometries.add(node.geometry); for (const material of Array.isArray(node.material) ? node.material : [node.material]) { materials.add(material); for (const value of Object.values(material)) if (value instanceof T.Texture) textures.add(value); } }); for (const t of textures) t.dispose(); for (const g of geometries) g.dispose(); for (const m of materials) m.dispose(); }

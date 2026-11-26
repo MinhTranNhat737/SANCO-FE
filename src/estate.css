@@ -176,42 +176,82 @@
 @keyframes tileExtractRing{0%{transform:scale(.55);opacity:1}100%{transform:scale(1.65);opacity:0}}
 @keyframes tileExtractBeacon{0%{opacity:0}14%{opacity:1}72%{opacity:1}100%{opacity:0}}
 
+.vn-deck-top-slide{animation:vnDeckTopSlide .95s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes vnDeckTopSlide{0%{transform:translate(0,0) scale(1);opacity:1}55%{transform:translate(28px,-36px) rotate(10deg) scale(1.08);opacity:1}100%{transform:translate(56px,-64px) rotate(16deg) scale(.92);opacity:0}}
+
 .estate-card-scene{position:relative;z-index:33;width:min(368px,92%);display:flex;flex-direction:column;align-items:center}
-.estate-card-static,.estate-card-static-inner{width:100%}
-.estate-card-flyer{
-  width:100%;perspective:1300px;will-change:transform,opacity;
-  animation:estateCardFlyFromTile 1.32s cubic-bezier(.22,1,.36,1) both;
+.estate-card-scene.estate-deck-draw-stage{
+  width:min(556px,96vw);flex-direction:row;align-items:center;justify-content:center;gap:26px;
 }
-@keyframes estateCardFlyFromTile{
-  0%{
-    opacity:0;
-    transform:translate3d(var(--tile-dx,-165px),var(--tile-dy,-185px),0) scale(.17) rotate(var(--tile-tilt,-12deg));
-  }
-  12%{
-    opacity:1;
-    transform:translate3d(var(--tile-dx,-165px),calc(var(--tile-dy,-185px) - 22px),0) scale(.3) rotate(var(--tile-tilt,-12deg));
-  }
-  32%{
-    opacity:1;
-    transform:translate3d(calc(var(--tile-dx,-165px) * .62),calc(var(--tile-dy,-185px) * .58 - 44px),0) scale(.52) rotate(-6deg);
-  }
-  64%{
-    opacity:1;
-    transform:translate3d(0,-10px,0) scale(1.05) rotate(-1.5deg);
-  }
-  100%{
-    opacity:1;
-    transform:translate3d(0,0,0) scale(1) rotate(0deg);
-  }
+.estate-physical-deck-col{
+  display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;z-index:1;
+}
+.estate-physical-deck{
+  position:relative;width:142px;height:196px;
+}
+.estate-deck-tray{
+  position:absolute;inset:-6px;border-radius:15px;
+  background:linear-gradient(145deg,#d8b35a,#7c5c21);
+  border:1.5px solid #fde68a99;box-shadow:0 20px 42px #000c;
+}
+.estate-deck-sheet{
+  position:absolute;inset:0;border-radius:12px;background:#efe4c6;border:1px solid #967b4d;
+}
+.estate-deck-sheet.s5{transform:translate(8px,10px)}
+.estate-deck-sheet.s4{transform:translate(6px,7.5px)}
+.estate-deck-sheet.s3{transform:translate(4px,5px)}
+.estate-deck-sheet.s2{transform:translate(2px,2.5px)}
+.estate-deck-next-card{
+  position:relative;width:100%;height:100%;border-radius:12px;padding:9px;box-sizing:border-box;
+  border:2px solid #f0cf7b;box-shadow:0 8px 18px #0008;display:grid;place-items:center;
+}
+.deck-chance .estate-deck-next-card{background:radial-gradient(circle at 50% 35%,#b42b38,#6d121d 82%)}
+.deck-community .estate-deck-next-card{background:radial-gradient(circle at 50% 35%,#1f7a5c,#0f3d2d 82%)}
+.estate-deck-next-inner{
+  width:100%;height:100%;border-radius:8px;border:1.2px dashed #fde68a88;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff7dc;
+}
+.estate-deck-next-emblem{
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:#ffffff1c;border:1.5px solid #fde68a;font-size:21px;font-weight:900;color:#fde68a;
+}
+.estate-deck-next-inner strong{font-size:13.5px;letter-spacing:1.3px;font-weight:900}
+.estate-physical-deck-caption{
+  padding:4px 11px;border-radius:999px;background:#16110ce8;border:1px solid #e5c67866;
+  font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#f5df9c;
+  box-shadow:0 6px 16px #0008;
+}
+
+.estate-drawn-card-slot{position:relative;flex:1;min-width:0;max-width:368px;z-index:3;perspective:1400px}
+.estate-card-static,.estate-card-static-inner{width:100%}
+.estate-card-mover{
+  width:100%;perspective:1400px;will-change:transform,opacity;
+  animation:estateCardSlideFromDeck 1.45s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes estateCardSlideFromDeck{
+  0%{transform:translate3d(-215px,6px,0) scale(.43) rotate(-7deg)}
+  24%{transform:translate3d(-155px,-42px,0) scale(.54) rotate(-13deg)}
+  56%{transform:translate3d(-10px,-12px,0) scale(1.04) rotate(-2deg)}
+  100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}
 }
 
 .estate-card-flipper{
   position:relative;width:100%;transform-style:preserve-3d;will-change:transform;
-  animation:estateCardRevealFlip 1.32s cubic-bezier(.22,1,.36,1) both;
+  animation:estateCardRevealFlip 1.45s cubic-bezier(.22,1,.36,1) both;
 }
 @keyframes estateCardRevealFlip{
-  0%,56%{transform:rotateY(180deg)}
+  0%,54%{transform:rotateY(180deg)}
   100%{transform:rotateY(0deg)}
+}
+@media(max-width:640px){
+  .estate-card-scene.estate-deck-draw-stage{flex-direction:column;gap:16px}
+  .estate-physical-deck{width:108px;height:146px}
+  @keyframes estateCardSlideFromDeck{
+    0%{transform:translate3d(0,-155px,0) scale(.38) rotate(-7deg)}
+    26%{transform:translate3d(34px,-120px,0) scale(.52) rotate(8deg)}
+    56%{transform:translate3d(0,-8px,0) scale(1.03) rotate(-1deg)}
+    100%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}
+  }
 }
 
 .estate-card-back{
@@ -314,7 +354,6 @@
 .estate-help-qa p{margin:8px 0 0;font-size:12px;line-height:1.55;color:#dcd1ba}
 .estate-help-empty{margin:8px 0;font-size:12px;color:#bfb299;text-align:center}
 @media(max-width:600px){.estate-help-rules-grid{grid-template-columns:1fr}.estate-help-tabs{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){.estate-card-flyer,.estate-card-flipper,.estate-tile-extract-fx,.estate-card-shine,.vn-tile-card-pop,.vn-tile-card-eject{animation:none!important;transform:none!important}}
 
 /* Simple Jail Notice Card */
 .estate-jail-card{width:min(330px,92%);padding:15px 17px;border-radius:14px;background:#1c1313f7;border:1px solid #d96b6b66;border-top:3px solid #dc2626;box-shadow:0 18px 40px #000a;color:#f8e6e6;display:flex;flex-direction:column;gap:8px;animation:simpleCardIn .2s ease}
