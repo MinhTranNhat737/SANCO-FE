@@ -16,7 +16,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'rea
 import { Box, Layers, RotateCcw, Dice5, Flag, Gavel, Trophy } from 'lucide-react';
 import { moveRequest, type EstateEvent, type GameKind, type PartyState, type PracticeMove } from './practice-types';
 import Board3DBoundary from './Board3DBoundary';
-import { PARTY_SIDES as SIDES, PARTY_COLORS as COLORS, CITIES, GROUP_COLORS, LUDO_PATH as PATH, LUDO_SAFE as SAFE, groupOf, estateCell as ring, bestVnLayout, VN_RECT, type EstateLayout } from './three/party-layout.ts';
+import { PARTY_SIDES as SIDES, PARTY_COLORS as COLORS, CITIES, GROUP_COLORS, LUDO_PATH as PATH, LUDO_SAFE as SAFE, groupOf, estateCell as ring, estateBounds, estateBoardSize, bestVnLayout, VN_RECT, type EstateLayout } from './three/party-layout.ts';
 import './party.css';
 export { COLORS, CITIES };
 const ScenePartyBoard = lazy(() => import('./ScenePartyBoard'));
@@ -82,6 +82,7 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
   const [tileFx, setTileFx] = useState<{ lot: number; type: string; amount: number; key: number } | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const grabRef = useRef<((e: PointerEvent) => void) | null>(null);
+  const projectCellRef = useRef<((lot: number) => { clientX: number; clientY: number } | null) | null>(null);
   const pointerHandledRef = useRef(false);
   const seenRollRef = useRef(rollKey);
   const latestStateRef = useRef(state);
@@ -170,6 +171,7 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
     setWalkingSide(primaryMover.side);
     setAnimPhase('walk');
     let stepNum = 0;
+    const reachedVia = new Set<string>();
     walkTimerRef.current = setInterval(() => {
       const latest = latestStateRef.current;
       const prev = displayPosRef.current;
@@ -177,9 +179,22 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
       let done = true, stepped = false;
       for (const p of latest.players) {
         const cur = prev[p.side] ?? p.position;
-        if (cur === p.position) continue;
+        const mov = latest.movement?.side === p.side ? latest.movement : undefined;
+        const needVia = mov?.via !== undefined && !reachedVia.has(p.side);
+        if (!needVia && cur === p.position) continue;
         stepped = true;
-        const teleport = latest.movement?.side === p.side && latest.movement.teleport;
+        if (needVia) {
+          if (cur === mov!.via) {
+            reachedVia.add(p.side);
+            if (cur !== p.position) done = false;
+          } else {
+            next[p.side] = (cur + 1) % trackLen;
+            if (next[p.side] === mov!.via) reachedVia.add(p.side);
+            done = false;
+          }
+          continue;
+        }
+        const teleport = Boolean(mov?.teleport);
         const fwd = (p.position - cur + trackLen) % trackLen;
         const bwd = (cur - p.position + trackLen) % trackLen;
         if (teleport || (fwd > 18 && bwd > 6)) {
@@ -250,12 +265,38 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
   }, [latestEventId, animate, kind, isBoardBusy]);
 
   const activeFeatured = featuredQueue[0] || null;
+  const [cardOrigin, setCardOrigin] = useState<{ lot: number; dx: number; dy: number } | null>(null);
   useEffect(() => {
-    if (!activeFeatured) return;
-    const duration = activeFeatured.type === 'card' ? 4400 : 3000;
+    if (!activeFeatured) { setCardOrigin(null); return; }
+    if (activeFeatured.type === 'card') {
+      const sourceLot = activeFeatured.sourceLot ?? (activeFeatured.deck === 'community' ? 4 : 28);
+      const computeOrigin = () => {
+        const stageEl = stageRef.current;
+        const stageRect = stageEl?.getBoundingClientRect();
+        if (stageEl && stageRect && stageRect.width > 0 && stageRect.height > 0) {
+          const cx = stageRect.left + stageRect.width / 2, cy = stageRect.top + stageRect.height / 2;
+          if (view === '3d' && projectCellRef.current) {
+            const pt = projectCellRef.current(sourceLot);
+            if (pt) return { lot: sourceLot, dx: Math.round(pt.clientX - cx), dy: Math.round(pt.clientY - cy) };
+          }
+          const cellEl = stageEl.querySelector(`[data-cell-index="${sourceLot}"]`);
+          const cellRect = cellEl?.getBoundingClientRect();
+          if (cellRect && cellRect.width > 0 && cellRect.height > 0) {
+            return { lot: sourceLot, dx: Math.round(cellRect.left + cellRect.width / 2 - cx), dy: Math.round(cellRect.top + cellRect.height / 2 - cy) };
+          }
+        }
+        const b = estateBounds(sourceLot, vnLayout), sz = estateBoardSize(vnLayout);
+        const nx = (b.x + b.width / 2) / sz.width, ny = (b.y + b.height / 2) / sz.height;
+        return { lot: sourceLot, dx: Math.round((nx - .5) * 760), dy: Math.round((ny - .5) * 440) };
+      };
+      setCardOrigin(computeOrigin());
+    } else {
+      setCardOrigin(null);
+    }
+    const duration = activeFeatured.type === 'card' ? 5200 : 3000;
     const timer = setTimeout(() => setFeaturedQueue(q => q.slice(1)), duration);
     return () => clearTimeout(timer);
-  }, [activeFeatured?.id]);
+  }, [activeFeatured?.id, view, vnLayout.cols]);
 
   // Defer purchase confirmation FX until dice & movement land!
   useEffect(() => {
@@ -394,7 +435,8 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
   const visual2DState: PartyState = view === '2d' && kind === 'monopoly' && isBoardBusy
     ? { ...state, players: state.players.map(p => ({ ...p, position: displayPos[p.side] ?? p.position })) }
     : state;
-  const flat = () => vietnam ? <VietnamEstateBoard state={visual2DState} mySide={mySide} selected={inspect} onSelect={i => setSelectedCell(prev => prev === i ? null : i)} layout={vnLayout} justPurchasedLot={purchaseFx?.lot ?? null} justPurchasedKey={purchaseFx?.key || 0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy ? null : state.auction?.lot ?? null} tileFx={tileFx} /> : <FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i => setSelectedCell(prev => prev === i ? null : i)} />;
+  const activeCardLot = activeFeatured?.type === 'card' ? (activeFeatured.sourceLot ?? (activeFeatured.deck === 'community' ? 4 : 28)) : null;
+  const flat = () => vietnam ? <VietnamEstateBoard state={visual2DState} mySide={mySide} selected={inspect} onSelect={i => setSelectedCell(prev => prev === i ? null : i)} layout={vnLayout} justPurchasedLot={purchaseFx?.lot ?? null} justPurchasedKey={purchaseFx?.key || 0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy ? null : state.auction?.lot ?? null} tileFx={tileFx} drawingCardLot={activeCardLot} /> : <FlatPartyBoard kind={kind} state={state} mySide={mySide} selected={selectedCell} onSelect={i => setSelectedCell(prev => prev === i ? null : i)} />;
   const choose = (v: '3d' | '2d') => { stopFlatTimers(); setFlatRoll(null); syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p => [p.side, p.position]))); setWalkingSide(null); setAnimPhase('idle'); onAnimatingChange?.(false); setView(v); localStorage.setItem('sc-party-view', v); };
   const fallback = () => { stopFlatTimers(); setFlatRoll(null); syncDisplayPos(Object.fromEntries(latestStateRef.current.players.map(p => [p.side, p.position]))); setWalkingSide(null); setAnimPhase('idle'); onAnimatingChange?.(false); setFailed(true); setView('2d'); };
   const buyerName = purchaseFx ? (playerNames?.[purchaseFx.side] || SIDE_NAMES[purchaseFx.side] || purchaseFx.side) : '';
@@ -414,7 +456,7 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
   const inspector = kind === 'monopoly' && selectedCell !== null ? <EstateInspector state={state} selected={selectedCell} onClose={() => setSelectedCell(null)} legal={legal} enabled={enabled} onAction={m => onMove?.(moveRequest(m))} /> : null;
   const decision = vietnam && onMove ? <EstateAuctionModal state={state} mySide={mySide} turn={turn} playerNames={playerNames} legal={legal} enabled={enabled} busy={isBoardBusy} onMove={m => onMove(moveRequest(m))} /> : null;
   const centerAuction = fullscreen && vietnam && state.stage === 'auction' && Boolean(state.auction);
-  const renderedBoard = view === '3d' ? <Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m => onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} layout={vnLayout} justPurchasedLot={purchaseFx?.lot ?? null} justPurchasedKey={purchaseFx?.key || 0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy ? null : state.auction?.lot ?? null} tileFx={tileFx} grabRef={grabRef} onCellSelect={i => setSelectedCell(prev => prev === i ? null : i)} onHoldChange={setHolding} onPhaseChange={phase => { setAnimPhase(phase); onAnimatingChange?.(phase !== 'idle'); }} /></Suspense></Board3DBoundary> : flat();
+  const renderedBoard = view === '3d' ? <Board3DBoundary onFallback={fallback}><Suspense fallback={flat()}><ScenePartyBoard kind={kind} state={state} mySide={mySide} legal={legal} enabled={enabled} onMove={m => onMove?.(moveRequest(m))} onFallback={fallback} topView={top} resetKey={reset} gameKey={gameKey} animate={animate} lastDie={lastDie} rollKey={rollKey} rolls={rolls} selectedCell={selectedCell} layout={vnLayout} justPurchasedLot={purchaseFx?.lot ?? null} justPurchasedKey={purchaseFx?.key || 0} justPurchasedLots={purchaseFx?.lots} auctionLot={isBoardBusy ? null : state.auction?.lot ?? null} tileFx={tileFx} grabRef={grabRef} projectCellRef={projectCellRef} onCellSelect={i => setSelectedCell(prev => prev === i ? null : i)} onHoldChange={setHolding} onPhaseChange={phase => { setAnimPhase(phase); onAnimatingChange?.(phase !== 'idle'); }} /></Suspense></Board3DBoundary> : flat();
   const boardContent = <div data-board-theme={boardTheme} className={`party-board party-table party-table-${view}${vietnam ? ' party-table-estate' : ''}${fullscreen ? ' estate-immersive compact-interface' : ''}`}>
     {vietnam && !fullscreen && <EstateTutorial state={state} mySide={mySide} turn={turn} busy={isBoardBusy} live={animate} />}
     {!fullscreen && boardToolbar}
@@ -424,7 +466,7 @@ export function PartyBoard({ kind, state, mySide, turn, playerNames, legal = [],
         <span className="estate-purchase-icon">{purchaseFx.source === 'auction' ? <Gavel size={15} /> : <Trophy size={15} />}</span>
         <span><strong>{buyerName}</strong> {purchaseFx.source === 'auction' ? 'thắng đấu giá' : purchaseFx.source === 'buyout' ? 'đã mua lại' : purchaseFx.source === 'transfer' ? 'nhận chuyển nhượng' : 'đã mua'} <strong>{boughtCell.name}</strong>{purchaseFx.source === 'buyout' && sellerName ? ` từ ${sellerName}` : ''}{purchaseFx.lots.length > 1 && ` và ${purchaseFx.lots.length - 1} ô khác`}{purchaseFx.price > 0 && <> · <em>{cash(purchaseFx.price)}</em></>}</span>
       </div>}
-      {vietnam && <EstateEventOverlay featured={activeFeatured} toasts={eventToasts} playerNames={playerNames} onDismissFeatured={() => setFeaturedQueue(q => q.slice(1))} onDismissToast={id => setEventToasts(cur => cur.filter(e => e.id !== id))} />}
+      {vietnam && <EstateEventOverlay featured={activeFeatured} cardOrigin={cardOrigin} toasts={eventToasts} playerNames={playerNames} onDismissFeatured={() => setFeaturedQueue(q => q.slice(1))} onDismissToast={id => setEventToasts(cur => cur.filter(e => e.id !== id))} />}
       {(!fullscreen || centerAuction) && decision}
       {view === '2d' && flatHold && <div className="board-dice-hand-follower" style={{ left: `${flatHold.x}%`, top: `${flatHold.y}%` }} aria-hidden="true">
         <div className="board-held-dice">

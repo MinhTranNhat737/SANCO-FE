@@ -25,6 +25,7 @@ type Props = {
   tileFx?: { lot: number; type: string; amount: number; key: number } | null;
   onAnimatingChange?: (busy: boolean) => void; onPhaseChange?: (phase: 'idle' | 'dice' | 'walk') => void; onHoldChange?: (holding: boolean) => void; onCellSelect?: (index: number) => void;
   grabRef?: React.MutableRefObject<((e: PointerEvent) => void) | null>;
+  projectCellRef?: React.MutableRefObject<((lot: number) => { clientX: number; clientY: number } | null) | null>;
 };
 type Piece = { node: T.Group; position: number; side: string; token: number; route: { x: number; z: number }[]; from: T.Vector3; started: number; ring: T.Mesh };
 
@@ -168,14 +169,23 @@ export default function ScenePartyBoard(props: Props) {
             piece = { node, position, side: player.side, token, route: [], from: node.position.clone(), started: now, ring }; pieces.set(id, piece);
           } else if (baseline) { piece.route = []; piece.position = position; piece.node.position.set(target.x, SURFACE, target.z); }
           else if (position !== piece.position) {
-            const teleport = vietnam && p.state.movement?.side === player.side && p.state.movement.teleport;
+            const mov = vietnam && p.state.movement?.side === player.side ? p.state.movement : undefined;
+            const teleport = Boolean(mov?.teleport);
             const fwd = (position - piece.position + trackLength) % trackLength, bwd = (piece.position - position + trackLength) % trackLength;
-            const path = props.kind === 'ludo'
-              ? ludoRoute(player.side, token, piece.position, position)
-              : teleport ? [target]
-                : bwd <= 6 && bwd < fwd
-                  ? Array.from({ length: bwd }, (_, i) => estatePoint((piece!.position - i - 1 + trackLength) % trackLength, seat, estateSize))
-                  : Array.from({ length: fwd }, (_, i) => estatePoint((piece!.position + i + 1) % trackLength, seat, estateSize));
+            let path: { x: number; z: number }[];
+            if (props.kind === 'ludo') {
+              path = ludoRoute(player.side, token, piece.position, position);
+            } else if (mov?.via !== undefined && mov.via !== piece.position) {
+              const stepsToVia = (mov.via - piece.position + trackLength) % trackLength;
+              const toVia = Array.from({ length: stepsToVia }, (_, i) => estatePoint((piece!.position + i + 1) % trackLength, seat, estateSize));
+              path = [...toVia, target];
+            } else if (teleport) {
+              path = [target];
+            } else if (bwd <= 6 && bwd < fwd) {
+              path = Array.from({ length: bwd }, (_, i) => estatePoint((piece!.position - i - 1 + trackLength) % trackLength, seat, estateSize));
+            } else {
+              path = Array.from({ length: fwd }, (_, i) => estatePoint((piece!.position + i + 1) % trackLength, seat, estateSize));
+            }
             if (p.animate && !reduced) { piece.route.push(...path); piece.from.copy(piece.node.position); piece.started = now + rollWait; } else { piece.route = []; piece.node.position.set(target.x, SURFACE, target.z); }
             piece.position = position;
           }
@@ -247,6 +257,18 @@ export default function ScenePartyBoard(props: Props) {
       dirty = true;
     };
     if (live.current.grabRef) live.current.grabRef.current = beginHold;
+    if (live.current.projectCellRef) {
+      live.current.projectCellRef.current = (lot: number) => {
+        const rect = renderer.domElement.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        const b = estateBounds(lot, estateSize), pt = estateWorld([b.x + b.width / 2, b.y + b.height / 2], estateSize);
+        const v = new T.Vector3(pt.x, SURFACE + .08, pt.z).project(camera);
+        return {
+          clientX: rect.left + (v.x * .5 + .5) * rect.width,
+          clientY: rect.top + (-v.y * .5 + .5) * rect.height
+        };
+      };
+    }
 
     const down = (e: PointerEvent) => {
       if (isHittingDice(e)) { e.stopPropagation(); beginHold(e); return; }
@@ -410,7 +432,7 @@ export default function ScenePartyBoard(props: Props) {
       if (dirty || moving) { renderer.render(scene, camera); dirty = false; }
     }
     frame = requestAnimationFrame(render);
-    return () => { closed = true; if (live.current.grabRef) live.current.grabRef.current = null; cancelAnimationFrame(frame); resize.disconnect(); controls.removeEventListener('change', markDirty); controls.removeEventListener('start', onControlStart); controls.dispose(); renderer.domElement.removeEventListener('pointerdown', down); renderer.domElement.removeEventListener('pointermove', move); renderer.domElement.removeEventListener('pointerup', up); renderer.domElement.removeEventListener('pointercancel', cancel); renderer.domElement.removeEventListener('webglcontextlost', lost); window.removeEventListener('pointermove', winMove); window.removeEventListener('pointerup', winUp); controller.current = null; live.current.onAnimatingChange?.(false); live.current.onHoldChange?.(false); dispose(scene); environment?.dispose(); key.shadow.dispose(); renderer.dispose(); renderer.domElement.remove(); };
+    return () => { closed = true; if (live.current.grabRef) live.current.grabRef.current = null; if (live.current.projectCellRef) live.current.projectCellRef.current = null; cancelAnimationFrame(frame); resize.disconnect(); controls.removeEventListener('change', markDirty); controls.removeEventListener('start', onControlStart); controls.dispose(); renderer.domElement.removeEventListener('pointerdown', down); renderer.domElement.removeEventListener('pointermove', move); renderer.domElement.removeEventListener('pointerup', up); renderer.domElement.removeEventListener('pointercancel', cancel); renderer.domElement.removeEventListener('webglcontextlost', lost); window.removeEventListener('pointermove', winMove); window.removeEventListener('pointerup', winUp); controller.current = null; live.current.onAnimatingChange?.(false); live.current.onHoldChange?.(false); dispose(scene); environment?.dispose(); key.shadow.dispose(); renderer.dispose(); renderer.domElement.remove(); };
   }, [props.kind, props.gameKey, props.layout?.cols]);
   useEffect(() => { controller.current?.sync(); }, [props.state, props.enabled, props.legal, props.mySide, props.animate, props.lastDie, props.rollKey, props.selectedCell, props.justPurchasedLot, props.justPurchasedKey, props.justPurchasedLots, props.auctionLot, props.tileFx]);
   useEffect(() => { controller.current?.appearance(boardTheme); }, [boardTheme]);

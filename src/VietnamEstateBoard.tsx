@@ -206,14 +206,18 @@ function SvgLandmark({ cx, cy, kind, accent }: { cx: number; cy: number; kind: L
 
 function SpecialCellArt({ type, name, cx, cy }: { type: string; name: string; cx: number; cy: number }) {
   if (type === 'chance') {
-    return <g aria-hidden="true">
-      <rect x={cx - 8} y={cy - 9} width="16" height="20" rx="2.6" fill="#9e3b2e" stroke="#f5d57a" strokeWidth="1.2" transform={`rotate(-8 ${cx} ${cy})`} />
-      <text x={cx} y={cy + 6} textAnchor="middle" fontSize="15" fontWeight="900" fill="#fde68a">?</text>
+    return <g className="vn-cell-card-deck vn-cell-deck-chance" aria-hidden="true">
+      <rect x={cx - 9} y={cy - 10} width="18" height="22" rx="3" fill="#e7dcc0" stroke="#78350f" strokeWidth=".9" transform={`translate(2.4 2.2) rotate(-7 ${cx} ${cy})`} />
+      <rect x={cx - 9} y={cy - 10} width="18" height="22" rx="3" fill="#b42b38" stroke="#f5d57a" strokeWidth="1.4" transform={`rotate(-7 ${cx} ${cy})`} />
+      <rect x={cx - 6.4} y={cy - 7.4} width="12.8" height="16.8" rx="1.8" fill="none" stroke="#fde68a99" strokeWidth=".8" strokeDasharray="2 1.5" transform={`rotate(-7 ${cx} ${cy})`} />
+      <text x={cx} y={cy + 6} textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#fde68a">?</text>
     </g>;
   }
   if (type === 'community') {
-    return <g aria-hidden="true">
-      <rect x={cx - 8} y={cy - 9} width="16" height="20" rx="2.6" fill="#1e6b52" stroke="#f5d57a" strokeWidth="1.2" transform={`rotate(8 ${cx} ${cy})`} />
+    return <g className="vn-cell-card-deck vn-cell-deck-community" aria-hidden="true">
+      <rect x={cx - 9} y={cy - 10} width="18" height="22" rx="3" fill="#e7dcc0" stroke="#78350f" strokeWidth=".9" transform={`translate(-2.4 2.2) rotate(7 ${cx} ${cy})`} />
+      <rect x={cx - 9} y={cy - 10} width="18" height="22" rx="3" fill="#1b6b50" stroke="#f5d57a" strokeWidth="1.4" transform={`rotate(7 ${cx} ${cy})`} />
+      <rect x={cx - 6.4} y={cy - 7.4} width="12.8" height="16.8" rx="1.8" fill="none" stroke="#fde68a99" strokeWidth=".8" strokeDasharray="2 1.5" transform={`rotate(7 ${cx} ${cy})`} />
       <text x={cx} y={cy + 5.5} textAnchor="middle" fontSize="13.5" fontWeight="900" fill="#fde68a">★</text>
     </g>;
   }
@@ -333,19 +337,7 @@ function FlatPlayerToken({ cx, cy, side, cell, index, isMine, isTurn, compact = 
   </g>;
 }
 
-function CenterCardDeck({ x, y, angle, label, emblem, fill }: { x: number; y: number; angle: number; label: string; emblem: string; fill: string }) {
-  return <g className="vn-center-deck" transform={`translate(${x} ${y}) rotate(${angle})`} aria-hidden="true">
-    <rect x="-46" y="-60" width="92" height="120" rx="10" fill="#00000022" transform="translate(5 6)" />
-    <rect x="-46" y="-60" width="92" height="120" rx="9" fill="#e7dcc0" stroke="#927748" strokeWidth="1.3" transform="translate(3 3)" />
-    <rect x="-46" y="-60" width="92" height="120" rx="9" fill={fill} stroke="#d4af37" strokeWidth="2.4" />
-    <rect x="-39" y="-53" width="78" height="106" rx="6" fill="none" stroke="#f7e3a388" strokeWidth="1.2" strokeDasharray="4 2.5" />
-    <circle cx="0" cy="-12" r="20" fill="#ffffff18" stroke="#f7e3a3aa" strokeWidth="1.3" />
-    <text x="0" y="-4" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fde68a">{emblem}</text>
-    <text x="0" y="34" textAnchor="middle" fontSize="12.5" fontWeight="900" letterSpacing="1" fill="#fffbeb">{label}</text>
-  </g>;
-}
-
-export default function VietnamEstateBoard({ state, mySide, selected, onSelect, layout = VN_RECT, justPurchasedLot = null, justPurchasedKey = 0, justPurchasedLots, auctionLot = null, tileFx = null }: { state: PartyState; mySide: string; selected: number; onSelect: (index: number) => void; layout?: EstateLayout; justPurchasedLot?: number | null; justPurchasedKey?: number; justPurchasedLots?: number[]; auctionLot?: number | null; tileFx?: { lot: number; type: string; amount: number; key: number } | null }) {
+export default function VietnamEstateBoard({ state, mySide, selected, onSelect, layout = VN_RECT, justPurchasedLot = null, justPurchasedKey = 0, justPurchasedLots, auctionLot = null, tileFx = null, drawingCardLot = null }: { state: PartyState; mySide: string; selected: number; onSelect: (index: number) => void; layout?: EstateLayout; justPurchasedLot?: number | null; justPurchasedKey?: number; justPurchasedLots?: number[]; auctionLot?: number | null; tileFx?: { lot: number; type: string; amount: number; key: number } | null; drawingCardLot?: number | null }) {
   const activePlayers = state.players.filter(v => v.active);
   const turnSide = (state as { turn?: string }).turn;
   const glowId = useId().replaceAll(':', '');
@@ -362,8 +354,6 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
     <defs><filter id={glowId} x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4" /></filter></defs>
     <rect className="board-svg-base" width={board.width} height={board.height} fill="#fff" stroke="#111827" strokeWidth="3" />
     <rect className="board-svg-center" x={center.x} y={center.y} width={center.width} height={center.height} fill="#f5f3eb" stroke="#111827" strokeWidth="2" />
-    <CenterCardDeck x={center.x + center.width * .19} y={my + 2} angle={-11} label={t('CƠ HỘI')} emblem="?" fill="#9e2a2b" />
-    <CenterCardDeck x={center.x + center.width * .81} y={my + 2} angle={11} label={t('KHÍ VẬN')} emblem="★" fill="#1b5e49" />
     <g aria-hidden="true">
       <text className="board-svg-label" x={mx} y={my - 23} textAnchor="middle" fill="#172d24" fontSize="46" fontWeight="900">{t('TỶ PHÚ')}</text>
       <text x={mx} y={my + 15} textAnchor="middle" fill="#475b50" fontSize="24" fontWeight="800">{t('VIỆT NAM')}</text>
@@ -395,7 +385,7 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
                 : <text x={s / 2 + 1} y={h / 2} textAnchor="middle" dominantBaseline="central" fontSize="11.2" fontWeight="900" fill="#ffffff" transform={`rotate(-90 ${s / 2 + 1} ${h / 2})`}>{price}</text>)}
         </>}
         {rows.map((line, i) => <text key={i} x={tx} y={ty + i * (fs + .9)} textAnchor="middle" fontSize={fs} fontWeight="900" fill="#111827" textLength={line.length > 7 ? bw - 3.5 : undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
-        {!occupied && (lvl > 0 ? <g transform={`translate(${artX} ${artY}) scale(.76) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color} /></g> : landmark ? <g transform={`translate(${artX} ${artY}) scale(${physCorner ? 2.3 : 1.85})`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent} /></g> : <g transform={`translate(${artX} ${artY}) scale(${physCorner ? 1.55 : 1.05})`}><SpecialCellArt type={c.type} name={t(c.name ?? '')} cx={0} cy={0} /></g>)}
+        {(!occupied || ['chance', 'community'].includes(c.type)) && (lvl > 0 ? <g transform={`translate(${artX} ${artY}) scale(.76) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color} /></g> : landmark ? <g transform={`translate(${artX} ${artY}) scale(${physCorner ? 2.3 : 1.85})`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent} /></g> : <g opacity={occupied ? .55 : 1} transform={`translate(${artX} ${artY}) scale(${physCorner ? 1.55 : 1.05})`}><SpecialCellArt type={c.type} name={t(c.name ?? '')} cx={0} cy={0} /></g>)}
         {lvl > 0 && <g className="vn-house-level-badge" aria-label={lvl === 5 ? t('Khách sạn') : t('Nhà cấp {0}', lvl)}>
           <rect x={bx + bw - 26} y={by + 1.5} width="24.5" height="13.5" rx="3.2" fill={lvl === 5 ? '#d97706' : color} stroke="#ffffff" strokeWidth="1.1" />
           <text x={bx + bw - 13.75} y={by + 11.1} textAnchor="middle" fontSize="8.4" fontWeight="900" fill="#ffffff">{lvl === 5 ? '★KS' : `C${lvl}`}</text>
@@ -456,6 +446,17 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
         <rect x={b.x + 3} y={b.y + 3} width={b.width - 6} height={b.height - 6} fill="none" stroke={PARTY_COLORS[side || 'R']} strokeWidth="3" />
       </g>;
     })}
+    {drawingCardLot != null && drawingCardLot >= 0 && drawingCardLot < 48 && (() => {
+      const b = bounds(drawingCardLot), cell = VN_CELLS[drawingCardLot], isComm = cell?.type === 'community';
+      const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+      return <g className="vn-tile-card-pop" data-card-pop-lot={drawingCardLot} aria-hidden="true" style={{ pointerEvents: 'none' }}>
+        <rect x={b.x - 3} y={b.y - 3} width={b.width + 6} height={b.height + 6} rx="5" fill="none" stroke="#fde047" strokeWidth="4" />
+        <g className="vn-tile-card-eject">
+          <rect x={cx - 16} y={cy - 22} width="32" height="44" rx="5" fill={isComm ? '#1b6b50' : '#b42b38'} stroke="#fde047" strokeWidth="2" />
+          <text x={cx} y={cy + 6} textAnchor="middle" fontSize="20" fontWeight="900" fill="#fde68a">{isComm ? '★' : '?'}</text>
+        </g>
+      </g>;
+    })()}
     {tileFx && tileFx.lot >= 0 && tileFx.lot < 48 && (() => {
       const b = bounds(tileFx.lot), cx = b.x + b.width / 2, cy = b.y + b.height / 2, isGain = tileFx.amount > 0, label = tileFx.type === 'jail' ? 'Vào tù' : tileFx.amount ? (isGain ? '+' : '−') + Math.abs(tileFx.amount) + ' tr' : '';
       return label && <g key={tileFx.key} className="vn-tile-fx" aria-hidden="true"><g className="vn-fx-float"><rect x={cx - 31} y={cy - 12} width="62" height="24" rx="12" fill={isGain ? '#14532d' : '#7f1d1d'} stroke="#fff" strokeWidth="1.5" /><text x={cx} y={cy + 4} textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff">{label}</text></g></g>;

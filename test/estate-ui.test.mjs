@@ -432,13 +432,12 @@ test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help mo
     hudActions:createElement(Controls,{state:p,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
   });
 
-  // 1. Tile #4 is Khí vận and #28 is Cơ hội; 2D center court displays both CƠ HỘI and KHÍ VẬN decks
+  // 1. Tile #4 is Khí vận and #28 is Cơ hội with embedded mini-decks right on those 2 tiles
   assert.match(document.querySelector('[data-cell-index="4"]').textContent,/Khí vận/);
   assert.doesNotMatch(document.querySelector('[data-cell-index="4"]').textContent,/Quỹ cộng đồng|Quỹ chung/);
   assert.match(document.querySelector('[data-cell-index="28"]').textContent,/Cơ hội/);
-  const decks=[...document.querySelectorAll('.vn-center-deck')].map(el=>el.textContent);
-  assert.equal(decks.length,2);
-  assert.ok(decks.some(t=>t.includes('CƠ HỘI'))&&decks.some(t=>t.includes('KHÍ VẬN')));
+  assert.ok(document.querySelector('[data-cell-index="4"] .vn-cell-deck-community'),'Tile #4 Khí vận renders its mini card deck');
+  assert.ok(document.querySelector('[data-cell-index="28"] .vn-cell-deck-chance'),'Tile #28 Cơ hội renders its mini card deck');
 
   // 2. Full-group build button appears right in primary HUD actions and sends 'build'
   const buildBtn=document.querySelector('.estate-group-build-btn');
@@ -461,17 +460,48 @@ test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help mo
   await click(modal.querySelector('[aria-label="Đóng hướng dẫn"]'));
   assert.equal(document.querySelector('.estate-help-modal'),null);
 
-  // 4. Landing on Khí vận / Cơ hội triggers the 3D deck-draw & card-flip animation
-  const withCard=structuredClone(p);
-  withCard.eventSeq=1;
-  withCard.events=[{id:1,at:Date.now(),type:'card',deck:'community',card:1,side:'R',title:'Quỹ hỗ trợ phát triển',reason:'Thẻ Khí vận: nhận thưởng 200 triệu',amount:200,lot:4}];
+  // 4. Landing on Khí vận (#4) and Cơ hội (#28) pulls the card directly out of that tile and reveals its content
+  const stage=document.querySelector('.party-stage-wrap');
+  Object.defineProperty(stage,'getBoundingClientRect',{configurable:true,value:()=>({left:0,top:0,width:1000,height:600})});
+  Object.defineProperty(document.querySelector('[data-cell-index="4"]'),'getBoundingClientRect',{configurable:true,value:()=>({left:700,top:510,width:60,height:80})});
+  Object.defineProperty(document.querySelector('[data-cell-index="28"]'),'getBoundingClientRect',{configurable:true,value:()=>({left:220,top:10,width:60,height:80})});
+
+  const withCommunity=structuredClone(p);
+  withCommunity.players[0].position=4;
+  withCommunity.eventSeq=1;
+  withCommunity.events=[{id:1,at:Date.now(),type:'card',deck:'community',card:1,side:'R',title:'Quỹ hỗ trợ phát triển',reason:'Thẻ Khí vận: nhận thưởng 200 triệu',amount:200,lot:4,sourceLot:4}];
   await render(PartyBoard,{
-    kind:'monopoly',state:withCard,mySide:'R',turn:'R',legal,enabled:true,animate:true,immersive:true,
+    kind:'monopoly',state:withCommunity,mySide:'R',turn:'R',legal,enabled:true,animate:true,immersive:true,
     onMove:m=>sent.push(m),
-    hudActions:createElement(Controls,{state:withCard,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
+    hudActions:createElement(Controls,{state:withCommunity,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
   });
-  assert.ok(document.querySelector('.estate-card-draw.deck-community'),'Card draw stage renders with Khí vận deck class');
-  assert.ok(document.querySelector('.estate-deck-origin'),'Source deck stack renders');
-  assert.ok(document.querySelector('.estate-card-flipper .estate-card-back'),'3D card back renders for flip animation');
-  assert.match(document.querySelector('.estate-card-flipper .estate-card-front').textContent,/Rút bài · Khí vận/);
+  const commDraw=document.querySelector('.estate-card-draw.deck-community');
+  assert.ok(commDraw,'Card draw stage renders with Khí vận deck class');
+  assert.equal(commDraw.getAttribute('data-draw-from-lot'),'4','Card draw originates from tile #4 (Khí vận)');
+  assert.equal(commDraw.style.getPropertyValue('--tile-dx'),'230px','Trajectory X points to exact center of tile #4');
+  assert.equal(commDraw.style.getPropertyValue('--tile-dy'),'250px','Trajectory Y points to exact center of tile #4');
+  assert.ok(document.querySelector('.vn-tile-card-pop[data-card-pop-lot="4"]'),'2D board ejects a mini card from tile #4');
+  assert.ok(document.querySelector('.estate-tile-extract-fx[data-extract-lot="4"]'),'Tile #4 extraction beacon renders');
+  assert.ok(document.querySelector('.estate-card-flyer .estate-card-flipper .estate-card-back'),'3D card back renders as it flies out of tile #4');
+  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ ô Khí vận/);
+  assert.match(document.querySelector('.estate-card-front').textContent,/Quỹ hỗ trợ phát triển/);
+  assert.match(document.querySelector('.estate-card-outcome').textContent,/Nhận \+200 tr/);
+  await click(document.querySelector('.estate-card-ok-btn'));
+
+  const withChance=structuredClone(withCommunity);
+  withChance.players[0].position=0;
+  withChance.eventSeq=2;
+  withChance.events=[...withCommunity.events,{id:2,at:Date.now(),type:'card',deck:'chance',card:4,side:'R',title:'Tiến thẳng Xuất phát',reason:'Thẻ Cơ hội: về Xuất phát, nhận 500 triệu',amount:500,lot:28,sourceLot:28,destLot:0}];
+  await render(PartyBoard,{
+    kind:'monopoly',state:withChance,mySide:'R',turn:'R',legal,enabled:true,animate:true,immersive:true,
+    onMove:m=>sent.push(m),
+    hudActions:createElement(Controls,{state:withChance,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
+  });
+  const chanceDraw=document.querySelector('.estate-card-draw.deck-chance');
+  assert.ok(chanceDraw,'Chance card draw stage renders');
+  assert.equal(chanceDraw.getAttribute('data-draw-from-lot'),'28','Even movement cards originate from tile #28 (Cơ hội)');
+  assert.equal(chanceDraw.style.getPropertyValue('--tile-dx'),'-250px','Trajectory X points to exact center of tile #28');
+  assert.equal(chanceDraw.style.getPropertyValue('--tile-dy'),'-250px','Trajectory Y points to exact center of tile #28');
+  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ ô Cơ hội/);
+  assert.match(document.querySelector('.estate-card-front').textContent,/Tiến thẳng Xuất phát/);
 });
