@@ -38,7 +38,7 @@ test('Single-ring board opens magnified, supports zoom and overview, and keeps w
   for(const lot of lots){
     const rect=lot.querySelector('rect'),w=Number(rect.getAttribute('width')),h=Number(rect.getAttribute('height'));
     if(lot.getAttribute('data-corner')==='true')assert.ok(Math.abs(w-h)<1e-6,'Corners must be exact squares');
-    else assert.ok(Math.max(w,h)/Math.min(w,h)<=1.3,'Edge lots stay comfortably proportioned (not skinny rectangles)');
+    else assert.ok(Math.max(w,h)/Math.min(w,h)<=1.55,'Edge lots stay comfortably proportioned (not skinny rectangles)');
   }
   const surface=()=>document.querySelector('.estate-board-surface');
   assert.equal(surface().style.width,'1560px','Large mode must enlarge the actual board');
@@ -220,8 +220,10 @@ test('Fullscreen HUD suppresses duplicate buy/auction buttons and supports resiz
     kind:'monopoly',state:p,mySide:'R',turn:'R',legal,enabled:true,animate:false,immersive:true,onMove:()=>{},
     hudActions:createElement(Controls,{state:p,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:()=>{}})
   });
-  // Decision card renders once; EstateControls does NOT duplicate Buy / Auction / Skip buttons below it
+  // Decision card renders once; EstateControls does NOT duplicate Buy / Auction / Skip buttons below it; Open Auction button removed
   assert.equal(document.querySelectorAll('.estate-buy-center').length,1);
+  assert.equal(button('Mở đấu giá'),undefined,'Redundant Open Auction button removed from buy modal');
+  assert.ok(button('Bỏ qua lượt'),'Skip button stays available on buy modal');
   assert.equal(document.querySelector('.estate-primary-actions'),null,'No duplicate decision buttons in EstateControls');
   const hud=document.querySelector('.estate-game-hud');
   const resizer=document.querySelector('.estate-hud-resizer[role="separator"]');
@@ -302,7 +304,7 @@ test('Building progression from Level 1 to Level 5 Hotel renders distinct 2D/3D 
   }
 });
 
-test('Fullscreen widescreen board adapts from 16x10 (HUD open) to 17x9 (HUD collapsed) with all 48 square tiles',async()=>{
+test('Fullscreen board locks Xuất phát, Thăm tù, Nghỉ chân and Vào tù to the 4 largest corners with +500/+100 rewards',async()=>{
   localStorage.setItem('sc-party-view','2d');
   const g=game(2);
   let stageW=1660,stageH=1080;
@@ -319,24 +321,23 @@ test('Fullscreen widescreen board adapts from 16x10 (HUD open) to 17x9 (HUD coll
     const stage=document.querySelector('.party-stage-wrap');
     Object.defineProperties(stage,{clientWidth:{get:()=>stageW,configurable:true},clientHeight:{get:()=>stageH,configurable:true}});
     await act(async()=>{observers.forEach(o=>o.trigger());});
-    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'16x10','HUD open 1660x1080 picks 16x10 widescreen layout');
-    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 988.8 628.8');
-    for(const lot of document.querySelectorAll('[data-cell-index]')){
+    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'13x13');
+    const edgeRect=document.querySelector('[data-cell-index="1"] rect');
+    const edgeArea=Number(edgeRect.getAttribute('width'))*Number(edgeRect.getAttribute('height'));
+    for(const idx of [0,12,24,36]){
+      const lot=document.querySelector(`[data-cell-index="${idx}"]`);
+      assert.equal(lot.getAttribute('data-corner'),'true',`Corner ${idx} must be at a physical corner`);
       const r=lot.querySelector('rect'),w=Number(r.getAttribute('width')),h=Number(r.getAttribute('height'));
-      if(lot.getAttribute('data-corner')==='true')assert.ok(Math.abs(w-h)<1e-6,'Corners stay exact squares in 16x10');
-      else assert.ok(Math.max(w,h)/Math.min(w,h)<=1.3,'Edge lots keep balanced proportion in 16x10');
+      assert.ok(Math.abs(w-h)<1e-6,'Corners stay exact squares');
+      assert.ok(w*h>edgeArea*1.4,'Corner tiles must be the largest tiles on the board');
     }
-    // Collapse HUD -> stage freesizes to full 1920x1080 -> switches to 17x9!
+    assert.match(document.querySelector('[data-cell-index="0"]').textContent,/\+500 tr/);
+    assert.match(document.querySelector('[data-cell-index="24"]').textContent,/\+100 tr/);
+    // Collapse HUD -> stays 13x13 so all 4 special tiles remain locked in the 4 corners!
     await click(document.querySelector('[aria-label="Thu gọn HUD"]'));
     stageW=1920;stageH=1080;
     await act(async()=>{observers.forEach(o=>o.trigger());});
-    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'17x9','Collapsed HUD freesizes to 17x9 across entire 16:9 screen');
-    assert.equal(document.querySelector('.vn-estate-flat svg').getAttribute('viewBox'),'0 0 1048.8 568.8');
-    for(const lot of document.querySelectorAll('[data-cell-index]')){
-      const r=lot.querySelector('rect'),w=Number(r.getAttribute('width')),h=Number(r.getAttribute('height'));
-      if(lot.getAttribute('data-corner')==='true')assert.ok(Math.abs(w-h)<1e-6,'Corners stay exact squares in 17x9');
-      else assert.ok(Math.max(w,h)/Math.min(w,h)<=1.3,'Edge lots keep balanced proportion in 17x9');
-    }
+    assert.equal(document.querySelector('.vn-estate-flat').getAttribute('data-layout'),'13x13');
   }finally{
     globalThis.ResizeObserver=OrigRO;
   }

@@ -18,10 +18,10 @@ export type EstateLayout={cols:number;rows:number;unit:number};
 export type EstateSize=number|EstateLayout;
 export const VN_TILE=600/13;
 /**
- * Balanced corner/depth ratio (~1.24x edge width): gives corners a larger square footprint
- * and edge tiles a comfortable, non-skinny body with an inner colored price strip + large icon.
+ * Corner/depth ratio (1.48x edge width): makes the 4 corner squares (Xuất phát, Thăm tù,
+ * Nghỉ chân, Vào tù) the biggest tiles on the board while keeping edge tiles comfortably proportioned.
  */
-export const VN_CORNER_RATIO=1.24;
+export const VN_CORNER_RATIO=1.48;
 const VN_LAYOUTS:Record<number,EstateLayout>=Object.fromEntries([13,14,15,16,17,18].map(cols=>[cols,Object.freeze({cols,rows:26-cols,unit:VN_TILE})]));
 export function vnLayout(cols=13):EstateLayout{return VN_LAYOUTS[Math.max(13,Math.min(18,Math.round(cols)))];}
 export const VN_SQUARE=vnLayout(13);
@@ -31,12 +31,9 @@ export function vnTileSize(layout:EstateLayout,width:number,height:number,margin
   const extra=2*(VN_CORNER_RATIO-1);
   return Math.min(width/(layout.cols+extra+margin),height/(layout.rows+extra+margin));
 }
-/** Pick the 48-lot layout whose lots come out biggest for the available area. */
-export function bestVnLayout(width:number,height:number):EstateLayout{
-  if(!(width>0&&height>0))return VN_SQUARE;
-  let best=VN_SQUARE,bestTile=vnTileSize(VN_SQUARE,width,height);
-  for(let cols=14;cols<=18;cols++){const layout=vnLayout(cols),tile=vnTileSize(layout,width,height);if(tile>bestTile*1.005){best=layout;bestTile=tile;}}
-  return best;
+/** Always keep the 13x13 ring so Xuất phát (0), Thăm tù (12), Nghỉ chân (24) and Vào tù (36) stay locked to the 4 largest corners. */
+export function bestVnLayout(_width:number,_height:number):EstateLayout{
+  return VN_SQUARE;
 }
 export function estateLayout(size:EstateSize=6):EstateLayout{return typeof size==='number'?(size===13?VN_SQUARE:{cols:size,rows:size,unit:600/size}):size;}
 export function estateBoardSize(size:EstateSize=6,extent=600){

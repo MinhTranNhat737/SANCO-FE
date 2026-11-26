@@ -74,7 +74,7 @@ export function EstateInspector({
   const currentPos = state.players.find(p => p.active && legal.some(m => (m.action || m.command) === 'buy'))?.position;
   const cellMoves = legal.filter(m => {
     const act = m.action || m.command || '';
-    if (act === 'buy' || act === 'auction') return currentPos === selected || m.to === selected;
+    if (act === 'buy') return currentPos === selected || m.to === selected;
     return m.to === selected && ['build', 'mortgage', 'redeem', 'sell_building', 'sell'].includes(act);
   });
   const actionLabels: Record<string, string> = {
@@ -121,7 +121,7 @@ export function EstateInspector({
         {state.market && <p className="estate-special-note">Thị trường: {state.market.description}. Tiền thuê hiện tại đã áp dụng hệ số; bảng cấp nhà là giá cơ bản.</p>}
         {c.type === 'station' && <p className="estate-special-note">Tiền thuê cơ bản theo số bến/ga cùng chủ: 1 ga 50 tr · 2 ga 100 tr · 3 ga 200 tr · 4 ga 400 tr.</p>}
         {c.type === 'utility' && <p className="estate-special-note">Sở hữu 1 tiện ích: thuê = 5× tổng 2 xúc xắc · Sở hữu đủ 2 tiện ích: thuê = 12× tổng 2 xúc xắc.</p>}
-      </> : <p className="estate-special-note">{c.type === 'start' ? `Đi qua hoặc dừng tại Xuất phát nhận +${estateSalary(state)} triệu.` : c.type === 'tax' ? `Nộp ngân sách nhà nước ${cash(c.amount || 0)}.` : c.type === 'gotojail' ? 'Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.' : c.type === 'jail' ? 'Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).' : c.type === 'rest' ? 'Bến dừng chân tự do, không phải nộp phí.' : 'Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.'}</p>}
+      </> : <p className="estate-special-note">{c.type === 'start' ? `Đi qua hoặc dừng tại Xuất phát nhận +${estateSalary(state)} triệu.` : c.type === 'tax' ? `Nộp ngân sách nhà nước ${cash(c.amount || 0)}.` : c.type === 'gotojail' ? 'Di chuyển thẳng vào Trại giam trong tối đa 3 lượt.' : c.type === 'jail' ? 'Thăm tù tự do (hoặc trả 100 tr / dùng thẻ để ra tù).' : c.type === 'rest' ? 'Dừng tại ô Nghỉ chân nhận thưởng +100 triệu.' : 'Rút thẻ sự kiện ngẫu nhiên thưởng/phạt ngay trong lượt.'}</p>}
     </div>
     {enabled && cellMoves.length > 0 && <div className="estate-card-actions">
       {cellMoves.map(m => { const act = m.action || m.command || ''; return <button key={act + ':' + m.to} type="button" className="button button-small" onClick={() => onAction?.(m)}>{actionLabels[act] || act}</button>; })}
@@ -335,7 +335,7 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
   const glowId = useId().replaceAll(':', '');
   const glowLots = justPurchasedLots ?? (justPurchasedLot != null ? [justPurchasedLot] : []);
   const board = estateBoardSize(layout, 780), bounds = (index: number) => estateBounds(index, layout, 780), center = estateCenterBounds(layout, 780);
-  const mx = board.width / 2, my = board.height / 2, stripDepth = Math.max(13, board.depth - board.unit);
+  const mx = board.width / 2, my = board.height / 2, stripDepth = Math.min(18, Math.max(14, Math.round(board.unit * .27)));
   const occupiedByCell = new Map<number, typeof activePlayers>();
   for (const p of activePlayers) {
     const arr = occupiedByCell.get(p.position) || [];
@@ -358,12 +358,12 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
       const color = owned ? TOKEN_STYLES[owned]?.fill || PARTY_COLORS[owned] : '#111827';
       const accent = c.group !== undefined ? CLASSIC_GROUP_COLORS[c.group] || VN_GROUP_COLORS[c.group] : c.type === 'station' ? '#475569' : c.type === 'utility' ? '#b45309' : c.type === 'tax' ? '#b91c1c' : '#64748b';
       const selectedHere = selected === c.index, auction = auctionLot === c.index, landmark = PROVINCE_LANDMARKS[c.name];
-      const price = ownable(c) ? String(c.price) : c.type === 'start' ? '+' + estateSalary(state) + ' tr' : c.type === 'tax' ? '−' + c.amount : '';
+      const price = ownable(c) ? String(c.price) : c.type === 'start' ? '+' + estateSalary(state) + ' tr' : c.type === 'rest' ? '+100 tr' : c.type === 'tax' ? '−' + c.amount : '';
       const hasStrip = !physCorner && Boolean(price || c.type === 'property');
       const s = hasStrip ? stripDepth : 0;
       const bx = physCorner ? 0 : edge === 3 ? s : 0, by = physCorner ? 0 : edge === 0 ? s : 0, bw = physCorner || !vertical ? w : w - s, bh = physCorner || vertical ? h : h - s;
-      const tx = bx + bw / 2, fs = physCorner ? 12.2 : 10.8, ty = by + (rows.length > 1 ? 11.5 : 14.5);
-      const artX = tx, artY = by + bh * (physCorner ? (price ? .55 : .58) : (rows.length > 1 ? .68 : .64));
+      const tx = bx + bw / 2, fs = physCorner ? 13.5 : 10.8, ty = by + (physCorner ? 15.5 : rows.length > 1 ? 11.5 : 14.5);
+      const artX = tx, artY = by + bh * (physCorner ? (price ? .54 : .58) : (rows.length > 1 ? .68 : .64));
       return <g key={c.index} data-cell-index={c.index} data-corner={physCorner ? 'true' : undefined} data-house-level={lvl > 0 ? lvl : undefined} transform={`translate(${cell.x} ${cell.y})`} data-owned={Boolean(owned) || selectedHere} role="button" tabIndex={0} aria-label={'Xem ' + c.name} aria-pressed={selectedHere} onClick={() => onSelect(c.index)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(c.index); } }}>
         <rect className={auction ? 'board-svg-lot vn-auction-lot-pulse' : selectedHere ? 'board-svg-selected' : 'board-svg-lot'} x={0} y={0} width={w} height={h} fill={auction || selectedHere ? '#fef08a' : owned ? OWNER_BG[owned] || '#fff' : specialCorner ? '#fff2d6' : '#fff'} stroke={auction ? '#d97706' : selectedHere ? '#dc2626' : owned ? color : specialCorner ? '#b58b3c' : '#111827'} strokeWidth={selectedHere || owned || auction ? 3 : specialCorner ? 2.2 : 1.5} />
         {hasStrip && <>
@@ -373,16 +373,16 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
           {edge === 3 && <rect x={1} y={1} width={s} height={h - 2} fill={accent} />}
           {price && (edge === 0 ? <text x={w / 2} y={s / 2 + 4.3} textAnchor="middle" fontSize="11.2" fontWeight="900" fill="#ffffff">{price}</text>
             : edge === 2 ? <text x={w / 2} y={h - s / 2 + 3.3} textAnchor="middle" fontSize="11.2" fontWeight="900" fill="#ffffff">{price}</text>
-            : edge === 1 ? <text x={w - s / 2 - 1} y={h / 2} textAnchor="middle" dominantBaseline="central" fontSize="11.2" fontWeight="900" fill="#ffffff" transform={`rotate(90 ${w - s / 2 - 1} ${h / 2})`}>{price}</text>
-            : <text x={s / 2 + 1} y={h / 2} textAnchor="middle" dominantBaseline="central" fontSize="11.2" fontWeight="900" fill="#ffffff" transform={`rotate(-90 ${s / 2 + 1} ${h / 2})`}>{price}</text>)}
+              : edge === 1 ? <text x={w - s / 2 - 1} y={h / 2} textAnchor="middle" dominantBaseline="central" fontSize="11.2" fontWeight="900" fill="#ffffff" transform={`rotate(90 ${w - s / 2 - 1} ${h / 2})`}>{price}</text>
+                : <text x={s / 2 + 1} y={h / 2} textAnchor="middle" dominantBaseline="central" fontSize="11.2" fontWeight="900" fill="#ffffff" transform={`rotate(-90 ${s / 2 + 1} ${h / 2})`}>{price}</text>)}
         </>}
         {rows.map((line, i) => <text key={i} x={tx} y={ty + i * (fs + .9)} textAnchor="middle" fontSize={fs} fontWeight="900" fill="#111827" textLength={line.length > 7 ? bw - 3.5 : undefined} lengthAdjust="spacingAndGlyphs">{line}</text>)}
-        {!occupied && (lvl > 0 ? <g transform={`translate(${artX} ${artY}) scale(.76) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color} /></g> : landmark ? <g transform={`translate(${artX} ${artY}) scale(${physCorner ? 2.15 : 1.85})`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent} /></g> : <g transform={`translate(${artX} ${artY}) scale(${physCorner ? 1.28 : 1.05})`}><SpecialCellArt type={c.type} name={t(c.name ?? '')} cx={0} cy={0} /></g>)}
+        {!occupied && (lvl > 0 ? <g transform={`translate(${artX} ${artY}) scale(.76) translate(-30 -38)`}><FlatBuilding x={0} y={0} level={lvl} color={color} /></g> : landmark ? <g transform={`translate(${artX} ${artY}) scale(${physCorner ? 2.3 : 1.85})`}><SvgLandmark cx={0} cy={0} kind={landmark.kind} accent={accent} /></g> : <g transform={`translate(${artX} ${artY}) scale(${physCorner ? 1.55 : 1.05})`}><SpecialCellArt type={c.type} name={t(c.name ?? '')} cx={0} cy={0} /></g>)}
         {lvl > 0 && <g className="vn-house-level-badge" aria-label={lvl === 5 ? t('Khách sạn') : t('Nhà cấp {0}', lvl)}>
           <rect x={bx + bw - 26} y={by + 1.5} width="24.5" height="13.5" rx="3.2" fill={lvl === 5 ? '#d97706' : color} stroke="#ffffff" strokeWidth="1.1" />
           <text x={bx + bw - 13.75} y={by + 11.1} textAnchor="middle" fontSize="8.4" fontWeight="900" fill="#ffffff">{lvl === 5 ? '★KS' : `C${lvl}`}</text>
         </g>}
-        {physCorner && price && <text x={tx} y={h - 5.5} textAnchor="middle" fontSize="11.2" fontWeight="900" fill={ownable(c) ? '#11281f' : '#b91c1c'}>{price}</text>}
+        {physCorner && price && <text x={tx} y={h - 7} textAnchor="middle" fontSize="12.2" fontWeight="900" fill={c.type === 'start' || c.type === 'rest' ? '#15803d' : ownable(c) ? '#11281f' : '#b91c1c'}>{price}</text>}
         {owned && <rect x={1} y={h - 3} width={w - 2} height={2.5} fill={color} />}
         {state.mortgaged?.[c.index] && <path d={`M5 ${h - 7}L${w - 5} 9`} stroke="#dc2626" strokeWidth="3" opacity=".85" />}
       </g>;
@@ -397,7 +397,7 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
       const c = VN_CELLS[cellIdx]; if (!c) return null;
       const b = bounds(cellIdx), edge = estateEdge(cellIdx, layout);
       const lvl = state.houses[cellIdx] || 0;
-      const sub = lvl > 0 ? (lvl === 5 ? '★KS' : `C${lvl}`) : (ownable(c) ? `${c.price} tr` : c.type === 'start' ? `+${estateSalary(state)} tr` : c.type === 'tax' ? `−${c.amount} tr` : '');
+      const sub = lvl > 0 ? (lvl === 5 ? '★KS' : `C${lvl}`) : (ownable(c) ? `${c.price} tr` : c.type === 'start' ? `+${estateSalary(state)} tr` : c.type === 'rest' ? '+100 tr' : c.type === 'tax' ? `−${c.amount} tr` : '');
       const label = sub ? `${c.name} · ${sub}` : c.name;
       const pillW = Math.min(185, Math.max(82, label.length * 6.6 + 26)), pillH = 24;
       const leadSide = standers.find(p => p.side === turnSide)?.side || standers[0].side;

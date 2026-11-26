@@ -15,7 +15,7 @@ export function estateModePreview(count:number,mode:'auto'|'classic'){
   return {name:t('Đại hội địa ốc'),description:t('1 lô khởi nghiệp/người · 16 vòng · Thị trường đổi mỗi 2 vòng · Nhịp nhanh cho nhóm đông.')};
 }
 export const estateBuildCost=(state:PartyState,base:number)=>Math.ceil(base*(state.market?.buildPercent??100)/100);
-export const estateSalary=(state:PartyState)=>Math.ceil((state.profile?.salary??400)*(state.market?.salaryPercent??100)/100);
+export const estateSalary=(state:PartyState)=>Math.ceil((state.profile?.salary??500)*(state.market?.salaryPercent??100)/100);
 
 export function ownershipChanges(previous:(string|null)[],current:(string|null)[],purchase:PartyState['lastPurchase']){
   return current.flatMap((side,lot)=>{

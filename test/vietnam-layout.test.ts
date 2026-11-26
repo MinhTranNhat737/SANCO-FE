@@ -83,11 +83,14 @@ test('All adaptive 48-lot widescreen layouts (13x13..18x8) keep exact square til
     const usedArea=bounds.reduce((sum,b)=>sum+b.width*b.height,0),center=estateCenterBounds(layout);
     assert.ok(Math.abs(usedArea+center.width*center.height-board.width*board.height)<1e-6);
   }
-  // Widescreen 1920x1080 with HUD open (1660x1080) -> 16x10; HUD collapsed (1920x1080) -> 17x9 (bigger tiles, no sidebars!)
-  const openHud=bestVnLayout(1660,1080),fullScreen=bestVnLayout(1920,1080),ultraWide=bestVnLayout(2560,1080);
-  assert.equal(openHud.cols,16);assert.equal(openHud.rows,10);
-  assert.equal(fullScreen.cols,17);assert.equal(fullScreen.rows,9);
-  assert.equal(ultraWide.cols,18);assert.equal(ultraWide.rows,8);
-  assert.ok(vnTileSize(fullScreen,1920,1080)>vnTileSize(VN_SQUARE,1920,1080)*1.3,'17x9 tiles must be >30% larger linearly than 13x13 on 16:9');
-  assert.ok(vnTileSize(fullScreen,1920,1080)>vnTileSize(openHud,1660,1080),'Collapsing HUD freesizes the board to even larger square tiles');
+  // bestVnLayout always preserves the 13x13 ring so Xuất phát (0), Thăm tù (12), Nghỉ chân (24), Vào tù (36) stay locked to the 4 largest corners
+  for(const [w,h] of [[1660,1080],[1920,1080],[2560,1080],[390,844]]){
+    const layout=bestVnLayout(w,h);
+    assert.equal(layout.cols,13);assert.equal(layout.rows,13);
+    for(const cornerIdx of [0,12,24,36]){
+      assert.equal(isEstateCorner(cornerIdx,layout),true,`Index ${cornerIdx} (${VN_CELLS[cornerIdx].name}) must sit at a corner`);
+      const cb=estateBounds(cornerIdx,layout),eb=estateBounds(1,layout);
+      assert.ok(cb.width*cb.height>eb.width*eb.height*1.4,'The 4 corner tiles must be significantly larger than every edge tile');
+    }
+  }
 });

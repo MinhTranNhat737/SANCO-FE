@@ -215,7 +215,7 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
     if(minimized){
       return <button type="button" className="estate-center-reopen" onClick={()=>setMinimized(false)}>
         <HeaderIcon size={16}/>
-        <span>{t('Chọn mua / đấu giá') + ' '}<strong>{t(cell.name ?? '')}</strong> · {cash(cell.price)}</span>
+        <span>{t('Quyết định mua') + ' '}<strong>{t(cell.name ?? '')}</strong> · {cash(cell.price)}</span>
       </button>;
     }
 
@@ -251,14 +251,10 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
             <button type="button" className="estate-lux-btn estate-lux-gold estate-buy-primary" disabled={!canBuy} onClick={()=>send('buy',me.position)}>
               <Check size={17}/>{canBuy?`Mua ngay · ${cash(cell.price)}`:t('Không đủ tiền ({0})', cash(cell.price))}
             </button>
-            <div className="estate-buy-secondary-row">
-              <button type="button" className="estate-lux-btn estate-lux-auction" disabled={!allowed('auction')} onClick={()=>send('auction')}>
-                <Gavel size={15}/>{t('Mở đấu giá') + ' '}</button>
-              <button type="button" className="estate-lux-btn estate-lux-skip estate-skip-btn" disabled={!canSkip} onClick={()=>send('skip_buy')}>
-                <SkipForward size={15}/>{t('Bỏ qua lượt') + ' '}</button>
-            </div>
+            <button type="button" className="estate-lux-btn estate-lux-skip estate-skip-btn" disabled={!canSkip&&!allowed('auction')} onClick={()=>send(canSkip?'skip_buy':'auction')}>
+              <SkipForward size={15}/>{t('Bỏ qua lượt') + ' '}</button>
           </div>
-          <p className="estate-center-footnote">{t('Bỏ qua sẽ không mở đấu giá và chuyển lượt ngay.')}</p>
+          <p className="estate-center-footnote">{state.profile?t('Bỏ qua sẽ tự động đưa ô đất ra đấu giá.'):t('Bỏ qua sẽ chuyển lượt ngay.')}</p>
         </div>
       </section>
     </div>;

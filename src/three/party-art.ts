@@ -215,27 +215,27 @@ function vietnamPrint(ctx:CanvasRenderingContext2D,theme:BoardTheme,layout:Estat
   round(ctx,center.x,center.y,center.width,center.height,0,palette.center,'#546658',1.5);
   text(ctx,'TỶ PHÚ',mx,my-34,34,palette.centerInk,UI_FONT,'900');
   text(ctx,'VIỆT NAM',mx,my+2,19,palette.centerInk,UI_FONT,'800');
-  const stripDepth=Math.max(10,board.depth-board.unit);
+  const stripDepth=Math.min(14,Math.max(10,Math.round(board.unit*.27)));
   VN_CELLS.forEach(c=>{
     const b=estateBounds(c.index,layout),w=b.width,h=b.height;
     const physCorner=isEstateCorner(c.index,layout),specialCorner=c.index%12===0;
     const edge=estateEdge(c.index,layout),vertical=edge===1||edge===3;
     const own=ownable(c),bandColor=c.group!==undefined?VN_GROUP_COLORS[c.group]:c.type==='station'?'#475569':c.type==='utility'?'#b45309':c.type==='tax'?'#7f1d1d':'#4b5563';
-    const price=own?String(c.price):c.type==='start'?'+400 tr':c.type==='tax'?'−'+c.amount:'';
+    const price=own?String(c.price):c.type==='start'?'+500 tr':c.type==='rest'?'+100 tr':c.type==='tax'?'−'+c.amount:'';
     const landmark=PROVINCE_LANDMARKS[c.name];
     ctx.save();ctx.translate(b.x,b.y);
     round(ctx,.35,.35,w-.7,h-.7,0,specialCorner?palette.special:palette.lot,specialCorner?'#d4b060':'#34483b',specialCorner?1.8:1.1);
 
     if(physCorner){
       // Large square corner tile: bold title + large iconic emblem + bonus
-      const rows=estateTitleLines(c.name,true),fs=10.8;
-      rows.forEach((line,i)=>text(ctx,line,w/2,12+i*(fs+.6),fs,palette.lotInk,UI_FONT,'900',w-4));
+      const rows=estateTitleLines(c.name,true),fs=12.2;
+      rows.forEach((line,i)=>text(ctx,line,w/2,13+i*(fs+.8),fs,palette.lotInk,UI_FONT,'900',w-5));
       if(landmark){
-        ctx.save();ctx.translate(w/2,h*.54);ctx.scale(1.85,1.85);drawLandmarkIcon(ctx,landmark.kind,0,0,bandColor);ctx.restore();
+        ctx.save();ctx.translate(w/2,h*.54);ctx.scale(2.05,2.05);drawLandmarkIcon(ctx,landmark.kind,0,0,bandColor);ctx.restore();
       }else{
-        ctx.save();ctx.translate(w/2,h*(price?.54:.58));ctx.scale(1.45,1.45);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
+        ctx.save();ctx.translate(w/2,h*(price?.53:.57));ctx.scale(1.72,1.72);drawSpecialIcon(ctx,c.type,0,0);ctx.restore();
       }
-      if(price)text(ctx,price,w/2,h-7.5,9.8,c.type==='tax'?'#fca5a5':'#fae39b',UI_FONT,'900',w-4);
+      if(price)text(ctx,price,w/2,h-9,11,c.type==='tax'?'#fca5a5':'#fae39b',UI_FONT,'900',w-5);
       ctx.restore();
       return;
     }
