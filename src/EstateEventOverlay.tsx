@@ -64,23 +64,23 @@ export default function EstateEventOverlay({featured,drawPrompt=null,onDrawCard,
     const tilt=featured.deck==='community'?6:-6;
 
     const moveAnim=moverEl.animate([
-      {transform:`translate3d(0px, 26px, 0) scale(0.56) rotate(${tilt}deg)`,offset:0},
-      {transform:`translate3d(0px, -48px, 0) scale(0.76) rotate(${-tilt*0.5}deg)`,offset:0.28},
-      {transform:'translate3d(0px, -8px, 0) scale(1.03) rotate(0deg)',offset:0.62},
+      {transform:`translate3d(0px, 0px, 0) scale(0.62) rotate(${tilt}deg)`,offset:0},
+      {transform:`translate3d(0px, -54px, 0) scale(0.82) rotate(${-tilt*0.35}deg)`,offset:0.32},
+      {transform:'translate3d(0px, -6px, 0) scale(1.02) rotate(0deg)',offset:0.68},
       {transform:'translate3d(0px, 0px, 0) scale(1) rotate(0deg)',offset:1}
     ],{duration:1180,easing:'cubic-bezier(0.22, 1, 0.36, 1)',fill:'forwards'});
 
     const flipAnim=flipperEl.animate([
       {transform:'rotateY(180deg)',offset:0},
-      {transform:'rotateY(180deg)',offset:0.38},
+      {transform:'rotateY(180deg)',offset:0.34},
       {transform:'rotateY(0deg)',offset:1}
     ],{duration:1180,easing:'cubic-bezier(0.22, 1, 0.36, 1)',fill:'forwards'});
 
     const deckAnim=deckEl?.animate?.([
-      {transform:`translate3d(0px, 26px, 0) rotate(${tilt}deg) scale(1)`,opacity:1,offset:0},
-      {transform:`translate3d(0px, 42px, 0) rotate(${tilt}deg) scale(0.92)`,opacity:0.65,offset:0.35},
-      {transform:`translate3d(0px, 64px, 0) rotate(${tilt}deg) scale(0.84)`,opacity:0,offset:1}
-    ],{duration:920,easing:'cubic-bezier(0.22, 1, 0.36, 1)',fill:'forwards'});
+      {transform:`translate3d(0px, 0px, 0) rotate(${tilt}deg) scale(1)`,opacity:1,offset:0},
+      {transform:`translate3d(0px, 18px, 0) rotate(${tilt}deg) scale(0.95)`,opacity:0.7,offset:0.38},
+      {transform:`translate3d(0px, 38px, 0) rotate(${tilt}deg) scale(0.88)`,opacity:0,offset:1}
+    ],{duration:880,easing:'cubic-bezier(0.22, 1, 0.36, 1)',fill:'forwards'});
 
     return ()=>{
       moveAnim.cancel();
