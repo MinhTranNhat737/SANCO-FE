@@ -465,45 +465,42 @@ test('Cơ hội & Khí vận tiles, 2D decks, full-group build button, ? help mo
   await click(modal.querySelector('[aria-label="Đóng hướng dẫn"]'));
   assert.equal(document.querySelector('.estate-help-modal'),null);
 
-  // 4. Landing on Khí vận (#4) and Cơ hội (#28) renders the physical deck stack ("Bộ thẻ") and slides + flips the top card out
-  const stage=document.querySelector('.party-stage-wrap');
-  Object.defineProperty(stage,'getBoundingClientRect',{configurable:true,value:()=>({left:0,top:0,width:1000,height:600})});
-  Object.defineProperty(document.querySelector('[data-cell-index="4"]'),'getBoundingClientRect',{configurable:true,value:()=>({left:700,top:510,width:60,height:80})});
-  Object.defineProperty(document.querySelector('[data-cell-index="28"]'),'getBoundingClientRect',{configurable:true,value:()=>({left:220,top:10,width:60,height:80})});
-
-  const withCommunity=structuredClone(p);
-  withCommunity.players[0].position=4;
-  withCommunity.eventSeq=1;
-  withCommunity.events=[{id:1,at:Date.now(),type:'card',deck:'community',card:1,side:'R',title:'Quỹ hỗ trợ phát triển',reason:'Thẻ Khí vận: nhận thưởng 200 triệu',amount:200,lot:4,sourceLot:4}];
+  // 4. Landing on Khí vận (#4) / Cơ hội (#28) requires clicking the card deck ("Bộ thẻ") to draw 1 card, then plays ONE single animation with the effect printed on the card
+  p.players[0].position=1;
+  const rollSeq=[1,2];
+  vietnamMove(g,{action:'roll',to:-1},()=>rollSeq.shift()||1);
+  assert.equal(p.stage,'draw_card','Landing on Khí vận (#4) pauses at draw_card stage');
+  const drawLegal=vietnamLegal(g);
   await render(PartyBoard,{
-    kind:'monopoly',state:withCommunity,mySide:'R',turn:'R',legal,enabled:true,animate:true,immersive:true,
+    kind:'monopoly',state:structuredClone(p),mySide:'R',turn:'R',legal:drawLegal,enabled:true,animate:true,immersive:true,
     onMove:m=>sent.push(m),
-    hudActions:createElement(Controls,{state:withCommunity,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
+    hudActions:createElement(Controls,{state:p,mySide:'R',legal:drawLegal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
   });
-  const commDraw=document.querySelector('.estate-card-draw.deck-community');
-  assert.ok(commDraw,'Card draw stage renders with Khí vận deck class');
-  assert.ok(document.querySelector('[data-deck-pile="community"].is-drawing .vn-deck-top-slide'),'2D Khí vận deck pile slides its top card out');
-  assert.ok(document.querySelector('.estate-physical-deck'),'Physical 7-layer card deck stack renders');
-  assert.match(document.querySelector('.estate-physical-deck-caption').textContent,/Bộ thẻ Khí vận/);
-  assert.ok(document.querySelector('.estate-card-mover .estate-card-flipper .estate-card-back'),'Top card back renders for slide-from-deck & 3D flip');
-  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ bộ thẻ Khí vận/);
-  assert.match(document.querySelector('.estate-card-front').textContent,/Quỹ hỗ trợ phát triển/);
-  assert.match(document.querySelector('.estate-card-outcome').textContent,/Nhận \+200 tr/);
-  await click(document.querySelector('.estate-card-ok-btn'));
+  const deckBtn=document.querySelector('.estate-deck-click-btn.is-interactive');
+  assert.ok(deckBtn,'Interactive Khí vận card deck renders waiting for player click');
+  assert.equal(document.querySelector('.estate-printed-card'),null,'Card is NOT revealed before player clicks the deck');
+  sent.length=0;
+  await click(deckBtn);
+  assert.equal(sent.length,1);
+  assert.equal(sent[0].command,'draw_card');
+  assert.equal(sent[0].to,4);
 
-  const withChance=structuredClone(withCommunity);
-  withChance.players[0].position=0;
-  withChance.eventSeq=2;
-  withChance.events=[...withCommunity.events,{id:2,at:Date.now(),type:'card',deck:'chance',card:4,side:'R',title:'Tiến thẳng Xuất phát',reason:'Thẻ Cơ hội: về Xuất phát, nhận 500 triệu',amount:500,lot:28,sourceLot:28,destLot:0}];
+  // Execute server draw_card (Card 2: repair fee -120) and verify ONLY 1 card effect renders (no duplicate cash toast!) with effect printed directly on the card
+  const cardDice=[1,2];
+  vietnamMove(g,{action:'draw_card',to:4},()=>cardDice.shift()||1);
+  const afterLegal=vietnamLegal(g);
   await render(PartyBoard,{
-    kind:'monopoly',state:withChance,mySide:'R',turn:'R',legal,enabled:true,animate:true,immersive:true,
+    kind:'monopoly',state:structuredClone(p),mySide:'R',turn:'R',legal:afterLegal,enabled:true,animate:true,immersive:true,
     onMove:m=>sent.push(m),
-    hudActions:createElement(Controls,{state:withChance,mySide:'R',legal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
+    hudActions:createElement(Controls,{state:p,mySide:'R',legal:afterLegal,enabled:true,suppressDecision:true,onMove:m=>sent.push(m)})
   });
-  const chanceDraw=document.querySelector('.estate-card-draw.deck-chance');
-  assert.ok(chanceDraw,'Chance card draw stage renders');
-  assert.ok(document.querySelector('[data-deck-pile="chance"].is-drawing .vn-deck-top-slide'),'2D Cơ hội deck pile slides its top card out');
-  assert.match(document.querySelector('.estate-physical-deck-caption').textContent,/Bộ thẻ Cơ hội/);
-  assert.match(document.querySelector('.estate-card-front').textContent,/Rút từ bộ thẻ Cơ hội/);
-  assert.match(document.querySelector('.estate-card-front').textContent,/Tiến thẳng Xuất phát/);
+  const printedCard=document.querySelector('.estate-printed-card');
+  assert.ok(printedCard,'Drawn card flips open with printed face');
+  assert.equal(document.querySelectorAll('.estate-cash-toast').length,0,'No duplicate cash/loss toast competes with the card animation');
+  assert.equal(document.querySelector('.vn-tile-fx'),null,'No competing floating tile badge');
+  assert.match(printedCard.textContent,/THẺ KHÍ VẬN/);
+  assert.match(printedCard.textContent,/Sửa chữa công trình/);
+  assert.match(printedCard.querySelector('.estate-printed-stamp').textContent,/NỘP PHÍ −120 TR/);
+  await click(printedCard.querySelector('.estate-printed-ok'));
+  assert.equal(document.querySelector('.estate-printed-card'),null);
 });

@@ -337,26 +337,30 @@ function FlatPlayerToken({ cx, cy, side, cell, index, isMine, isTurn, compact = 
   </g>;
 }
 
-function CenterCardDeck({ x, y, angle, label, emblem, fill, deckId, drawing }: { x: number; y: number; angle: number; label: string; emblem: string; fill: string; deckId: 'chance' | 'community'; drawing: boolean }) {
-  return <g className={`vn-center-deck${drawing ? ' is-drawing' : ''}`} data-deck-pile={deckId} transform={`translate(${x} ${y}) rotate(${angle})`} aria-hidden="true">
+function CenterCardDeck({ x, y, angle, label, emblem, fill, deckId, activePrompt, onDraw }: { x: number; y: number; angle: number; label: string; emblem: string; fill: string; deckId: 'chance' | 'community'; activePrompt: boolean; onDraw?: () => void }) {
+  return <g
+    className={`vn-center-deck${activePrompt ? ' is-clickable-deck' : ''}`}
+    data-deck-pile={deckId}
+    transform={`translate(${x} ${y}) rotate(${angle})`}
+    role={activePrompt ? 'button' : undefined}
+    tabIndex={activePrompt ? 0 : undefined}
+    aria-label={activePrompt ? `Bấm rút thẻ ${label}` : undefined}
+    onClick={activePrompt ? e => { e.stopPropagation(); onDraw?.(); } : undefined}
+    onKeyDown={activePrompt ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDraw?.(); } } : undefined}
+    style={activePrompt ? { cursor: 'pointer' } : undefined}
+  >
     <rect x="-46" y="-60" width="92" height="120" rx="10" fill="#00000024" transform="translate(6 7)" />
     <rect x="-46" y="-60" width="92" height="120" rx="9" fill="#dfd2b2" stroke="#8a6f41" strokeWidth="1.2" transform="translate(4 4)" />
     <rect x="-46" y="-60" width="92" height="120" rx="9" fill="#ece2c8" stroke="#927748" strokeWidth="1.2" transform="translate(2 2)" />
-    <rect x="-46" y="-60" width="92" height="120" rx="9" fill={fill} stroke={drawing ? '#fde047' : '#d4af37'} strokeWidth={drawing ? 3.4 : 2.4} />
+    <rect x="-46" y="-60" width="92" height="120" rx="9" fill={fill} stroke={activePrompt ? '#fde047' : '#d4af37'} strokeWidth={activePrompt ? 3.5 : 2.4} />
     <rect x="-39" y="-53" width="78" height="106" rx="6" fill="none" stroke="#f7e3a388" strokeWidth="1.2" strokeDasharray="4 2.5" />
     <circle cx="0" cy="-12" r="20" fill="#ffffff18" stroke="#f7e3a3aa" strokeWidth="1.3" />
     <text x="0" y="-4" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fde68a">{emblem}</text>
     <text x="0" y="34" textAnchor="middle" fontSize="12.5" fontWeight="900" letterSpacing="1" fill="#fffbeb">{label}</text>
-    {drawing && <g className="vn-deck-top-slide">
-      <rect x="-46" y="-60" width="92" height="120" rx="9" fill={fill} stroke="#fde047" strokeWidth="2.8" />
-      <circle cx="0" cy="-12" r="20" fill="#ffffff22" stroke="#fde047" strokeWidth="1.4" />
-      <text x="0" y="-4" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fde047">{emblem}</text>
-      <text x="0" y="34" textAnchor="middle" fontSize="12.5" fontWeight="900" letterSpacing="1" fill="#fffbeb">{label}</text>
-    </g>}
   </g>;
 }
 
-export default function VietnamEstateBoard({ state, mySide, selected, onSelect, layout = VN_RECT, justPurchasedLot = null, justPurchasedKey = 0, justPurchasedLots, auctionLot = null, tileFx = null, drawingCardLot = null, drawingDeck = null }: { state: PartyState; mySide: string; selected: number; onSelect: (index: number) => void; layout?: EstateLayout; justPurchasedLot?: number | null; justPurchasedKey?: number; justPurchasedLots?: number[]; auctionLot?: number | null; tileFx?: { lot: number; type: string; amount: number; key: number } | null; drawingCardLot?: number | null; drawingDeck?: 'chance' | 'community' | null }) {
+export default function VietnamEstateBoard({ state, mySide, selected, onSelect, layout = VN_RECT, justPurchasedLot = null, justPurchasedKey = 0, justPurchasedLots, auctionLot = null, tileFx = null, promptDeck = null, onDrawCard }: { state: PartyState; mySide: string; selected: number; onSelect: (index: number) => void; layout?: EstateLayout; justPurchasedLot?: number | null; justPurchasedKey?: number; justPurchasedLots?: number[]; auctionLot?: number | null; tileFx?: { lot: number; type: string; amount: number; key: number } | null; promptDeck?: 'chance' | 'community' | null; onDrawCard?: () => void }) {
   const activePlayers = state.players.filter(v => v.active);
   const turnSide = (state as { turn?: string }).turn;
   const glowId = useId().replaceAll(':', '');
@@ -373,8 +377,8 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
     <defs><filter id={glowId} x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4" /></filter></defs>
     <rect className="board-svg-base" width={board.width} height={board.height} fill="#fff" stroke="#111827" strokeWidth="3" />
     <rect className="board-svg-center" x={center.x} y={center.y} width={center.width} height={center.height} fill="#f5f3eb" stroke="#111827" strokeWidth="2" />
-    <CenterCardDeck x={center.x + center.width * .19} y={my + 2} angle={-11} label={t('CƠ HỘI')} emblem="?" fill="#9e2a2b" deckId="chance" drawing={drawingDeck === 'chance'} />
-    <CenterCardDeck x={center.x + center.width * .81} y={my + 2} angle={11} label={t('KHÍ VẬN')} emblem="★" fill="#1b5e49" deckId="community" drawing={drawingDeck === 'community'} />
+    <CenterCardDeck x={center.x + center.width * .19} y={my + 2} angle={-11} label={t('CƠ HỘI')} emblem="?" fill="#9e2a2b" deckId="chance" activePrompt={promptDeck === 'chance'} onDraw={onDrawCard} />
+    <CenterCardDeck x={center.x + center.width * .81} y={my + 2} angle={11} label={t('KHÍ VẬN')} emblem="★" fill="#1b5e49" deckId="community" activePrompt={promptDeck === 'community'} onDraw={onDrawCard} />
     <g aria-hidden="true">
       <text className="board-svg-label" x={mx} y={my - 23} textAnchor="middle" fill="#172d24" fontSize="46" fontWeight="900">{t('TỶ PHÚ')}</text>
       <text x={mx} y={my + 15} textAnchor="middle" fill="#475b50" fontSize="24" fontWeight="800">{t('VIỆT NAM')}</text>
@@ -467,17 +471,6 @@ export default function VietnamEstateBoard({ state, mySide, selected, onSelect, 
         <rect x={b.x + 3} y={b.y + 3} width={b.width - 6} height={b.height - 6} fill="none" stroke={PARTY_COLORS[side || 'R']} strokeWidth="3" />
       </g>;
     })}
-    {drawingCardLot != null && drawingCardLot >= 0 && drawingCardLot < 48 && (() => {
-      const b = bounds(drawingCardLot), cell = VN_CELLS[drawingCardLot], isComm = cell?.type === 'community';
-      const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
-      return <g className="vn-tile-card-pop" data-card-pop-lot={drawingCardLot} aria-hidden="true" style={{ pointerEvents: 'none' }}>
-        <rect x={b.x - 3} y={b.y - 3} width={b.width + 6} height={b.height + 6} rx="5" fill="none" stroke="#fde047" strokeWidth="4" />
-        <g className="vn-tile-card-eject">
-          <rect x={cx - 16} y={cy - 22} width="32" height="44" rx="5" fill={isComm ? '#1b6b50' : '#b42b38'} stroke="#fde047" strokeWidth="2" />
-          <text x={cx} y={cy + 6} textAnchor="middle" fontSize="20" fontWeight="900" fill="#fde68a">{isComm ? '★' : '?'}</text>
-        </g>
-      </g>;
-    })()}
     {tileFx && tileFx.lot >= 0 && tileFx.lot < 48 && (() => {
       const b = bounds(tileFx.lot), cx = b.x + b.width / 2, cy = b.y + b.height / 2, isGain = tileFx.amount > 0, label = tileFx.type === 'jail' ? 'Vào tù' : tileFx.amount ? (isGain ? '+' : '−') + Math.abs(tileFx.amount) + ' tr' : '';
       return label && <g key={tileFx.key} className="vn-tile-fx" aria-hidden="true"><g className="vn-fx-float"><rect x={cx - 31} y={cy - 12} width="62" height="24" rx="12" fill={isGain ? '#14532d' : '#7f1d1d'} stroke="#fff" strokeWidth="1.5" /><text x={cx} y={cy + 4} textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff">{label}</text></g></g>;

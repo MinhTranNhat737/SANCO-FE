@@ -25,7 +25,8 @@ export default function EstateControls({state:p,legal,enabled,mySide,animating=f
   },[p.property.join(','),p.houses.join(','),p.mortgaged?.join(','),mySide,target?.side]);
   const buyoutInfo=estateBuyoutPrice(p,me.position);
   const chosenPlan=chosen?estateGroupBuildPlan(p,chosen.index):null;
-  const actions:Record<string,string>={roll:t('Gieo xúc xắc'),buy:`Mua ${VN_CELLS[me.position].name}`,skip_buy:p.profile?t('Không mua · Đấu giá'):t('Bỏ qua · Hết lượt'),buyout:t('Mua lại {0} · {1}', VN_CELLS[me.position].name, cash(buyoutInfo.totalPrice)),skip_buyout:t('Bỏ qua'),end:t('Kết thúc lượt'),pay_jail:t('Trả 100 để ra tù'),jail_card:t('Dùng thẻ ra tù'),auction:t('Mở đấu giá'),build:chosenPlan?`Xây cả dãy (${cash(chosenPlan.cost)})`:t('Xây cả dãy'),mortgage:t('Thế chấp'),redeem:t('Chuộc đất'),sell_building:t('Bán nhà'),clear_group:t('Tháo cả nhóm'),sell:t('Bán đất')};
+  const pendingDeckName=p.pendingCard?.deck==='community'||VN_CELLS[me.position]?.type==='community'?t('Khí vận'):t('Cơ hội');
+  const actions:Record<string,string>={roll:t('Gieo xúc xắc'),draw_card:`Rút thẻ ${pendingDeckName}`,buy:`Mua ${VN_CELLS[me.position].name}`,skip_buy:p.profile?t('Không mua · Đấu giá'):t('Bỏ qua · Hết lượt'),buyout:t('Mua lại {0} · {1}', VN_CELLS[me.position].name, cash(buyoutInfo.totalPrice)),skip_buyout:t('Bỏ qua'),end:t('Kết thúc lượt'),pay_jail:t('Trả 100 để ra tù'),jail_card:t('Dùng thẻ ra tù'),auction:t('Mở đấu giá'),build:chosenPlan?`Xây cả dãy (${cash(chosenPlan.cost)})`:t('Xây cả dãy'),mortgage:t('Thế chấp'),redeem:t('Chuộc đất'),sell_building:t('Bán nhà'),clear_group:t('Tháo cả nhóm'),sell:t('Bán đất')};
   const prepare=(e:FormEvent)=>{e.preventDefault();if(!target)return;const who=SIDE_NAMES[target.side];setReview(mode==='gift'?{action:'gift',to:-1,details:{partner:target.side,amount},title:t('Xác nhận tặng tiền'),lines:[t('Bạn → {0}: {1}', who, cash(amount)),t('Số dư sau tặng: {0}', cash(me.cash-amount))]}:mode==='loan'?{action:'loan',to:-1,details:{partner:target.side,principal,interest,term},title:t('Đề nghị cho vay'),lines:[t('Bạn cho {0} vay {1}', who, cash(principal)),t('Lãi cố định {0}% · Trả {1}', interest, cash(principal+Math.ceil(principal*interest/100))),t('Hạn: sau {0} lần {1} qua Xuất phát', term, who),t('Tiền chỉ chuyển khi người nhận đồng ý.')]}:{action:'offer',to:-1,details:{partner:target.side,pay:amount,ask,give,take},title:t('Đề nghị trao đổi'),lines:[t('Bạn giao: {0} + {1}', cash(amount), names(give)),`${who} giao: ${cash(ask)} + ${names(take)}`,t('Hai bên đổi cùng lúc khi người nhận đồng ý.')]});};
   return <div className="estate-controls">
     {p.profile&&<div className="estate-mode-wallet"><strong>{t(p.profile.name ?? '')} · {p.players.length}{' ' + t('người')}</strong><small>{t('Vòng') + ' '}{Math.min(p.round,p.profile.roundLimit||p.round)}{p.profile.roundLimit?`/${p.profile.roundLimit}`:` · ${t('Chơi đến hết tiền')}`}{' ' + t('· Qua Xuất phát +')}{estateSalary(p)} tr</small>{p.market&&<span>{t(p.market.name ?? '')}: {t(p.market.description ?? '')}</span>}</div>}
@@ -41,7 +42,7 @@ export default function EstateControls({state:p,legal,enabled,mySide,animating=f
         const act=m.action||m.command||'';
         if(act==='auction'&&hasSkipBuy)return false;
         if(suppressDecision&&['buy','auction','skip_buy','buyout','skip_buyout'].includes(act))return false;
-        return ['roll','buy','auction','skip_buy','buyout','skip_buyout','end','pay_jail','jail_card'].includes(act);
+        return ['roll','draw_card','buy','auction','skip_buy','buyout','skip_buyout','end','pay_jail','jail_card'].includes(act);
       });
       const seenGroups=new Set<number>();
       const groupBuilds=legal.filter(m=>{
