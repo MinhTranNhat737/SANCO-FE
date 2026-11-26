@@ -20,10 +20,9 @@
 .flat-commander .flat-cell.in-check{background:#e9444566;box-shadow:inset 0 0 0 3px #d33545}
 .flat-commander .flat-cell.winning-cell{background:#e7be5466}
 .flat-commander .flat-file,.flat-commander .flat-rank{font-size:8px;color:var(--ctl-ink);z-index:5}
-.ctl-piece{position:relative;width:88%;height:88%;background:#981e32;color:#fff5df;border:2px solid #eec88e;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 3px #25180d77;border-radius:50%;line-height:1;pointer-events:none}
+.ctl-piece{position:relative;width:94%;height:94%;background:#981e32;color:#fff5df;border:2px solid #eec88e;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 3px #25180d77;border-radius:50%;line-height:1;pointer-events:none}
 .ctl-piece.ctl-b{background:#11578c}
-.ctl-piece svg{width:64%;height:64%;flex-shrink:0}
-.ctl-piece>b{font-size:clamp(8px,1.25vw,12px);font-weight:700;line-height:1.1}
+.ctl-piece svg{width:80%;height:80%;flex-shrink:0}
 .ctl-match-clock strong{font-variant-numeric:tabular-nums;color:var(--gold)}
 .ctl-stack{position:absolute;right:-4px;bottom:-3px;display:flex;gap:1px;z-index:3}
 .ctl-stack small{background:#e4b753;color:#172d26;border:1px solid #6d582e;font-size:8px;font-weight:700;padding:2px 3px}
@@ -130,7 +129,7 @@
 .ctl-field-guide summary{cursor:pointer}.ctl-field-guide>div{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-top:12px}.ctl-field-guide p{margin:0}.ctl-field-guide b,.ctl-field-guide span{display:block}.ctl-field-guide span{opacity:.8}
 .practice-stage:has(.commander-surface){height:auto!important;min-height:0;overflow:visible;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important}
 .board-unified-play .practice-stage:has(.commander-surface){padding:0!important;margin:0!important;flex:1}
-@media(max-width:520px){.ctl-field-guide>div{grid-template-columns:1fr}.practice-stage:has(.commander-surface){padding:0}.ctl-piece{border-width:1px;width:84%;height:84%}.ctl-stack small{font-size:6px;padding:1px}.ctl-toolbar{font-size:10px}.ctl-toolbar .text-button{font-size:10px}}
+@media(max-width:520px){.ctl-field-guide>div{grid-template-columns:1fr}.practice-stage:has(.commander-surface){padding:0}.ctl-piece{border-width:1px;width:92%;height:92%}.ctl-stack small{font-size:6px;padding:1px}.ctl-toolbar{font-size:10px}.ctl-toolbar .text-button{font-size:10px}}
 
 /* 2D War / Battlefield Combat Effects */
 .ctl-war-haze{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}

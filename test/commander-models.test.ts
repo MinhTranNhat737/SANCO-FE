@@ -20,13 +20,12 @@ test('Every shipped internet model has a recorded source, license, checksum and 
 });
 test('Vietnamese profile meshes fit one square in either player color without a skeleton',()=>{
   for(const type of COMMANDER_MODEL_TYPES){const source=models.get(type)!;let meshes=0;source.traverse(o=>{assert.ok(!(o instanceof T.SkinnedMesh));if(o instanceof T.Mesh){meshes++;assert.ok(o.geometry.getAttribute('position').count>0);}});assert.ok(meshes>0&&meshes<=20,`${type}: merged draw calls ${meshes}`);
-    for(const side of['r','b']){const piece=commanderPiece(side+type,models),box=new T.Box3().setFromObject(piece),size=box.getSize(new T.Vector3());assert.ok(size.x<=.9&&size.z<=.9&&size.y<=1.06,`${side+type}: ${size.toArray()}`);assert.ok(box.min.y>=-.001);}
+    for(const side of['r','b']){const piece=commanderPiece(side+type,models),box=new T.Box3().setFromObject(piece),size=box.getSize(new T.Vector3());assert.ok(size.x<=.96&&size.z<=.96&&size.y<=1.3,`${side+type}: ${size.toArray()}`);assert.ok(box.min.y>=-.001);}
   }
 });
-test('A carrier displays all three imported miniatures, and heroes retain their type and badge',()=>{
-  const stack=commanderPiece('rN+rF*+rK',models);assert.deepEqual(stack.userData.commanderUnits,['rN','rF*','rK']);const size=new T.Box3().setFromObject(stack).getSize(new T.Vector3());assert.ok(size.x<=.9&&size.z<=.9&&size.y<1.1);assert.equal(stack.children.length,6);
-  const badge=stack.children.find(child=>child.userData.commanderLabel) as T.Mesh<T.PlaneGeometry>;
-  assert.ok(badge.geometry.parameters.height>.32);
+test('A carrier displays all three imported miniatures cleanly without a bottom label',()=>{
+  const stack=commanderPiece('rN+rF*+rK',models);assert.deepEqual(stack.userData.commanderUnits,['rN','rF*','rK']);const size=new T.Box3().setFromObject(stack).getSize(new T.Vector3());assert.ok(size.x<=.96&&size.z<=.96&&size.y<1.32);assert.equal(stack.children.length,5);
+  assert.equal(stack.children.some(child=>child.userData.commanderLabel),false);
 });
 test('Vietnamese equipment retains its natural colors while square bases distinguish teams',()=>{
   const colors=(g:T.Object3D)=>{const values:number[]=[];g.traverse(o=>{if(o instanceof T.Mesh)values.push((o.material as T.MeshStandardMaterial).color.getHex());});return values;};
