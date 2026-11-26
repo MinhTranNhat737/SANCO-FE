@@ -91,3 +91,7 @@ Mở **Tìm trận** để chọn môn và thời gian. Đăng nhập để ghé
 Trang chủ và 16 trang `/choi/...` có tiêu đề, mô tả, canonical, nội dung HTML trước khi chạy JavaScript và ảnh chia sẻ. `robots.txt` trỏ đến sitemap ở bản production. Các URL phiên chơi, mời phòng và replay gửi `X-Robots-Tag: noindex`; kiểm tra quyền phòng vẫn do API thực hiện. Đường dẫn không tồn tại trả `404`.
 
 Trên tên miền chính, kiểm tra `/robots.txt`, `/sitemap.xml`, một trang `/choi/co-tuong` và một đường dẫn sai. Xác minh tên miền trong [Google Search Console](https://search.google.com/search-console), gửi `/sitemap.xml`, rồi dùng URL Inspection cho trang chủ và các môn ưu tiên. Đo trong [PageSpeed Insights](https://pagespeed.web.dev/) trên cả mobile và desktop. Theo dõi Core Web Vitals thực tế khi có đủ dữ liệu người dùng.
+
+## Trang quản trị
+
+Dashboard `/admin` quản lý người dùng, phòng chơi, lịch sử, luyện tập, góp ý, cấu hình và nhật ký. Xem [hướng dẫn sử dụng và cấp quyền admin](ADMIN.md).

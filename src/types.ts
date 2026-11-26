@@ -2,7 +2,7 @@ import type {GameKind,PracticePly,PracticeMove,PartyState} from './practice-type
 import type {MatchPreset} from './rating-types';
 export type Mark = string;
 export type Move = { cell: number; mark: Mark; at: number };
-export type User = { id: string; name: string; account: boolean; email: string | null };
+export type User = { id: string; name: string; account: boolean; email: string | null; admin?: boolean };
 export type AuthProviders = { google: boolean; facebook: boolean };
 export type Seat = { name: string; mark: Mark; ready: boolean; rematch: boolean; online: boolean;elo?:number };
 export type Room = {

@@ -79,6 +79,7 @@ export default function App() {
   const [modal, setModal] = useState<Modal>(null), [pendingCreate, setPendingCreate] = useState(false), [authNotice, setAuthNotice] = useState(''), [room, setRoom] = useState<Room | null>(null), [archived, setArchived] = useState(false);
   const [recent, setRecent] = useState<Room[]>([]), [matches, setMatches] = useState<Room[]>([]), [loading, setLoading] = useState(true);
   const [error, setError] = useState(''), [toast, setToast] = useState(''), [busy, setBusy] = useState(false), [connected, setConnected] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
   const [name, setName] = useState(''), [email, setEmail] = useState(''), [password, setPassword] = useState(''), [showPassword, setShowPassword] = useState(false);
   const [minutes, setMinutes] = useState(5), [inviteText, setInviteText] = useState(''), [feedback, setFeedback] = useState(''), [mobileNav, setMobileNav] = useState(false);
   const [sound, setSound] = useState(() => localStorage.getItem('sc-sound') !== 'off');
@@ -106,6 +107,7 @@ export default function App() {
     setLoading(true); setError('');
     try {
       const data = await api('/me'); setUser(data.user); setName(data.user.name);
+      setAnnouncement(data.settings?.announcement || '');
       if (data.providers) setProviders(data.providers);
       const url = new URL(initialUrl.current), id = url.searchParams.get('room');
       const authStatus = url.searchParams.get('auth'), authError = url.searchParams.get('auth_error');
@@ -275,11 +277,13 @@ export default function App() {
   const boardFocus=!!room||page==='practice';
   return <div className={`app-shell compact-interface ${boardFocus?'board-focus-shell':''} ${!room&&page==='home'?'home-interface':''} ${sidebarCollapsed?'sidebar-collapsed':''}`}>
     <aside id="app-sidebar" className={`sidebar ${mobileNav ? 'sidebar-open' : ''}`}><div className="sidebar-heading"><button className="logo-button" onClick={()=>navigate('home')} aria-label={t('Sân Cờ - trang chủ')}><Logo small/></button><button className="icon-button sidebar-toggle" onClick={toggleSidebar} aria-controls="sidebar-navigation" aria-expanded={!sidebarCollapsed} title={sidebarCollapsed?t('Mở rộng thanh bên'):t('Thu gọn thanh bên')} aria-label={sidebarCollapsed?t('Mở rộng thanh bên'):t('Thu gọn thanh bên')}>{sidebarCollapsed?<PanelLeftOpen size={20}/>:<PanelLeftClose size={20}/>}</button></div><nav id="sidebar-navigation" aria-label={t('Điều hướng chính')}>{nav.map(({ page: p, label, icon: Icon }) => <button key={p} className={`nav-item ${page === p && !room ? 'active' : ''}`} onClick={() => navigate(p)} aria-label={label} title={label}><Icon size={19}/><span>{label}</span>{p === 'home' && <span className="nav-tiny-dot"/>}</button>)}<a className="nav-item" href="/bi-kip" aria-label={t('Bí kíp')} title={t('Bí kíp')}><GraduationCap size={19}/><span>{t('Bí kíp')}</span></a></nav>
+      {user?.admin && <a className="nav-item" href="/admin" title="Quản trị website"><ShieldCheck size={19}/><span>Quản trị website</span></a>}
       <SidebarRankings kind={rankingKind} pool={rankingPool} playerId={user?.id??null} hidden={!mobileNav&&(sidebarCollapsed||boardFocus)} refresh={matches.length} onOpen={()=>goRankings(rankingKind,rankingPool)}/>
       <div className="sidebar-bottom"><button className="help-button" onClick={() => openModal('feedback')} aria-label={t('Góp ý')} title={t('Góp ý')}><CircleHelp size={17}/><span>{t('Góp ý')}</span><ArrowUpRight size={15}/></button></div>
     </aside>{mobileNav && <button className="nav-overlay" aria-label={t('Đóng điều hướng')} onClick={() => setMobileNav(false)}/>}
     <div className="main-shell"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileNav(!mobileNav)} aria-controls="app-sidebar" aria-expanded={mobileNav} aria-label={mobileNav?t('Đóng điều hướng'):t('Mở điều hướng')}><Menu size={22}/></button></div><div className="topbar-right"><LanguageSwitch/>{!user?.account && <button className="button button-secondary button-small" disabled={loading||!user} onClick={()=>openModal('register')}>{t('Tạo tài khoản')}</button>}<button className="account-button" onClick={() => openModal(user?.account ? 'profile' : 'login')}><span className="avatar">{user?.name?.slice(0, 1).toUpperCase() || <UserRound size={17}/>}</span><span>{user?.account ? user.name : t('Đăng nhập')}<small>{user?.account ? t('Tài khoản của bạn') : t('Lưu phòng và lịch sử')}</small></span><ChevronRight size={15}/></button></div></header>
     <main className={`content ${room ? 'content-game' : ''}`}>
+      {announcement && !room && page !== 'practice' && <div className="info-box" role="status" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}><MessageCircle size={19}/><span>{announcement}</span></div>}
       {!modal && errorBox}{loading && !user && <PageLoadingForm label={t('Đang kết nối máy chủ & tải dữ liệu…')} overlay/>}{!user && !loading && <button className="button button-small" onClick={loadSession}><RotateCcw size={16}/>{t('Kết nối lại máy chủ')}</button>}
       {room ? <Suspense fallback={<PageLoadingForm label={t('Đang mở bàn cờ…')}/>}><RoomView key={`${room.game.id}-${archived}`} room={room} busy={busy} connected={connected} latency={latency} archived={archived} sound={sound} onSound={()=>{setSound(!sound);localStorage.setItem('sc-sound',sound?'off':'on');}} onBack={() => room.matchmaking&&room.game.phase==='finished'&&!archived?goMatchmaking(room.kind,room.matchmaking.pool):navigate('rooms')} onAction={act} onInvite={copyInvite} onResign={() => openModal('resign')}/></Suspense>
       : page === 'practice' ? <Suspense fallback={<PageLoadingForm label={t('Đang bày bàn luyện tập…')}/>}><Practice key={`${practiceKind}-${practiceRanked}`} initialRanked={practiceRanked} initialKind={practiceKind} user={user} socket={socket.current} onBack={() => navigate('home')}/></Suspense>

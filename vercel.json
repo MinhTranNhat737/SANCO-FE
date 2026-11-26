@@ -3,6 +3,8 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
+    { "source": "/admin", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/admin.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
     { "source": "/", "has": [{ "type": "query", "key": "room" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
     { "source": "/", "has": [{ "type": "query", "key": "replay" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
     { "source": "/", "has": [{ "type": "query", "key": "practice" }], "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
