@@ -9,6 +9,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test test/*.test.ts test/*.test.mjs",
+    "test:admin-build": "node scripts/smoke-admin-build.mjs",
     "models:vietnam": "node --experimental-strip-types scripts/build-vietnam-models.mjs",
     "lint": "eslint src scripts test vite.config.ts dev-diagnostics.ts"
   },

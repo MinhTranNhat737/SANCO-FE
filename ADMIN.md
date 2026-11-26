@@ -2,6 +2,8 @@
 
 Mở `/admin` (Vite local: `http://127.0.0.1:5173/admin`). Trang được build thành `admin.html`, dùng cấu hình `VITE_API_URL` và cookie đăng nhập chung với website. Vercel `cleanUrls` và backend phục vụ frontend đều hỗ trợ `/admin`.
 
+Đăng nhập bằng tên tài khoản được cấp hoặc email, cùng mật khẩu. Trang có màn hình tải và nút khôi phục khi tải mã thất bại; không để người dùng kẹt ở màn hình trống. Sau `npm run build`, chạy `npm run test:admin-build` để kiểm tra mã đã đóng gói thực sự hiển thị thống kê và danh sách người dùng.
+
 Tài khoản cần được cấp admin từ backend trước khi dùng. Trên máy chủ backend, sau khi tài khoản chủ website đã đăng ký, chạy:
 
 ```sh

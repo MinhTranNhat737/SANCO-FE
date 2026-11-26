@@ -30,6 +30,7 @@ beforeEach(async () => {
     const parsed = new URL(String(url),location.href), method = options.method || 'GET', body = options.body ? JSON.parse(options.body) : null;
     requests.push({path:parsed.pathname,params:parsed.searchParams,method,body});
     if (parsed.pathname==='/api/me') return json({user});
+    if (parsed.pathname==='/api/auth/login') {user={...admin,username:body.login,email:null};return json({user});}
     if (parsed.pathname==='/api/auth/logout') {user={...user,admin:false,account:false};return json({ok:true});}
     if (parsed.pathname==='/api/admin/overview') return json({stats:{players:42,online:3,playing:2,rooms:4,reports:1,accounts:20,suspended:2,matches:56,practice:10},activity:[],system:{database:'PostgreSQL test',uptime:7200,now:Date.now()}});
     if (parsed.pathname==='/api/admin/settings') {if(body)settings=body;return json({settings});}
@@ -65,6 +66,11 @@ test('Admin login accepts provisioned passwords shorter than the registration mi
   const password = document.querySelector('input[autocomplete="current-password"]');
   password.value='Short123!';assert.equal(password.minLength,1);assert.equal(password.checkValidity(),true);
   password.value='';assert.equal(password.checkValidity(),false);
+});
+
+test('Admin login accepts a username without email browser validation',async()=>{
+  user={...admin,admin:false,account:false};await render();
+  const input=document.querySelector('input[autocomplete="username"]');assert.equal(input.type,'text');input.value='testadmin';assert.equal(input.checkValidity(),true);
 });
 test('Overview uses real statistics and navigation supports pagination and filters', async () => {
   await render(); assert.match(document.body.textContent,/42/); assert.match(document.body.textContent,/PostgreSQL test/);
