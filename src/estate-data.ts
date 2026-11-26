@@ -16,6 +16,7 @@ export const isVietnam=(state:PartyState)=>state.edition===config.edition;
 export const ownable=(cell:EstateCell)=>['property','station','utility'].includes(cell.type);
 export const SIDE_NAMES:Record<string,string>={get R() { return t('Đỏ'); },get G() { return t('Xanh lá'); },get Y() { return t('Vàng'); },get B() { return t('Xanh dương'); },get P() { return t('Tím'); },get O() { return t('Cam'); },get C() { return t('Ngọc lam'); },get K() { return t('Hồng'); }};
 export const cash = (amount: number) => amount.toLocaleString(languageTag()) + (getLanguage() === 'en' ? 'M' : ' tr');
+export const estateAuctionMinBid=(auction:NonNullable<PartyState['auction']>)=>Math.max(VN_CELLS[auction.lot].price,auction.bid)+10;
 export function estateRent(state:PartyState,index:number,diceTotal=state.diceValues?.reduce((sum,value)=>sum+value,0)||7){
   const c=VN_CELLS[index],owner=state.property[index];
   if(!c||!owner||state.mortgaged?.[index])return 0;

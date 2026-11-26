@@ -2,7 +2,7 @@ import { t } from './language.ts';
 import {useEffect,useState,type FormEvent} from 'react';
 import {Gavel,Landmark,SkipForward,Coins,Check,X,Sparkles,Eye,TrainFront,Zap,ArrowLeftRight} from 'lucide-react';
 import type {PartyState,PracticeMove} from './practice-types';
-import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash,estateBuyoutPrice} from './estate-data';
+import {VN_CELLS,VN_GROUP_COLORS,SIDE_NAMES,cash,estateBuyoutPrice,estateAuctionMinBid} from './estate-data';
 import {PARTY_COLORS} from './three/party-layout.ts';
 import {PROVINCE_LANDMARKS} from './vietnam-landmarks';
 
@@ -27,13 +27,13 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
   const allowed=(action:string,to?:number)=>legal.some(m=>(m.action||m.command)===action&&(to===undefined||m.to===to));
   const send=(action:string,to=-1,details?:Record<string,unknown>)=>onMove({from:null,to,command:action,...(details?{details}:{})});
 
-  const minBid=auction?auction.bid+10:10;
+  const minBid=auction?estateAuctionMinBid(auction):10;
   useEffect(()=>{
     if(auction){
-      setCustomBid(prev=>Math.max(auction.bid+10,prev<auction.bid+10?auction.bid+10:prev));
+      setCustomBid(minBid);
       setMinimized(false);
     }
-  },[auction?.lot,auction?.bid]);
+  },[auction?.lot,minBid]);
 
   useEffect(()=>{
     if(state.stage==='buy'||state.stage==='buyout')setMinimized(false);
@@ -58,24 +58,19 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
     const canBid=Boolean(enabled&&allowed('bid')&&me&&me.cash>=minBid);
     const hasPassed=auction.passed.includes(mySide);
 
-    const quickSteps=auction.bid===0
-      ?Array.from(new Set([10,50,100,Math.max(10,Math.floor((cell.price||100)*0.5/10)*10)]))
-          .filter(v=>v>=10)
-          .sort((a,b)=>a-b)
-          .map(amount=>({label:`${amount.toLocaleString('vi-VN')} tr`,amount}))
-      :[10,20,50,100].map(step=>({label:`+${step} tr`,amount:auction.bid+step}));
+    const quickSteps=[10,20,50,100].map(step=>({label:`+${cash(step)}`,amount:minBid-10+step}));
 
     const submitCustom=(e:FormEvent)=>{
       e.preventDefault();
       if(!canBid||!me)return;
-      const val=Math.max(minBid,Math.min(me.cash,Math.floor(customBid)));
-      send('bid',-1,{amount:val});
+      if(!Number.isSafeInteger(customBid)||customBid<minBid||customBid>me.cash)return;
+      send('bid',-1,{amount:customBid});
     };
 
     if(minimized){
       return <button type="button" className="estate-center-reopen is-auction" onClick={()=>setMinimized(false)}>
         <Gavel size={16}/>
-        <span>{t('Đang đấu giá') + ' '}<strong>{t(cell.name ?? '')}</strong> · {auction.bid>0?cash(auction.bid):t('Mở màn')}{isMyTurn?t(' · Lượt bạn!'):''}</span>
+        <span>{t('Đang đấu giá') + ' '}<strong>{t(cell.name ?? '')}</strong> · {cash(auction.leader?auction.bid:minBid)}{isMyTurn?t(' · Lượt bạn!'):''}</span>
       </button>;
     }
 
@@ -95,15 +90,16 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
               <span className="estate-center-subtitle">{cellSubtitle(cell)}</span>
             </div>
             <div className="estate-center-listprice">
-              <small>{t('Giá mua')}</small>
+              <small>{t('Giá gốc')}</small>
               <strong>{cash(cell.price)}</strong>
             </div>
           </div>
 
           <div className="estate-auction-hero">
             <div className="estate-auction-price-box">
-              <small>{auction.bid>0?t('Giá cao nhất hiện tại'):t('Khởi điểm đấu giá')}</small>
-              <strong>{auction.bid>0?cash(auction.bid):t('Từ 10 tr')}</strong>
+              <small>{auction.leader?t('Giá cao nhất hiện tại'):t('Khởi điểm đấu giá')}</small>
+              <strong>{cash(auction.leader?auction.bid:minBid)}</strong>
+              <small>{t('Giá gốc {0} + trả thêm {1}',cash(cell.price),cash((auction.leader?auction.bid:minBid)-cell.price))}</small>
             </div>
             <div className="estate-auction-leader-box">
               <small>{t('Đang dẫn')}</small>
@@ -116,6 +112,7 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
             </div>
           </div>
 
+          <p className="estate-center-footnote">{t('Người thắng trả tổng giá gồm giá gốc + phần trả thêm cho ngân hàng. Người chơi khác không nhận tiền đấu giá.')}</p>
           <div className="estate-auction-roster" aria-label={t('Người chơi tham gia đấu giá')}>
             {activePlayers.map(p=>{
               const passed=auction.passed.includes(p.side);
@@ -161,10 +158,10 @@ export default function EstateAuctionModal({state,mySide,turn,playerNames,legal,
             <form className="estate-custom-bid-row" onSubmit={submitCustom}>
               <input
                 type="number"
-                aria-label={t('Nhập giá đấu tùy chỉnh')}
+                aria-label={t('Tổng giá đấu (gồm giá gốc)')}
                 min={minBid}
                 max={Math.max(minBid,me?.cash||minBid)}
-                step={10}
+                step={1}
                 value={customBid}
                 onChange={e=>setCustomBid(+e.target.value)}
                 disabled={!canBid}

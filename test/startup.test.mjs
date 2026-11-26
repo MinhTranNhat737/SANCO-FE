@@ -490,14 +490,14 @@ test('Monopoly center buy decision and live auction modal render quick bid steps
   assert.equal(sent[0].command,'skip_buy');
 
   game.party.stage='auction';
-  game.party.auction={lot:1,bid:100,leader:'G',passed:[],returnSide:'R',history:[{side:'G',action:'bid',amount:100,at:1}]};
+  game.party.auction={lot:1,bid:220,leader:'G',passed:[],returnSide:'R',history:[{side:'G',action:'bid',amount:220,at:1}]};
   await act(async()=>root.render(createElement(EstateAuctionModal,{state:game.party,mySide:'R',turn:'R',playerNames:{R:'Minh',G:'Nam'},legal:[{from:null,to:-1,action:'bid'},{from:null,to:-1,action:'pass_bid'}],enabled:true,onMove:m=>sent.push(m)})));await settle();
   assert.ok(document.querySelector('.estate-auction-center'),'Center auction modal must appear');
   const stepButtons=[...document.querySelectorAll('.estate-step-btn')];
   assert.equal(stepButtons.length,4);
-  await click(stepButtons[1]); // +20 tr => 120 tr
+  await click(stepButtons[1]); // +20 tr => 240 tr total
   assert.equal(sent[1].command,'bid');
-  assert.equal(sent[1].details.amount,120);
+  assert.equal(sent[1].details.amount,240);
 });
 
 test('Monopoly event overlay renders Chance/Community 3D card flip, Jail slam and cash loss reasons',async()=>{

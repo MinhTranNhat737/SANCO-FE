@@ -30,6 +30,39 @@ const click=async(element)=>{assert.ok(element);await act(async()=>element.dispa
 const button=text=>[...document.querySelectorAll('button')].find(button=>button.textContent.trim()===text);
 const game=(count=2)=>{const g={phase:'playing',kind:'monopoly',turn:'R',party:newVietnam(count,'auto')};startVietnam(g,()=>0);return g;};
 
+test('Auction opening adds quick increments to the base price and discloses the bank payment',async()=>{
+  const {default:Modal}=await vite.ssrLoadModule('/src/EstateAuctionModal.tsx');
+  const g=game(),p=g.party,base=VN_CELLS[1].price,sent=[];
+  p.stage='auction';p.auction={lot:1,bid:base,leader:null,passed:[],returnSide:'R',history:[]};
+  const props={state:p,mySide:'R',turn:'R',legal:[{from:null,to:-1,action:'bid'},{from:null,to:-1,action:'pass_bid'}],enabled:true,onMove:m=>sent.push(m)};
+  await render(Modal,props);
+  assert.equal(document.querySelector('.estate-auction-price-box strong').textContent,data.cash(base+10));
+  assert.match(document.querySelector('.estate-auction-price-box').textContent,/Giá gốc 120 tr \+ trả thêm 10 tr/);
+  assert.match(document.querySelector('.estate-auction-center').textContent,/cho ngân hàng/);
+  const input=document.querySelector('.estate-custom-bid-row input');
+  assert.equal(input.min,String(base+10));assert.equal(input.value,String(base+10));
+  assert.equal(input.getAttribute('aria-label'),'Tổng giá đấu (gồm giá gốc)');
+  const steps=[...document.querySelectorAll('.estate-step-btn')];
+  assert.equal(steps[1].querySelector('small').textContent,data.cash(base+20));
+  await click(steps[1]);assert.equal(sent[0].details.amount,base+20);
+  p.players[0].cash=base+9;
+  await render(Modal,{...props,state:{...p}});
+  assert.ok([...document.querySelectorAll('.estate-step-btn')].every(b=>b.disabled));
+  assert.equal(document.querySelector('.estate-custom-submit').disabled,true);
+  assert.equal(document.querySelector('.estate-pass-btn').disabled,false);
+});
+
+test('Auction bids and fallback controls enforce the base price even for an old zero opening bid',async()=>{
+  const g=game(),p=g.party,base=VN_CELLS[1].price,sent=[];
+  p.stage='auction';p.auction={lot:1,bid:0,leader:null,passed:[],returnSide:'R'};
+  assert.equal(data.estateAuctionMinBid(p.auction),base+10);
+  await render(Controls,{state:p,mySide:'R',legal:[{from:null,to:-1,action:'bid'},{from:null,to:-1,action:'pass_bid'}],enabled:true,onMove:m=>sent.push(m)});
+  const form=document.querySelector('.estate-auction'),input=form.querySelector('input');
+  assert.equal(input.min,String(base+10));assert.equal(input.value,String(base+10));
+  await act(async()=>form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+  assert.equal(sent[0].details.amount,base+10);
+});
+
 test('Single-ring board opens magnified, supports zoom and overview, and keeps working lot inspection',async()=>{
   localStorage.setItem('sc-party-view','2d');localStorage.setItem('sc-estate-tutorial-v3','done');
   const g=game(8);
@@ -241,7 +274,7 @@ test('Auction modal centers over the board in fullscreen and built tiles show pe
   p.property[3]='G';p.houses[3]=5;
   p.players[0].position=1;
   p.stage='auction';
-  p.auction={lot:2,bid:120,leader:'G',passed:[],returnSide:'R',history:[{side:'G',action:'bid',amount:120,at:1}]};
+  p.auction={lot:2,bid:240,leader:'G',passed:[],returnSide:'R',history:[{side:'G',action:'bid',amount:240,at:1}]};
   const legal=[{from:null,to:-1,action:'bid'},{from:null,to:-1,action:'pass_bid'}];
   await render(PartyBoard,{
     kind:'monopoly',state:p,mySide:'R',turn:'R',legal,enabled:true,animate:false,immersive:true,onMove:()=>{},
