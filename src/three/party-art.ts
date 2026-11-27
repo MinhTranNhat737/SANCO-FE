@@ -5,7 +5,7 @@ import {VN_CELLS,VN_GROUP_COLORS,ownable} from '../estate-data.ts';
 import {PROVINCE_LANDMARKS,type LandmarkKind} from '../vietnam-landmarks.ts';
 
 const UI_FONT="'Be Vietnam Pro','Segoe UI',Arial,sans-serif";
-const DISPLAY_FONT="'Playfair Display',Georgia,'Times New Roman',serif";
+const DISPLAY_FONT="'Be Vietnam Pro','Segoe UI',Arial,sans-serif";
 
 function canvas(size=2400,height=size){const el=document.createElement('canvas');el.width=size;el.height=height;return {el,ctx:el.getContext('2d')!};}
 function texture(el:HTMLCanvasElement){const t=new T.CanvasTexture(el);t.colorSpace=T.SRGBColorSpace;t.anisotropy=16;return t;}

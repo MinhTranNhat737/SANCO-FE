@@ -278,7 +278,7 @@ body:has(.estate-immersive) #root :is(.sidebar,.topbar,.footer),body:has(.estate
 }
 .estate-setup-top {display:flex;align-items:center;justify-content:space-between;gap:10px}
 .estate-setup-top .text-button {font-size:12.5px;color:#d6cab1;padding:4px 0}
-.estate-setup-title {margin:0 0 2px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;color:#fae6b2;text-align:center;letter-spacing:.3px}
+.estate-setup-title {margin:0 0 2px;font-family:'Be Vietnam Pro','Segoe UI',system-ui,-apple-system,sans-serif;font-size:23px;font-weight:800;color:#fae6b2;text-align:center;letter-spacing:-.01em}
 .estate-setup-glass .estate-mode-preview {background:#ffffff08;border-color:#d5b76e33;font-size:12px;padding:9px 11px}
 .estate-setup-glass .practice-start {margin-top:4px;min-height:44px}
 

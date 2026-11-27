@@ -37,17 +37,33 @@ export default function EstateEventOverlay({featured,drawPrompt=null,onDrawCard,
     return <Undo2 size={26}/>;
   };
 
+  // Clean Vietnamese card copy: NFC-normalized, no redundant deck prefix, clean clause breaks
+  const formatCardTitle=(raw?:string)=>(t(raw??'')).normalize('NFC');
+  const formatCardDesc=(ev:EstateEvent)=>{
+    let text=systemMessage(ev.reason).normalize('NFC').trim();
+    if(ev.type==='card'){
+      text=text.replace(/^Thẻ\s+(?:Cơ hội|Khí vận|Chance|Community)\s*:\s*/i,'');
+      if(text.length>0)text=text[0].toUpperCase()+text.slice(1);
+      if(ev.card===11){
+        text=text.replace(/;\s*khách sạn/i,'\nKhách sạn').replace(/;\s*/g,' · ');
+      }else if(text.includes('; ')){
+        text=text.split('; ').map((part,idx)=>idx>0&&part.length?part[0].toUpperCase()+part.slice(1):part).join('\n');
+      }
+    }
+    return text;
+  };
+
   // Exact effect printed right on the face of the drawn card
   const printedEffectText=(ev:EstateEvent)=>{
-    if(ev.card===4)return `VỀ Ô XUẤT PHÁT · NHẬN +${cash(ev.amount)}`;
-    if(ev.card===5)return t('DI CHUYỂN VÀO TRẠI GIAM NGAY');
-    if(ev.card===6)return t('DI CHUYỂN LÙI 3 Ô TRÊN BÀN');
-    if(ev.card===10)return t('ĐẾN NHÀ GA GẦN NHẤT');
-    if(ev.card===3)return t('NHẬN +1 THẺ RA TÙ MIỄN PHÍ');
-    if(ev.card===12)return `NHẬN +1 THẺ RA TÙ & +${cash(ev.amount)}`;
-    if(ev.amount>0)return `NHẬN THƯỞNG +${cash(ev.amount).toUpperCase()}`;
-    if(ev.amount<0)return `NỘP PHÍ −${cash(Math.abs(ev.amount)).toUpperCase()}`;
-    return t('ÁP DỤNG NGAY TRONG LƯỢT');
+    if(ev.card===4)return `VỀ Ô XUẤT PHÁT · NHẬN +${cash(ev.amount).toUpperCase()}`.normalize('NFC');
+    if(ev.card===5)return t('DI CHUYỂN VÀO TRẠI GIAM NGAY').normalize('NFC');
+    if(ev.card===6)return t('DI CHUYỂN LÙI 3 Ô TRÊN BÀN').normalize('NFC');
+    if(ev.card===10)return t('ĐẾN NHÀ GA GẦN NHẤT').normalize('NFC');
+    if(ev.card===3)return t('NHẬN +1 THẺ RA TÙ MIỄN PHÍ').normalize('NFC');
+    if(ev.card===12)return `NHẬN +1 THẺ RA TÙ & +${cash(ev.amount).toUpperCase()}`.normalize('NFC');
+    if(ev.amount>0)return `NHẬN THƯỞNG +${cash(ev.amount).toUpperCase()}`.normalize('NFC');
+    if(ev.amount<0)return `NỘP PHÍ −${cash(Math.abs(ev.amount)).toUpperCase()}`.normalize('NFC');
+    return t('ÁP DỤNG NGAY TRONG LƯỢT').normalize('NFC');
   };
 
   const printedEffectTone=(ev:EstateEvent)=>{
@@ -64,8 +80,8 @@ export default function EstateEventOverlay({featured,drawPrompt=null,onDrawCard,
     const tilt=featured.deck==='community'?6:-6;
 
     const moveAnim=moverEl.animate([
-      {transform:`translate3d(0px, 0px, 0) scale(0.62) rotate(${tilt}deg)`,offset:0},
-      {transform:`translate3d(0px, -54px, 0) scale(0.82) rotate(${-tilt*0.35}deg)`,offset:0.32},
+      {transform:`translate3d(0px, 0px, 0) scale(0.52) rotate(${tilt}deg)`,offset:0},
+      {transform:`translate3d(0px, -54px, 0) scale(0.78) rotate(${-tilt*0.35}deg)`,offset:0.32},
       {transform:'translate3d(0px, -6px, 0) scale(1.02) rotate(0deg)',offset:0.68},
       {transform:'translate3d(0px, 0px, 0) scale(1) rotate(0deg)',offset:1}
     ],{duration:1180,easing:'cubic-bezier(0.22, 1, 0.36, 1)',fill:'forwards'});
@@ -193,8 +209,8 @@ export default function EstateEventOverlay({featured,drawPrompt=null,onDrawCard,
 
                   <div className="estate-printed-body">
                     <span className="estate-printed-emblem">{featured.type==='market'?<Landmark size={26}/>:cardIcon(featured.card)}</span>
-                    <h3 className="estate-printed-title">{t(featured.title ?? '')}</h3>
-                    <p className="estate-printed-desc">{systemMessage(featured.reason)}</p>
+                    <h3 className="estate-printed-title">{formatCardTitle(featured.title)}</h3>
+                    <p className="estate-printed-desc">{formatCardDesc(featured)}</p>
                     {featured.type==='card'&&<div className={`estate-printed-stamp ${printedEffectTone(featured)}`}>
                       <small>{t('HIỆU ỨNG TRÊN THẺ')}</small>
                       <strong>{printedEffectText(featured)}</strong>
